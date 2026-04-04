@@ -1,0 +1,117 @@
+@import "@fontsource/cormorant-garamond/400.css";
+@import "@fontsource/cormorant-garamond/600.css";
+@import "@fontsource/cormorant-garamond/400-italic.css";
+@import "@fontsource/jost/300.css";
+@import "@fontsource/jost/400.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Motion primitives (transform/opacity only) ───────────────────────────── */
+
+:root {
+  /* AURORE Design Tokens */
+  --void: #0a0705;
+  --obsidian: #0d0905;
+  --ink: #140e08;
+  --mahogany: #1a1410;
+  --ember: #2a1f15;
+  --sand: #c9a96e;
+  --gold: #b8924a;
+  --antique: #8b6914;
+  --gold-pale: #e8d5a8;
+  --text-primary: #e8dfd0;
+  --text-secondary: #9a8878;
+  --text-muted: #5a4d42;
+  --ghost: rgba(255, 255, 255, 0.04);
+  --veil: rgba(255, 255, 255, 0.08);
+  --frost: rgba(255, 255, 255, 0.14);
+  --specular: rgba(201, 169, 110, 0.1);
+  --specular-edge: rgba(201, 169, 110, 0.2);
+  --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.65);
+  --shadow-glass: inset 0 1px 0 rgba(201, 169, 110, 0.18),
+    0 8px 32px rgba(0, 0, 0, 0.5);
+  --border-glass: 0.5px solid rgba(201, 169, 110, 0.18);
+  --ease-luxury: cubic-bezier(0.25, 0.1, 0, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "Jost", system-ui, sans-serif;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --text-body: 1rem;
+  --lh-body: 1.55;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--void);
+  color: var(--text-secondary);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+@keyframes routeFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.anim-route {
+  animation: routeFade 320ms var(--ease-out-quart) both;
+}
+
+.anim-rise {
+  animation: routeFade 260ms var(--ease-out-quart) both;
+}
+
+.motion-press {
+  transition: transform 140ms var(--ease-out-expo);
+  transform: translateZ(0);
+}
+
+.motion-press:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .anim-route,
+  .anim-rise {
+    animation: none !important;
+  }
+  .motion-press {
+    transition: none !important;
+  }
+  .motion-press:active {
+    transform: none !important;
+  }
+}

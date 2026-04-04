@@ -1,0 +1,119 @@
+/* ===== GLOBAL ===== */
+/* Fonts are centralized in src/index.css */
+
+/* ===== BACKGROUND ===== */
+body {
+  background: radial-gradient(circle at top, #1a120b, #0a0705);
+}
+
+/* ===== NAV ===== */
+.nav-link {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  color: #bfa27a;
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #d4af7f;
+  transition: 0.3s;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* ===== FILTER ===== */
+.filter-pill {
+  padding: 6px 14px;
+  border: 1px solid #ffffff10;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.filter-pill.active {
+  background: #d4af7f;
+  color: #000;
+}
+
+/* ===== CARD ===== */
+.product-card {
+  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: 0.4s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: #d4af7f55;
+}
+
+/* IMAGE */
+.product-image {
+  height: 200px;
+  position: relative;
+}
+
+/* GLOW */
+.product-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  transition: 0.5s;
+}
+
+.product-card:hover .product-glow {
+  opacity: 1;
+}
+
+/* CONTENT */
+.product-info {
+  padding: 14px;
+}
+
+/* TITLE */
+.product-title {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* PRICE */
+.product-price {
+  color: #d4af7f;
+}
+
+/* BUTTON */
+.btn-add {
+  width: 100%;
+  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid #d4af7f44;
+  color: #d4af7f;
+  transition: 0.3s;
+}
+
+.btn-add:hover {
+  background: #d4af7f;
+  color: #000;
+}
+
+/* WISHLIST */
+.wishlist-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #00000088;
+  padding: 6px;
+  border-radius: 50%;
+}

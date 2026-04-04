@@ -1,0 +1,167 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+import WishlistItemCard from "../components/wishlist-components/WishlistItemCard";
+import WishlistSummary from "../components/wishlist-components/WishlistSummary";
+import WishlistBenefits from "../components/wishlist-components/WishlistBenefits";
+import WishlistRecommended from "../components/wishlist-components/WishlistRecommended";
+
+import { Heart, ArrowLeft, ChevronRight } from "lucide-react";
+import Sidebar from "../components/Sidebar";
+
+export default function Wishlist() {
+  const [wishlistItems, setWishlistItems] = useState([
+    {
+      id: 1,
+      name: "Midnight Oud",
+      type: "Eau de Parfum",
+      price: 450,
+      image:
+        "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400",
+      notes: "Woody, Amber, Oud",
+      rating: 4.8,
+      reviews: 124,
+      inStock: true,
+      isNew: true,
+    },
+    {
+      id: 2,
+      name: "Desert Rose",
+      type: "Eau de Parfum",
+      price: 380,
+      image:
+        "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=400",
+      notes: "Rose, Saffron, Sandalwood",
+      rating: 4.9,
+      reviews: 89,
+      inStock: true,
+    },
+    {
+      id: 3,
+      name: "Royal Amber",
+      type: "Extrait de Parfum",
+      price: 650,
+      originalPrice: 780,
+      image:
+        "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400",
+      notes: "Amber, Vanilla, Musk",
+      rating: 4.7,
+      reviews: 56,
+      inStock: true,
+      isSale: true,
+    },
+    {
+      id: 4,
+      name: "Golden Saffron",
+      type: "Extrait de Parfum",
+      price: 520,
+      image:
+        "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400",
+      notes: "Saffron, Leather, Cedar",
+      rating: 4.9,
+      reviews: 203,
+      inStock: false,
+    },
+  ]); // SAME DATA
+  const [addedToCart, setAddedToCart] = useState<number | null>(null);
+  const [wishlist, setWishlist] = useState<number[]>([]);
+  const [cart, setCart] = useState<number[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const removeFromWishlist = (id: number) => {
+    setWishlistItems((items) => items.filter((item) => item.id !== id));
+  };
+
+  const addToCart = (id: number) => {
+    setAddedToCart(id);
+    setTimeout(() => setAddedToCart(null), 2000);
+  };
+
+  const moveAllToCart = () => {};
+
+  return (
+    <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif">
+      <Sidebar
+        cartCount={cart.length}
+        wishlistCount={wishlist.length}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+      <div className="sticky top-0 z-40 bg-[#0a0705]/95 backdrop-blur-sm border-b border-[#c9a96e]/10 p-4 flex items-center justify-between">
+        <button
+          type="button"
+          aria-label="Open navigation menu"
+          onClick={() => setIsSidebarOpen((prev) => !prev)}
+          className="p-2 transition rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
+        >
+          <svg
+            className="w-6 h-6 text-[#e8dcc8]"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path strokeWidth="1.5" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        <span className="text-sm text-[#c9a96e]">Wishlist</span>
+      </div>
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none opacity-5">
+        <div className="absolute inset-0 bg-noise" />
+      </div>
+
+      <div className="relative px-4 py-8 mx-auto max-w-7xl md:px-8 md:py-12">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <Link
+            to="/product"
+            className="flex gap-2 py-2 text-[#c9a96e]/70 hover:text-[#c9a96e]"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Continue Shopping
+          </Link>
+
+          <div className="flex gap-2">
+            <Heart className="w-5 h-5 text-[#c9a96e]" />
+            <span>{wishlistItems.length} Items</span>
+          </div>
+        </div>
+
+        <h1 className="mb-8 text-4xl">
+          My <span className="text-[#c9a96e]">Wishlist</span>
+        </h1>
+
+        {wishlistItems.length === 0 ? (
+          <div className="py-20 text-center">
+            <Heart className="w-20 h-20 mx-auto text-[#c9a96e]/30 mb-6" />
+            <h2>Your wishlist is empty. Save fragrances to buy later.</h2>
+            <Link to="/product" className="bg-[#c9a96e] px-6 py-3 rounded-lg">
+              Explore Collection
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-8 lg:grid-cols-3">
+            {/* LEFT */}
+            <div className="space-y-4 lg:col-span-2">
+              {wishlistItems.map((item) => (
+                <WishlistItemCard
+                  key={item.id}
+                  item={item}
+                  addToCart={addToCart}
+                  removeFromWishlist={removeFromWishlist}
+                  addedToCart={addedToCart}
+                />
+              ))}
+            </div>
+
+            {/* RIGHT */}
+            <div className="sticky space-y-6 top-8">
+              <WishlistSummary items={wishlistItems} />
+              <WishlistBenefits />
+              <WishlistRecommended />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,58 @@
+Section 1 — Navbar (home-specific)
+Component: mlm-app/src/components/Home-components/Navbar.tsx (same logical folder as home-components on disk).
+
+Position: fixed top, full width, z-50.
+Background: Linear gradient from #0a0705ee to transparent (fades into the hero).
+Left: Brand link “AURORE” → /.
+Center nav: Home (/), Collection / Atelier / Journal (all → /product for now).
+Right: Login → /login (button styled as .nav-link).
+Section 2 — Hero (“home section” for a background image)
+Component: mlm-app/src/components/Home-components/HeroSection.tsx.
+
+Layout: section with min-h-screen, bottom-aligned content, horizontal padding px-12, bottom padding pb-24.
+Background stack (absolute, full bleed):
+Base: div with class img-placeholder — currently a CSS gradient only (no photo); defined in Home.css as linear-gradient(135deg, #1a1410 … #2a1f15 …).
+Two radial glows (gold #c9a96e and #8b6914).
+Top-to-bottom dark overlay so content stays readable: fade from #0a0705 at bottom through semi-transparent to transparent at top.
+Foreground: Two-column grid (max-w-7xl):
+Left: “New Collection 2025” + glow dot, headline “The Art / of Scent”, primary button “Explore Now”, link “View All →” /product.
+Right: Italic tagline + .gold-line.
+Bottom center: “Scroll” label + vertical gold gradient line (opacity-40).
+Note: Hero.tsx duplicates this hero markup but is not imported in Home.tsx; the live page uses HeroSection only.
+
+Section 3 — Marquee
+Component: mlm-app/src/components/Home-components/Marquee.tsx
+Data: marqueeText in mlm-app/src/data/HomeData.ts.
+
+Horizontal infinite scroll (.marquee-track, ~18s loop).
+Styling: Top/bottom borders border-[#c9a96e22], gold-muted uppercase small text.
+Phrases: e.g. “Eau de Parfum”, “Exclusive Blends”, “Maison Artisanale”, “Since 1987”, cities line, separated by “·”. Content is duplicated in the DOM for seamless looping.
+Section 4 — Featured collection
+Component: mlm-app/src/components/Home-components/FeaturedCollection.tsx
+Data: First 3 items from mlm-app/src/data/products.
+
+Header: “Our Signature” / “Featured Fragrances” + “View all collection →” /product.
+Grid: 3 columns, product images from data, dark overlay, optional badge, hover glow; card body with type, name, notes, AED price, “ADD →”.
+Interaction: .card-hover lift on hover (Home.css).
+Section 5 — Brand statement
+Component: mlm-app/src/components/Home-components/BrandStatement.tsx.
+
+Full-width band with subtle top/bottom borders and its own diagonal gradient background (#0d0905 → #140e08).
+Centered: short gold line, large italic headline (“Every bottle holds / a world unto itself”), supporting copy (oud, rose, vanilla, master perfumers), “Our Story” .btn-primary.
+Section 6 — Testimonials
+Component: mlm-app/src/components/Home-components/Testimonials.tsx
+Data: testimonialsData in HomeData.ts (3 quotes + authors).
+
+Header: “Testimonials” / “What Our Clients Say”.
+Grid: 3 bordered cards on #0d0905, italic body text, author with gold divider.
+Section 7 — Notes explorer (scent families)
+Component: mlm-app/src/components/Home-components/NotesExplorer.tsx
+Data: scentFamilies in HomeData.ts (4 families with counts).
+
+Left column: “Discover by” / “Scent Families”, list of links to /product with hover states.
+Right column: Large square visual using img-placeholder plus extra gradient, “Featured Note” card (“Oud Cambodi” + caption), decorative offset border behind the block.
+Section 8 — Footer
+Component: mlm-app/src/components/Home-components/Footer.tsx.
+
+Top border gold-tinted.
+Row: “AURORE”, © 2025 line, links Privacy / Terms / Contact (all # routes to / in code).
