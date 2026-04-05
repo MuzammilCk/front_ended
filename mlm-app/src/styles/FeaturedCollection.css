@@ -1,0 +1,209 @@
+/* ── WRAPPER: intro (flow) + pinned runway ── */
+.fc-featured {
+  position: relative;
+  background: var(--void);
+}
+
+/* ── INTRO — scrolls away before / while runway pins ── */
+.fc-intro {
+  position: relative;
+  z-index: 5;
+  padding: 5rem 1.5rem 3.5rem;
+  padding-left: max(1.5rem, env(safe-area-inset-left));
+  text-align: left;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .fc-intro {
+    padding: 6.5rem 3rem 4.5rem;
+    padding-left: max(3rem, env(safe-area-inset-left));
+  }
+}
+
+.fc-intro-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0 0 1.35rem;
+  max-width: min(22rem, 100%);
+}
+
+/* Matches HeroSection eyebrow — small caps, sand, body font */
+.fc-intro-eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sand);
+}
+
+/* Editorial display line — smaller than old shouty caps, aligned with hero “of Scent” */
+.fc-intro-headline {
+  font-family: var(--font-display);
+  font-size: clamp(2.125rem, 4.6vw, 3.25rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--sand);
+}
+
+.fc-intro-rule {
+  width: 48px;
+  height: 1px;
+  margin: 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--sand) 85%, transparent),
+    transparent
+  );
+}
+
+/* Full-width section; height = N × viewport for pin scroll distance */
+.fc-section {
+  position: relative;
+  height: calc(100vh * var(--fc-slide-count, 4));
+  overflow: hidden;
+  background: var(--void);
+}
+
+/* ── LAYER 1 — 100vw slides, horizontal track (GSAP x) ── */
+.fc-layer1 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  height: 100vh;
+  width: calc(100vw * var(--fc-slide-count, 4));
+  will-change: transform;
+  z-index: 0;
+}
+
+.fc-slide {
+  position: relative;
+  width: 100vw;
+  min-width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Light wash — keeps depth without crushing the product */
+.fc-l1-void {
+  background: radial-gradient(
+      ellipse 85% 70% at 50% 45%,
+      transparent 0%,
+      color-mix(in srgb, var(--void) 12%, transparent) 45%,
+      color-mix(in srgb, var(--void) 28%, transparent) 100%
+    );
+  pointer-events: none;
+}
+
+/* ── LAYER 2 — 100vw × 100vh, stacked panels, opacity only (no translate) ── */
+.fc-layer2 {
+  width: 100vw;
+  height: 100vh;
+}
+
+.fc-l2-panel {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0;
+  transition: opacity 700ms ease-in-out;
+  pointer-events: none;
+}
+
+.fc-l2-panel.fc-l2-active {
+  opacity: 1;
+}
+
+/* Softer vignette — edges only, center and lower third stay readable */
+.fc-l2-vignette {
+  background:
+    radial-gradient(
+      ellipse 90% 65% at 50% 42%,
+      transparent 35%,
+      color-mix(in srgb, var(--void) 18%, transparent) 72%,
+      color-mix(in srgb, var(--void) 45%, transparent) 100%
+    ),
+    linear-gradient(
+      to top,
+      color-mix(in srgb, var(--void) 55%, transparent) 0%,
+      transparent 28%
+    );
+  pointer-events: none;
+}
+
+/* ── PROGRESS DOTS ── */
+.fc-dots {
+  position: sticky;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+  pointer-events: none;
+  height: 0;
+  margin-top: -40px;
+}
+
+.fc-dot {
+  height: 4px;
+  width: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--sand) 25%, transparent);
+  transition:
+    width 300ms var(--ease-luxury),
+    background 300ms var(--ease-luxury);
+}
+
+.fc-dot.fc-dot--active {
+  width: 20px;
+  background: var(--sand);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-intro {
+    padding: 3rem 1.5rem 2rem;
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    text-align: left;
+  }
+
+  .fc-section {
+    height: auto;
+    overflow: visible;
+  }
+
+  .fc-layer2 {
+    display: none;
+  }
+
+  .fc-layer1 {
+    position: static;
+    flex-direction: column;
+    width: 100% !important;
+    transform: none !important;
+  }
+
+  .fc-slide {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 80vh;
+  }
+
+  .fc-dots {
+    display: none;
+  }
+}
