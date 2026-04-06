@@ -1,86 +1,10 @@
-/* ── WRAPPER: pinned runway + heading overlay inside section ── */
+/* ── WRAPPER ── */
 .fc-featured {
   position: relative;
   background: var(--void);
 }
 
-/* Heading sits inside pinned section, over layer 1; below layer 2 (z-index 3) */
-.fc-heading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  padding-top: max(6rem, env(safe-area-inset-top));
-  padding-right: max(3rem, env(safe-area-inset-right));
-  padding-bottom: 0;
-  padding-left: max(3rem, env(safe-area-inset-left));
-  text-align: left;
-  pointer-events: none;
-}
-
-@media (max-width: 767px) {
-  .fc-heading-overlay {
-    padding-top: max(5rem, env(safe-area-inset-top));
-    padding-right: max(1.5rem, env(safe-area-inset-right));
-    padding-bottom: 0;
-    padding-left: max(1.5rem, env(safe-area-inset-left));
-  }
-}
-
-.fc-intro-title {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.65rem;
-  margin: 0 0 1.35rem;
-  max-width: min(22rem, 100%);
-}
-
-/* Matches HeroSection eyebrow — small caps, sand, body font */
-.fc-intro-eyebrow {
-  font-family: var(--font-body);
-  font-size: 0.6875rem;
-  font-weight: 300;
-  line-height: 1.4;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--sand);
-}
-
-/* Editorial display line — smaller than old shouty caps, aligned with hero “of Scent” */
-.fc-intro-headline {
-  font-family: var(--font-display);
-  font-size: clamp(2.125rem, 4.6vw, 3.25rem);
-  font-weight: 300;
-  font-style: italic;
-  line-height: 1.08;
-  letter-spacing: -0.01em;
-  color: var(--sand);
-}
-
-.fc-heading-overlay .fc-intro-headline {
-  text-shadow: 0 2px 32px rgba(10, 7, 5, 0.7);
-}
-
-.fc-heading-overlay .fc-intro-eyebrow {
-  text-shadow: 0 1px 12px rgba(10, 7, 5, 0.9);
-}
-
-.fc-intro-rule {
-  width: 48px;
-  height: 1px;
-  margin: 0;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--sand) 85%, transparent),
-    transparent
-  );
-}
-
-/* Pin spacer from GSAP owns scroll distance — section stays one viewport tall */
+/* ── PINNED SECTION ── */
 .fc-section {
   position: relative;
   height: 100vh;
@@ -88,16 +12,18 @@
   background: var(--void);
 }
 
-/* ── LAYER 1 — 100vw slides, horizontal track (GSAP x) ── */
+/* ─────────────────────────────────────
+   HORIZONTAL SLIDE TRACK
+───────────────────────────────────────*/
 .fc-layer1 {
   position: absolute;
   top: 0;
   left: 0;
   display: flex;
   height: 100vh;
-  width: calc(100vw * var(--fc-slide-count, 4));
+  width: calc(100vw * var(--fc-slide-count, 5));
   will-change: transform;
-  z-index: 0;
+  z-index: 1;
 }
 
 .fc-slide {
@@ -110,52 +36,221 @@
   overflow: hidden;
 }
 
-/* Light wash — keeps depth without crushing the product */
-.fc-l1-void {
-  background: radial-gradient(
-      ellipse 85% 70% at 50% 45%,
-      transparent 0%,
-      color-mix(in srgb, var(--void) 12%, transparent) 45%,
-      color-mix(in srgb, var(--void) 28%, transparent) 100%
-    );
-  pointer-events: none;
-}
-
-/* ── LAYER 2 — 100vw × 100vh, stacked panels, opacity only (no translate) ── */
-.fc-layer2 {
-  width: 100vw;
-  height: 100vh;
-}
-
-.fc-l2-panel {
+.fc-l1-image {
   position: absolute;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
-  opacity: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: var(--mahogany);
+  transform: scale(1.05);
+}
+
+.fc-l1-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  background-color: var(--mahogany);
+  transform: scale(1.05);
   pointer-events: none;
 }
 
-/* Softer vignette — edges only, center and lower third stay readable */
-.fc-l2-vignette {
-  background:
-    radial-gradient(
-      ellipse 90% 65% at 50% 42%,
-      transparent 35%,
-      color-mix(in srgb, var(--void) 18%, transparent) 72%,
-      color-mix(in srgb, var(--void) 45%, transparent) 100%
-    ),
-    linear-gradient(
-      to top,
-      color-mix(in srgb, var(--void) 55%, transparent) 0%,
-      transparent 28%
-    );
+.fc-l1-void {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 85% 70% at 50% 45%,
+    transparent 0%,
+    color-mix(in srgb, var(--void) 12%, transparent) 45%,
+    color-mix(in srgb, var(--void) 28%, transparent) 100%
+  );
   pointer-events: none;
+}
+
+/* ─────────────────────────────────────
+   GAME HUD — SLIDE INFO (inside each slide)
+───────────────────────────────────────*/
+.fc-slide-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  padding: 0 clamp(2rem, 5vw, 5rem) clamp(4rem, 8vh, 6rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  pointer-events: auto;
+  /* Bottom gradient to ensure text readability */
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--void) 85%, transparent) 0%,
+    color-mix(in srgb, var(--void) 55%, transparent) 35%,
+    transparent 70%
+  );
+}
+
+/* Section eyebrow — "Our featured" */
+.fc-slide-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.1rem;
+}
+
+.fc-eyebrow-label {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 300;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--sand);
+  opacity: 0.7;
+}
+
+.fc-eyebrow-rule {
+  flex: 0 0 36px;
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sand) 60%, transparent), transparent);
+}
+
+/* Perfume name — big display headline */
+.fc-slide-name {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 6.5vw, 5rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.0;
+  letter-spacing: -0.015em;
+  color: var(--sand);
+  text-shadow: 0 2px 40px rgba(10, 7, 5, 0.8);
+  margin: 0 0 0.55rem;
+}
+
+/* Tagline */
+.fc-slide-tagline {
+  font-family: var(--font-body);
+  font-size: clamp(0.75rem, 1.4vw, 0.9rem);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--sand) 65%, transparent);
+  margin: 0 0 1.8rem;
+}
+
+/* Notes panel — the "character stats" */
+.fc-notes-panel {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--sand) 12%, transparent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--void) 40%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.fc-notes-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fc-notes-label {
+  font-family: var(--font-body);
+  font-size: 0.5rem;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold, #c9a96e);
+  opacity: 0.8;
+}
+
+.fc-notes-value {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: var(--sand);
+}
+
+/* Price + CTA row */
+.fc-slide-cta-row {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.fc-slide-price {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.fc-price-amount {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: 300;
+  color: var(--sand);
+  letter-spacing: 0.02em;
+}
+
+.fc-price-ml {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--sand) 45%, transparent);
+}
+
+.fc-slide-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  letter-spacing: 0.22em;
+  font-size: 0.6rem;
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  font-weight: 400;
+  border: 1px solid color-mix(in srgb, var(--gold, #c9a96e) 55%, transparent);
+  color: var(--gold, #c9a96e);
+  padding: 0.75rem 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: color 0.4s, border-color 0.4s, background 0.4s;
+  background: transparent;
+  cursor: pointer;
+}
+
+.fc-slide-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gold, #c9a96e);
+  transform: translateX(-101%);
+  transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+  z-index: -1;
+}
+
+.fc-slide-btn:hover {
+  color: var(--void);
+  border-color: var(--gold, #c9a96e);
+}
+
+.fc-slide-btn:hover::before {
+  transform: translateX(0);
 }
 
 /* ── PROGRESS DOTS ── */
 .fc-dots {
-  position: sticky;
+  position: absolute;
   bottom: 40px;
   left: 0;
   right: 0;
@@ -165,8 +260,6 @@
   gap: 8px;
   z-index: 10;
   pointer-events: none;
-  height: 0;
-  margin-top: -40px;
 }
 
 .fc-dot {
@@ -175,8 +268,8 @@
   border-radius: 2px;
   background: color-mix(in srgb, var(--sand) 25%, transparent);
   transition:
-    width 300ms var(--ease-luxury),
-    background 300ms var(--ease-luxury);
+    width 300ms var(--ease-luxury, ease),
+    background 300ms var(--ease-luxury, ease);
 }
 
 .fc-dot.fc-dot--active {
@@ -184,23 +277,11 @@
   background: var(--sand);
 }
 
+/* ── REDUCED MOTION FALLBACK ── */
 @media (prefers-reduced-motion: reduce) {
-  .fc-heading-overlay {
-    position: relative;
-    z-index: 1;
-    padding: 3rem 1.5rem 2rem;
-    padding-left: max(1.5rem, env(safe-area-inset-left));
-    text-align: left;
-    will-change: auto;
-  }
-
   .fc-section {
     height: auto;
     overflow: visible;
-  }
-
-  .fc-layer2 {
-    display: none;
   }
 
   .fc-layer1 {
@@ -215,10 +296,31 @@
     min-width: 100%;
     max-width: 100%;
     height: auto;
-    min-height: 80vh;
+    min-height: 90vh;
+  }
+
+  .fc-slide-info {
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .fc-dots {
     display: none;
+  }
+}
+
+/* ── MOBILE ── */
+@media (max-width: 767px) {
+  .fc-slide-info {
+    padding: 0 1.5rem clamp(5rem, 12vh, 7rem);
+  }
+
+  .fc-notes-panel {
+    gap: 1.25rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .fc-slide-name {
+    font-size: clamp(2rem, 10vw, 3rem);
   }
 }
