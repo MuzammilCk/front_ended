@@ -1,5 +1,5 @@
 import "../styles/home.css";
-import Navbar from "../components/Home-components/Navbar";
+import Navbar from "../components/home-components/Navbar";
 import HeroSection from "../components/Home-components/HeroSection";
 import FeaturedCollection from "../components/Home-components/FeaturedCollection";
 import BrandStatement from "../components/Home-components/BrandStatement";

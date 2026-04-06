@@ -17,7 +17,7 @@ function isVideoSrc(src: string): boolean {
 const PERFUMES = [
   {
     id: 0,
-    image: "/featured/1.mp4",
+    image: "/featured/1.png",
     name: "Noir Absolu",
     tagline: "The scent of midnight cedar",
     family: "Oriental · Woody",
@@ -41,7 +41,7 @@ const PERFUMES = [
   },
   {
     id: 2,
-    image: "/featured/2.png",
+    image: "/featured/3.png",
     name: "Sable d'Or",
     tagline: "Warmth you wear like a second skin",
     family: "Amber · Gourmand",
@@ -53,7 +53,7 @@ const PERFUMES = [
   },
   {
     id: 3,
-    image: "/featured/2.png",
+    image: "/featured/4.png",
     name: "Brume Verte",
     tagline: "Rain on stone. Earth reborn.",
     family: "Aromatic · Green",
@@ -65,7 +65,7 @@ const PERFUMES = [
   },
   {
     id: 4,
-    image: "/featured/2.png",
+    image: "/featured/5.png",
     name: "Ébène Céleste",
     tagline: "Dark. Timeless. Unapologetic.",
     family: "Chypre · Dark",

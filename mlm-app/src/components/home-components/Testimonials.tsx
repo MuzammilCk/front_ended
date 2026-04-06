@@ -1,34 +1,115 @@
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useEffect, useRef } from "react";
 import { testimonialsData } from "../../data/HomeData";
 
-export default function Testimonials() {
-  return (
-    <section className="px-12 py-32">
-      <div className="mx-auto text-center max-w-7xl">
-        {/* Section Header */}
-        <p className="text-[#c9a96e] text-xs tracking-[0.3em] uppercase font-light mb-4">
-          Testimonials
-        </p>
+gsap.registerPlugin(ScrollTrigger);
 
-        <h2 className="font-display text-5xl font-light text-[#e8dcc8] mb-16">
+const StarRow = ({ count = 5 }: { count?: number }) => (
+  <div className="tm-stars" aria-label={`${count} stars`}>
+    {Array.from({ length: count }).map((_, i) => (
+      <svg key={i} width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+      </svg>
+    ))}
+  </div>
+);
+
+export default function Testimonials() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const marqueeRef = useRef<HTMLDivElement>(null);
+  const marqueeInnerRef = useRef<HTMLDivElement>(null);
+
+  const allTestimonials = [...testimonialsData, ...testimonialsData];
+
+  useEffect(() => {
+    const marqueeEl = marqueeRef.current;
+
+    const pauseMarquee = () => gsap.globalTimeline.pause();
+    const resumeMarquee = () => gsap.globalTimeline.resume();
+
+    const ctx = gsap.context(() => {
+      if (headerRef.current && sectionRef.current) {
+        gsap.from(headerRef.current, {
+          y: 24,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 78%",
+          },
+        });
+      }
+
+      const inner = marqueeInnerRef.current;
+      if (!inner) return;
+
+      const startMarquee = () => {
+        const totalWidth = inner.scrollWidth / 2;
+        if (totalWidth <= 0) return;
+        gsap.to(inner, {
+          x: -totalWidth,
+          duration: 35,
+          ease: "none",
+          repeat: -1,
+        });
+      };
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(startMarquee);
+      });
+    }, sectionRef);
+
+    if (marqueeEl) {
+      marqueeEl.addEventListener("mouseenter", pauseMarquee);
+      marqueeEl.addEventListener("mouseleave", resumeMarquee);
+    }
+
+    return () => {
+      if (marqueeEl) {
+        marqueeEl.removeEventListener("mouseenter", pauseMarquee);
+        marqueeEl.removeEventListener("mouseleave", resumeMarquee);
+      }
+      ctx.revert();
+    };
+  }, []);
+
+  return (
+    <section ref={sectionRef} className="tm-section">
+      <div ref={headerRef} className="tm-header">
+        <div className="tm-eyebrow">
+          <span className="tm-eyebrow-line" />
+          <span>Client voices</span>
+        </div>
+        <h2 className="tm-headline">
           What Our <em>Clients Say</em>
         </h2>
+        <p className="tm-sub">
+          Each fragrance carries a memory. Here are some of theirs.
+        </p>
+      </div>
 
-        {/* Cards */}
-        <div className="grid grid-cols-3 gap-8">
-          {testimonialsData.map((t, index) => (
-            <div
-              key={index}
-              className="p-8 border border-[#c9a96e18] bg-[#0d0905] relative group hover:border-[#c9a96e44] transition"
-            >
-              <p className="text-[#c9b99a88] text-sm leading-relaxed mb-6 italic">
-                {t.text}
-              </p>
+      <div ref={marqueeRef} className="tm-marquee-wrap">
+        <div className="tm-fade-left" aria-hidden />
+        <div className="tm-fade-right" aria-hidden />
 
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-8 h-[1px] bg-[#c9a96e]" />
-                <span className="text-xs tracking-[0.2em] text-[#c9a96e] uppercase">
-                  {t.author}
-                </span>
+        <div ref={marqueeInnerRef} className="tm-marquee-inner">
+          {allTestimonials.map((t, i) => (
+            <div key={i} className="tm-card">
+              <StarRow count={t.rating} />
+              <p className="tm-card-text">&ldquo;{t.text}&rdquo;</p>
+              <div className="tm-card-footer">
+                <div className="tm-card-rule" aria-hidden />
+                <div className="tm-card-author-block">
+                  <span className="tm-card-author">{t.author}</span>
+                  <span className="tm-card-location">{t.location}</span>
+                </div>
+                <div className="tm-card-fragrance">
+                  <span className="tm-card-fragrance-label">Wearing</span>
+                  <span className="tm-card-fragrance-name">{t.fragrance}</span>
+                </div>
               </div>
             </div>
           ))}
