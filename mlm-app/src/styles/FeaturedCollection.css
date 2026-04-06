@@ -1,23 +1,32 @@
-/* ── WRAPPER: intro (flow) + pinned runway ── */
+/* ── WRAPPER: pinned runway + heading overlay inside section ── */
 .fc-featured {
   position: relative;
   background: var(--void);
 }
 
-/* ── INTRO — scrolls away before / while runway pins ── */
-.fc-intro {
-  position: relative;
-  z-index: 5;
-  padding: 5rem 1.5rem 3.5rem;
-  padding-left: max(1.5rem, env(safe-area-inset-left));
+/* Heading sits inside pinned section, over layer 1; below layer 2 (z-index 3) */
+.fc-heading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding-top: max(6rem, env(safe-area-inset-top));
+  padding-right: max(3rem, env(safe-area-inset-right));
+  padding-bottom: 0;
+  padding-left: max(3rem, env(safe-area-inset-left));
   text-align: left;
   pointer-events: none;
 }
 
-@media (min-width: 768px) {
-  .fc-intro {
-    padding: 6.5rem 3rem 4.5rem;
-    padding-left: max(3rem, env(safe-area-inset-left));
+@media (max-width: 767px) {
+  .fc-heading-overlay {
+    padding-top: max(5rem, env(safe-area-inset-top));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
+    padding-bottom: 0;
+    padding-left: max(1.5rem, env(safe-area-inset-left));
   }
 }
 
@@ -52,6 +61,14 @@
   color: var(--sand);
 }
 
+.fc-heading-overlay .fc-intro-headline {
+  text-shadow: 0 2px 32px rgba(10, 7, 5, 0.7);
+}
+
+.fc-heading-overlay .fc-intro-eyebrow {
+  text-shadow: 0 1px 12px rgba(10, 7, 5, 0.9);
+}
+
 .fc-intro-rule {
   width: 48px;
   height: 1px;
@@ -63,10 +80,10 @@
   );
 }
 
-/* Full-width section; height = N × viewport for pin scroll distance */
+/* Pin spacer from GSAP owns scroll distance — section stays one viewport tall */
 .fc-section {
   position: relative;
-  height: calc(100vh * var(--fc-slide-count, 4));
+  height: 100vh;
   overflow: hidden;
   background: var(--void);
 }
@@ -116,12 +133,7 @@
   width: 100vw;
   height: 100vh;
   opacity: 0;
-  transition: opacity 700ms ease-in-out;
   pointer-events: none;
-}
-
-.fc-l2-panel.fc-l2-active {
-  opacity: 1;
 }
 
 /* Softer vignette — edges only, center and lower third stay readable */
@@ -173,10 +185,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fc-intro {
+  .fc-heading-overlay {
+    position: relative;
+    z-index: 1;
     padding: 3rem 1.5rem 2rem;
     padding-left: max(1.5rem, env(safe-area-inset-left));
     text-align: left;
+    will-change: auto;
   }
 
   .fc-section {
