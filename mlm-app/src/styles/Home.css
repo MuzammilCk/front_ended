@@ -1400,3 +1400,248 @@
     height: 50vw;
   }
 }
+
+/* ── Featured products grid (FeaturedProducts.tsx) ── */
+.fp-section {
+  padding: clamp(5rem, 10vh, 8rem) clamp(2rem, 5vw, 5rem);
+  background: var(--void);
+}
+
+.fp-inner {
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.fp-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 3.5rem;
+}
+
+.fp-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 300;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--sand);
+  margin-bottom: 0.85rem;
+}
+
+.fp-eyebrow-line {
+  display: block;
+  width: 28px;
+  height: 0.5px;
+  background: var(--sand);
+  opacity: 0.6;
+}
+
+.fp-headline {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.fp-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.3s;
+  padding-bottom: 0.5rem;
+}
+
+.fp-view-all:hover {
+  color: var(--sand);
+}
+
+.fp-arrow {
+  transition: transform 0.3s var(--ease-luxury);
+}
+
+.fp-view-all:hover .fp-arrow {
+  transform: translateX(5px);
+}
+
+.fp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.fp-card {
+  position: relative;
+  will-change: transform;
+  cursor: none;
+}
+
+.fp-card-link {
+  display: block;
+  text-decoration: none;
+}
+
+.fp-card-image-wrap {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--mahogany);
+}
+
+.fp-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s var(--ease-luxury);
+}
+
+.fp-card:hover .fp-card-img {
+  transform: scale(1.04);
+}
+
+.fp-card-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    color-mix(in srgb, var(--sand) 6%, transparent) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s var(--ease-luxury);
+  pointer-events: none;
+}
+
+.fp-card:hover .fp-card-shimmer {
+  transform: translateX(100%);
+}
+
+.fp-card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 2rem;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--void) 75%, transparent) 0%,
+    transparent 50%
+  );
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.fp-card:hover .fp-card-overlay {
+  opacity: 1;
+}
+
+.fp-card-overlay-btn {
+  font-family: var(--font-body);
+  font-size: 0.55rem;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  border: 0.5px solid color-mix(in srgb, var(--sand) 50%, transparent);
+  padding: 0.65rem 1.75rem;
+  background: color-mix(in srgb, var(--void) 60%, transparent);
+  backdrop-filter: blur(8px);
+  transform: translateY(8px);
+  transition: transform 0.4s var(--ease-luxury);
+}
+
+.fp-card:hover .fp-card-overlay-btn {
+  transform: translateY(0);
+}
+
+.fp-card-body {
+  padding: 1.25rem 0 0;
+  border-top: 0.5px solid color-mix(in srgb, var(--sand) 10%, transparent);
+}
+
+.fp-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.fp-card-family {
+  font-family: var(--font-body);
+  font-size: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sand);
+  opacity: 0.7;
+}
+
+.fp-card-ml {
+  font-family: var(--font-body);
+  font-size: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+}
+
+.fp-card-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+.fp-card-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fp-card-price {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--sand);
+  letter-spacing: 0.02em;
+}
+
+.fp-card-arrow {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition:
+    transform 0.3s var(--ease-luxury),
+    color 0.3s;
+}
+
+.fp-card:hover .fp-card-arrow {
+  transform: translateX(4px);
+  color: var(--sand);
+}
+
+@media (max-width: 767px) {
+  .fp-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fp-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+}
