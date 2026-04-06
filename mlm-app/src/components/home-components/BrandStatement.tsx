@@ -21,17 +21,40 @@ export default function BrandStatement() {
   const statsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
     const ctx = gsap.context(() => {
-      gsap.to(imageRef.current, {
-        yPercent: 12,
-        ease: "none",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: 1,
-        },
-      });
+      if (prefersReducedMotion) {
+        gsap.set(
+          [
+            eyebrowRef.current,
+            headlineRef.current,
+            bodyRef.current,
+            statsRef.current,
+            ctaRef.current,
+          ].filter(Boolean),
+          { y: 0, opacity: 1 },
+        );
+        return;
+      }
+
+      if (imageRef.current) {
+        gsap.to(imageRef.current, {
+          yPercent: 12,
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1,
+          },
+        });
+      }
 
       const textEls = [
         eyebrowRef.current,
@@ -39,7 +62,8 @@ export default function BrandStatement() {
         bodyRef.current,
         statsRef.current,
         ctaRef.current,
-      ];
+      ].filter((el) => el != null) as HTMLElement[];
+
       gsap.set(textEls, { y: 30, opacity: 0 });
       gsap.to(textEls, {
         y: 0,
@@ -48,7 +72,7 @@ export default function BrandStatement() {
         stagger: 0.15,
         ease: "power3.out",
         scrollTrigger: {
-          trigger: sectionRef.current,
+          trigger: section,
           start: "top 75%",
         },
       });
@@ -59,6 +83,7 @@ export default function BrandStatement() {
 
   return (
     <section ref={sectionRef} className="bs-section">
+      {/* Left — image panel */}
       <div className="bs-image-panel" aria-hidden>
         <div
           ref={imageRef}
@@ -71,6 +96,7 @@ export default function BrandStatement() {
         </span>
       </div>
 
+      {/* Right — content panel */}
       <div className="bs-content-panel">
         <div ref={eyebrowRef} className="bs-eyebrow">
           <span className="bs-eyebrow-line" aria-hidden />
