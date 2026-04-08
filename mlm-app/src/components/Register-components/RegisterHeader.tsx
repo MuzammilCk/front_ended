@@ -4,7 +4,7 @@ export default function RegisterHeader() {
   return (
     <header className="flex items-center justify-between mb-8">
       <Link to="/" className="text-2xl tracking-wide font-display">
-        AURORE
+        HADI
       </Link>
       <Link
         to="/login"

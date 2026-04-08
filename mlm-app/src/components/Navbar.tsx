@@ -26,7 +26,7 @@ export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="text-xl tracking-wide font-display">
-            AURORE
+            HADI
           </Link>
 
           {/* Desktop Navigation */}

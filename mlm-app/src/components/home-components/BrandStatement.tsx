@@ -92,7 +92,7 @@ export default function BrandStatement() {
         />
         <div className="bs-image-veil" />
         <span className="bs-vert-label" aria-hidden>
-          AURORE PARFUMS — EST. 2012
+          HADI PERFUMES — EST. 2012
         </span>
       </div>
 

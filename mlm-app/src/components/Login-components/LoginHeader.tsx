@@ -4,7 +4,7 @@ export default function LoginHeader() {
   return (
     <header className="flex items-center justify-between mb-12">
       <Link to="/" className="text-2xl tracking-wide font-display">
-        AURORE
+        HADI
       </Link>
       <Link
         to="/register"

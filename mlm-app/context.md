@@ -2,7 +2,7 @@
 # Hadi Perfumes — Frontend Context
 
 ## Project Overview
-- **App name:** mlm-app (AURORE luxury perfume storefront + MLM network)
+- **App name:** mlm-app (HADI perfumes luxury storefront + MLM network)
 - **Stack:** React 19, Vite 8, TypeScript 5.9, Tailwind CSS 3.4, React Router DOM 7
 - **Backend:** hadi-perfumes-api (NestJS, PostgreSQL via TypeORM)
 - **Backend base URL (dev):** http://localhost:3000 — configured via `VITE_API_BASE_URL`

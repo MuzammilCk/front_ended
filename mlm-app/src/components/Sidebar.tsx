@@ -132,7 +132,7 @@ export default function Sidebar({
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#c9a96e] to-[#8b6914]" />
               <span className="text-2xl font-light tracking-wider text-[#e8dcc8]">
-                AURORE
+                HADI
               </span>
             </div>
             <p className="mt-2 text-xs tracking-wide text-[#c9b99a]/60">
@@ -225,7 +225,7 @@ export default function Sidebar({
 
           <div className="text-center">
             <p className="text-xs tracking-wide text-[#c9b99a]/40">
-              © 2024 AURORE. All rights reserved.
+              © 2025 HADI perfumes. All rights reserved.
             </p>
           </div>
         </div>

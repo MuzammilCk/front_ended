@@ -14,7 +14,7 @@ export default function Topbar({ tab }: { tab: TabType }) {
                 : "Order History"}
         </h1>
         <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/20">
-          Aurore Parfums · Admin
+          HADI perfumes · Admin
         </p>
       </div>
       <div className="flex items-center gap-3">

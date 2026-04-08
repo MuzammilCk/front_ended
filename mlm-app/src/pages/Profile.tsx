@@ -41,10 +41,10 @@ export default function Profile() {
   const [cart, setCart] = useState<number[]>([]);
   const [userData, setUserData] = useState<UserData>({
     name: "Sophia Laurent",
-    email: "sophia.laurent@aurore.com",
+    email: "sophia.laurent@hadi-perfumes.com",
     mobile: "+971 50 123 4567",
     walletBalance: 1250,
-    referralCode: "AURORE2025",
+    referralCode: "HADI2025",
     joinedDate: "January 2024",
     address: "Downtown Dubai, UAE",
   });

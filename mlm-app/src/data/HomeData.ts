@@ -51,7 +51,7 @@ export type Testimonial = {
 
 export const testimonialsData: Testimonial[] = [
   {
-    text: "Aurore fragrances are not just scents — they are memories bottled. The depth and elegance are unmatched.",
+    text: "HADI fragrances are not just scents — they are memories bottled. The depth and elegance are unmatched.",
     author: "Sophia Laurent",
     location: "Paris, France",
     fragrance: "Noir Absolu",
@@ -86,7 +86,7 @@ export const testimonialsData: Testimonial[] = [
     rating: 5,
   },
   {
-    text: "Quiet luxury in a bottle. People ask what I'm wearing — I smile and say it's from Aurore.",
+    text: "Quiet luxury in a bottle. People ask what I'm wearing — I smile and say it's from HADI.",
     author: "Mei Lin",
     location: "Singapore",
     fragrance: "Brume d'Iris",

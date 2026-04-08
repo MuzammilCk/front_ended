@@ -16,7 +16,7 @@ export default function Sidebar({
           to="/"
           className="font-serif text-xl font-light tracking-[0.15em] text-[#e8dcc8]"
         >
-          AURORE
+          HADI
         </Link>
         <p className="text-[#c9b99a]/20 mt-1 text-[10px] tracking-[0.25em] uppercase">
           Admin Console
@@ -45,7 +45,7 @@ export default function Sidebar({
         <p className="text-[10px] tracking-[0.15em] uppercase text-[#c9b99a]/20 leading-5">
           Logged in as
           <br />
-          <span className="text-[#c9b99a]/40">admin@aurore.com</span>
+          <span className="text-[#c9b99a]/40">admin@hadi-perfumes.com</span>
         </p>
       </div>
     </aside>

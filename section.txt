@@ -3,7 +3,7 @@ Component: mlm-app/src/components/Home-components/Navbar.tsx (same logical folde
 
 Position: fixed top, full width, z-50.
 Background: Linear gradient from #0a0705ee to transparent (fades into the hero).
-Left: Brand link “AURORE” → /.
+Left: Brand link “HADI” → /.
 Center nav: Home (/), Collection / Atelier / Journal (all → /product for now).
 Right: Login → /login (button styled as .nav-link).
 Section 2 — Hero (“home section” for a background image)
@@ -27,7 +27,9 @@ Data: marqueeText in mlm-app/src/data/HomeData.ts.
 Horizontal infinite scroll (.marquee-track, ~18s loop).
 Styling: Top/bottom borders border-[#c9a96e22], gold-muted uppercase small text.
 Phrases: e.g. “Eau de Parfum”, “Exclusive Blends”, “Maison Artisanale”, “Since 1987”, cities line, separated by “·”. Content is duplicated in the DOM for seamless looping.
+
 Section 4 — Featured collection
+
 Component: mlm-app/src/components/Home-components/FeaturedCollection.tsx
 Data: First 3 items from mlm-app/src/data/products.
 
@@ -35,10 +37,12 @@ Header: “Our Signature” / “Featured Fragrances” + “View all collection
 Grid: 3 columns, product images from data, dark overlay, optional badge, hover glow; card body with type, name, notes, AED price, “ADD →”.
 Interaction: .card-hover lift on hover (Home.css).
 Section 5 — Brand statement
+
 Component: mlm-app/src/components/Home-components/BrandStatement.tsx.
 
 Full-width band with subtle top/bottom borders and its own diagonal gradient background (#0d0905 → #140e08).
 Centered: short gold line, large italic headline (“Every bottle holds / a world unto itself”), supporting copy (oud, rose, vanilla, master perfumers), “Our Story” .btn-primary.
+
 Section 6 — Testimonials
 Component: mlm-app/src/components/Home-components/Testimonials.tsx
 Data: testimonialsData in HomeData.ts (3 quotes + authors).
@@ -55,4 +59,4 @@ Section 8 — Footer
 Component: mlm-app/src/components/Home-components/Footer.tsx.
 
 Top border gold-tinted.
-Row: “AURORE”, © 2025 line, links Privacy / Terms / Contact (all # routes to / in code).
+Row: “HADI”, © 2025 line, links Privacy / Terms / Contact (all # routes to / in code).

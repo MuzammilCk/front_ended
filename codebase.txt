@@ -27284,7 +27284,7 @@ PATH: mlm-app/context.md
 # Hadi Perfumes — Frontend Context
 
 ## Project Overview
-- **App name:** mlm-app (AURORE luxury perfume storefront + MLM network)
+- **App name:** mlm-app (HADI perfumes luxury storefront + MLM network)
 - **Stack:** React 19, Vite 8, TypeScript 5.9, Tailwind CSS 3.4, React Router DOM 7
 - **Backend:** hadi-perfumes-api (NestJS, PostgreSQL via TypeORM)
 - **Backend base URL (dev):** http://localhost:3000 — configured via `VITE_API_BASE_URL`
@@ -33614,7 +33614,7 @@ export default function Sidebar({
           to="/"
           className="font-serif text-xl font-light tracking-[0.15em] text-[#e8dcc8]"
         >
-          AURORE
+          HADI
         </Link>
         <p className="text-[#c9b99a]/20 mt-1 text-[10px] tracking-[0.25em] uppercase">
           Admin Console
@@ -33643,7 +33643,7 @@ export default function Sidebar({
         <p className="text-[10px] tracking-[0.15em] uppercase text-[#c9b99a]/20 leading-5">
           Logged in as
           <br />
-          <span className="text-[#c9b99a]/40">admin@aurore.com</span>
+          <span className="text-[#c9b99a]/40">admin@hadi-perfumes.com</span>
         </p>
       </div>
     </aside>
@@ -33698,7 +33698,7 @@ export default function Topbar({ tab }: { tab: TabType }) {
                 : "Order History"}
         </h1>
         <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/20">
-          Aurore Parfums · Admin
+          HADI perfumes · Admin
         </p>
       </div>
       <div className="flex items-center gap-3">
@@ -34129,10 +34129,10 @@ export default function Footer() {
     <footer className="py-12 px-12 border-t border-[#c9a96e18]">
       <div className="flex items-center justify-between mx-auto max-w-7xl">
         <span className="font-display text-lg font-light tracking-[0.15em] text-[#e8dcc8]">
-          AURORE
+          HADI
         </span>
         <p className="text-[#c9b99a33] text-xs tracking-wider">
-          © 2025 Aurore Parfums. All rights reserved.
+          © 2025 HADI perfumes. All rights reserved.
         </p>
         <div className="flex gap-8">
           <Link to="/" className="nav-link">
@@ -34332,7 +34332,7 @@ export default function Navbar() {
         to="/"
         className="font-display text-xl font-light tracking-[0.15em] text-[#e8dcc8]"
       >
-        AURORE
+        HADI
       </Link>
 
       {/* Nav Links */}
@@ -34496,7 +34496,7 @@ export default function LoginFooter() {
   return (
     <div className="mt-12 pt-6 border-t border-[#222] text-center text-sm text-white/40">
       <p>
-        New to AURORE?{" "}
+        New to HADI?{" "}
         <Link to="/register" className="text-white/70 hover:text-white">
           Create an account
         </Link>
@@ -34722,7 +34722,7 @@ export default function LoginHeader() {
   return (
     <header className="flex items-center justify-between mb-12">
       <Link to="/" className="text-2xl tracking-wide font-display">
-        AURORE
+        HADI
       </Link>
       <Link
         to="/register"
@@ -34825,7 +34825,7 @@ export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="text-xl tracking-wide font-display">
-            AURORE
+            HADI
           </Link>
 
           {/* Desktop Navigation */}
@@ -35495,7 +35495,7 @@ export default function RegisterHeader() {
   return (
     <header className="flex items-center justify-between mb-8">
       <Link to="/" className="text-2xl tracking-wide font-display">
-        AURORE
+        HADI
       </Link>
       <Link
         to="/login"
@@ -35517,7 +35517,7 @@ export default function RegisterHero() {
     <div className="mb-8 text-center">
       <h1 className="mb-2 text-3xl font-display">Create Account</h1>
       <p className="text-sm text-white/60">
-        Join AURORE and discover your signature scent
+        Join HADI and discover your signature scent
       </p>
     </div>
   );
@@ -35662,7 +35662,7 @@ export default function Sidebar({
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#c9a96e] to-[#8b6914]" />
               <span className="text-2xl font-light tracking-wider text-[#e8dcc8]">
-                AURORE
+                HADI
               </span>
             </div>
             <p className="mt-2 text-xs tracking-wide text-[#c9b99a]/60">
@@ -35755,7 +35755,7 @@ export default function Sidebar({
 
           <div className="text-center">
             <p className="text-xs tracking-wide text-[#c9b99a]/40">
-              © 2024 AURORE. All rights reserved.
+              © 2024 HADI. All rights reserved.
             </p>
           </div>
         </div>
@@ -36208,7 +36208,7 @@ export const scentFamilies = [
 
 export const testimonialsData = [
   {
-    text: "“Aurore fragrances are not just scents — they are memories bottled. The depth and elegance are unmatched.”",
+    text: "“HADI fragrances are not just scents — they are memories bottled. The depth and elegance are unmatched.”",
     author: "Sophia Laurent",
   },
   {
@@ -37148,7 +37148,7 @@ export default function Product() {
           {/* HEADER */}
           <header className="flex items-center justify-between mb-12">
             <Link to="/" className="text-xl tracking-wide font-display">
-              AURORE
+              HADI
             </Link>
 
             <div className="text-sm text-white/60">Cart ({cart.length})</div>
@@ -37595,10 +37595,10 @@ export default function Profile() {
   const [cart, setCart] = useState<number[]>([]);
   const [userData, setUserData] = useState<UserData>({
     name: "Sophia Laurent",
-    email: "sophia.laurent@aurore.com",
+    email: "sophia.laurent@hadi-perfumes.com",
     mobile: "+971 50 123 4567",
     walletBalance: 1250,
-    referralCode: "AURORE2025",
+    referralCode: "HADI2025",
     joinedDate: "January 2024",
     address: "Downtown Dubai, UAE",
   });
@@ -38935,7 +38935,7 @@ Component: mlm-app/src/components/Home-components/Navbar.tsx (same logical folde
 
 Position: fixed top, full width, z-50.
 Background: Linear gradient from #0a0705ee to transparent (fades into the hero).
-Left: Brand link “AURORE” → /.
+Left: Brand link “HADI” → /.
 Center nav: Home (/), Collection / Atelier / Journal (all → /product for now).
 Right: Login → /login (button styled as .nav-link).
 Section 2 — Hero (“home section” for a background image)
@@ -38987,7 +38987,7 @@ Section 8 — Footer
 Component: mlm-app/src/components/Home-components/Footer.tsx.
 
 Top border gold-tinted.
-Row: “AURORE”, © 2025 line, links Privacy / Terms / Contact (all # routes to / in code).
+Row: “HADI”, © 2025 line, links Privacy / Terms / Contact (all # routes to / in code).
 
 ================================================================================
 FILE 136 / 136

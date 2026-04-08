@@ -22,8 +22,8 @@ export default function Footer() {
           {/* Column 1 — Brand */}
           <div className="ft-col ft-col--brand">
             <Link to="/" className="ft-logo">
-              <span className="ft-logo-main">AURORE</span>
-              <span className="ft-logo-sub">PARFUMS</span>
+              <span className="ft-logo-main">HADI</span>
+              <span className="ft-logo-sub">PERFUMES</span>
             </Link>
             <p className="ft-brand-desc">
               Maison de parfum. Crafting stories through scent since 2012.
@@ -74,7 +74,7 @@ export default function Footer() {
 
           {/* Column 4 — Newsletter */}
           <div className="ft-col ft-col--newsletter">
-            <h3 className="ft-col-title">The Aurore Letter</h3>
+            <h3 className="ft-col-title">The HADI Letter</h3>
             <p className="ft-newsletter-desc">
               Notes on craft, new arrivals, and the art of perfumery.
             </p>
@@ -95,7 +95,7 @@ export default function Footer() {
       {/* Legal strip */}
       <div className="ft-legal">
         <span className="ft-legal-copy">
-          © 2025 Aurore Parfums. All rights reserved.
+          © 2025 HADI perfumes. All rights reserved.
         </span>
         <span className="ft-legal-craft">Crafted with intention.</span>
       </div>

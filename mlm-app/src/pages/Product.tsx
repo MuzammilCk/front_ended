@@ -121,7 +121,7 @@ export default function Product() {
           {/* HEADER */}
           <header className="flex items-center justify-between mb-12">
             <Link to="/" className="text-xl tracking-wide font-display">
-              AURORE
+              HADI
             </Link>
 
             <div className="text-sm text-white/60">Cart ({cart.length})</div>
