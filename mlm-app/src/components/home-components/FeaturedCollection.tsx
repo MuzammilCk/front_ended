@@ -161,7 +161,10 @@ export default function FeaturedCollection() {
     direction === 1 ? "perfume-enter-right" : "perfume-enter-left";
   const exitClass = direction === 1 ? "perfume-exit-left" : "perfume-exit-right";
 
-  const sceneHeight = useMemo(() => `${numPerfumes * 100}vh`, [numPerfumes]);
+  const sceneHeight = useMemo(
+    () => `${Math.max(1, numPerfumes - 1) * 100}vh`,
+    [numPerfumes],
+  );
 
   const jumpToIndex = (index: number) => {
     if (index === activeIndex) return;
