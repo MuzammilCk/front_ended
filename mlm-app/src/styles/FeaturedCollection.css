@@ -3,6 +3,7 @@
 .fc-showroom {
   position: relative;
   background: var(--void);
+  margin-bottom: 0;
 }
 
 /* Tall container — creates the scroll travel. Height is set inline via JS. */
@@ -208,11 +209,6 @@
 
   transform: translateY(calc(-50% - 12px));
   opacity: 0;
-  padding: clamp(1.25rem, 2vw, 1.75rem);
-  border: 1px solid color-mix(in srgb, var(--sand, #d4c5a9) 16%, transparent);
-  background: color-mix(in srgb, var(--void, #080400) 42%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
@@ -351,16 +347,6 @@
   display: block;
 }
 
-.fc-thumb-code {
-  display: block;
-  margin-top: 0.3rem;
-  text-align: center;
-  font-family: var(--font-body);
-  font-size: 0.54rem;
-  letter-spacing: 0.15em;
-  color: color-mix(in srgb, var(--sand, #d4c5a9) 74%, transparent);
-}
-
 /* ─── Scroll progress indicator ─────────────────────────────────────────────── */
 
 .fc-scroll-hint {
@@ -373,13 +359,6 @@
   align-items: center;
   gap: 0.75rem;
   pointer-events: none;
-}
-
-.fc-scroll-hint-text {
-  font-family: var(--font-body);
-  font-size: 0.54rem;
-  letter-spacing: 0.2em;
-  color: color-mix(in srgb, var(--sand, #d4c5a9) 40%, transparent);
 }
 
 .fc-scroll-progress {

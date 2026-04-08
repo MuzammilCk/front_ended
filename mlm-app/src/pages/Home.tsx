@@ -1,15 +1,15 @@
-import "../styles/home.css";
+import "../styles/Home.css";
 import Navbar from "../components/home-components/Navbar";
-import HeroSection from "../components/Home-components/HeroSection";
-import FeaturedCollection from "../components/Home-components/FeaturedCollection";
-import BrandStatement from "../components/Home-components/BrandStatement";
-import Testimonials from "../components/Home-components/Testimonials";
-import NotesExplorer from "../components/Home-components/NotesExplorer";
-import Footer from "../components/Home-components/Footer";
+import HeroSection from "../components/home-components/HeroSection";
+import FeaturedCollection from "../components/home-components/FeaturedCollection";
+import BrandStatement from "../components/home-components/BrandStatement";
+import Testimonials from "../components/home-components/Testimonials";
+import NotesExplorer from "../components/home-components/NotesExplorer";
+import Footer from "../components/home-components/Footer";
 
 function Home() {
   return (
-    <div className="min-h-screen bg-[#0d0905] text-[#e8dcc8] font-serif overflow-x-hidden">
+    <div className="min-h-screen bg-[#0d0905] text-[#e8dcc8] font-serif">
       <div className="grain">
         {/* ── NAV ── */}
         <Navbar />

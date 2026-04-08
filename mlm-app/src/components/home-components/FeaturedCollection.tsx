@@ -348,16 +348,12 @@ export default function FeaturedCollection() {
                   decoding="async"
                   aria-hidden
                 />
-                <span className="fc-thumb-code">{`P${i + 1}`}</span>
               </button>
             ))}
           </nav>
 
           {/* Scroll progress indicator */}
           <div className="fc-scroll-hint" aria-hidden>
-            <span className="fc-scroll-hint-text">
-              {activeIndex + 1} / {numPerfumes}
-            </span>
             <div className="fc-scroll-progress">
               <div
                 className="fc-scroll-progress-bar"
