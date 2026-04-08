@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useScrollContext } from "../../lib/scroll";
 import "../../styles/FeaturedCollection.css";
 
 interface FeaturedPerfume {
@@ -58,13 +59,16 @@ export default function FeaturedCollection() {
   const perfumes = FEATURED_PERFUMES;
   const numPerfumes = perfumes.length;
 
+  // ─── Lenis instance (smooth-scroll provider) ───────────────────────────────
+  const lenis = useScrollContext();
+
+  // ─── Refs ──────────────────────────────────────────────────────────────────
   const containerRef = useRef<HTMLDivElement>(null);
   const prevIndexRef = useRef(0);
   const lastActiveIndexRef = useRef(0);
-  const directionRef = useRef<1 | -1>(1);
-  const detailsTimeoutRef = useRef<number | null>(null);
-  const stageTimeoutRef = useRef<number | null>(null);
+  const animKeyRef = useRef(0); // increments every time index changes
 
+  // ─── State ─────────────────────────────────────────────────────────────────
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [isMobile, setIsMobile] = useState(() =>
@@ -72,10 +76,18 @@ export default function FeaturedCollection() {
       ? window.matchMedia("(max-width: 767px)").matches
       : false,
   );
+
+  // Details panel fade state
   const [detailsVisible, setDetailsVisible] = useState(true);
   const [detailsIndex, setDetailsIndex] = useState(0);
-  const [leavingIndex, setLeavingIndex] = useState<number | null>(null);
+  const detailsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Leaving perfume for exit animation
+  const [leavingIndex, setLeavingIndex] = useState<number | null>(null);
+  const [leavingAnimKey, setLeavingAnimKey] = useState(0);
+  const stageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ─── Mobile detection ──────────────────────────────────────────────────────
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
     const onChange = () => setIsMobile(media.matches);
@@ -83,98 +95,133 @@ export default function FeaturedCollection() {
     return () => media.removeEventListener("change", onChange);
   }, []);
 
+  // ─── Core scroll handler (pure function, stable reference) ─────────────────
+  const handleScroll = useCallback(() => {
+    if (!containerRef.current) return;
+
+    const { top, height } = containerRef.current.getBoundingClientRect();
+    const scrolled = -top;
+    const sectionHeight = height - window.innerHeight;
+    const safeSectionHeight = sectionHeight <= 0 ? 1 : sectionHeight;
+    const progress = Math.max(0, Math.min(1, scrolled / safeSectionHeight));
+    const newIndex = Math.min(
+      Math.floor(progress * numPerfumes),
+      numPerfumes - 1,
+    );
+
+    if (newIndex !== prevIndexRef.current) {
+      const nextDirection: 1 | -1 = newIndex > prevIndexRef.current ? 1 : -1;
+      prevIndexRef.current = newIndex;
+      setDirection(nextDirection);
+      setActiveIndex(newIndex);
+    }
+  }, [numPerfumes]);
+
+  // ─── Subscribe to Lenis scroll (bypasses window event timing issues) ────────
   useEffect(() => {
     if (isMobile) return;
 
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      const { top, height } = containerRef.current.getBoundingClientRect();
-      const scrolled = -top;
-      const sectionHeight = height - window.innerHeight;
-      const safeSectionHeight = sectionHeight <= 0 ? 1 : sectionHeight;
-      const progress = Math.max(0, Math.min(1, scrolled / safeSectionHeight));
-      const newIndex = Math.min(
-        Math.floor(progress * numPerfumes),
-        numPerfumes - 1,
-      );
-      if (newIndex !== prevIndexRef.current) {
-        const nextDirection: 1 | -1 = newIndex > prevIndexRef.current ? 1 : -1;
-        directionRef.current = nextDirection;
-        setDirection(nextDirection);
-        prevIndexRef.current = newIndex;
-        setActiveIndex(newIndex);
-      }
-    };
+    if (lenis) {
+      // Lenis fires this on every animated scroll tick — most reliable approach
+      lenis.on("scroll", handleScroll);
+      // Run once on mount to set correct initial state
+      handleScroll();
+      return () => {
+        lenis.off("scroll", handleScroll);
+      };
+    }
 
+    // Fallback for when Lenis is not yet initialized (SSR / first render)
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isMobile, numPerfumes]);
+  }, [isMobile, lenis, handleScroll]);
 
+  // ─── Details panel fade on index change ───────────────────────────────────
   useEffect(() => {
     if (activeIndex === detailsIndex) return;
+
     setDetailsVisible(false);
+    if (detailsTimeoutRef.current) clearTimeout(detailsTimeoutRef.current);
 
-    if (detailsTimeoutRef.current) {
-      window.clearTimeout(detailsTimeoutRef.current);
-    }
-
-    detailsTimeoutRef.current = window.setTimeout(() => {
+    detailsTimeoutRef.current = setTimeout(() => {
       setDetailsIndex(activeIndex);
       setDetailsVisible(true);
     }, 200);
 
     return () => {
-      if (detailsTimeoutRef.current) {
-        window.clearTimeout(detailsTimeoutRef.current);
-      }
+      if (detailsTimeoutRef.current) clearTimeout(detailsTimeoutRef.current);
     };
   }, [activeIndex, detailsIndex]);
 
+  // ─── Stage exit animation on index change ─────────────────────────────────
   useEffect(() => {
     const previous = lastActiveIndexRef.current;
     if (activeIndex === previous) return;
 
+    animKeyRef.current += 1;
     setLeavingIndex(previous);
-    if (stageTimeoutRef.current) {
-      window.clearTimeout(stageTimeoutRef.current);
-    }
-    stageTimeoutRef.current = window.setTimeout(() => {
+    setLeavingAnimKey(animKeyRef.current);
+
+    if (stageTimeoutRef.current) clearTimeout(stageTimeoutRef.current);
+    stageTimeoutRef.current = setTimeout(() => {
       setLeavingIndex(null);
-    }, 620);
+    }, 650);
 
     lastActiveIndexRef.current = activeIndex;
   }, [activeIndex]);
 
+  // ─── Cleanup on unmount ────────────────────────────────────────────────────
   useEffect(
     () => () => {
-      if (detailsTimeoutRef.current) window.clearTimeout(detailsTimeoutRef.current);
-      if (stageTimeoutRef.current) window.clearTimeout(stageTimeoutRef.current);
+      if (detailsTimeoutRef.current) clearTimeout(detailsTimeoutRef.current);
+      if (stageTimeoutRef.current) clearTimeout(stageTimeoutRef.current);
     },
     [],
   );
 
+  // ─── Jump to index (thumbnail click) ──────────────────────────────────────
+  // Also scrolls the page so scroll state stays in sync with Lenis
+  const jumpToIndex = useCallback(
+    (index: number) => {
+      if (index === activeIndex || !containerRef.current) return;
+
+      const jumpDirection: 1 | -1 = index > activeIndex ? 1 : -1;
+      prevIndexRef.current = index;
+      setDirection(jumpDirection);
+      setActiveIndex(index);
+
+      // Sync the actual scroll position so the next Lenis event keeps this index
+      const { top: containerTop } = containerRef.current.getBoundingClientRect();
+      const containerScrollTop = containerTop + window.scrollY;
+      const height = containerRef.current.getBoundingClientRect().height;
+      const sectionHeight = height - window.innerHeight;
+      const targetProgress = index / numPerfumes + 0.001; // small offset to land inside the bucket
+      const targetScroll = containerScrollTop + sectionHeight * targetProgress;
+
+      if (lenis) {
+        lenis.scrollTo(targetScroll, { immediate: false, duration: 1.2 });
+      } else {
+        window.scrollTo({ top: targetScroll, behavior: "smooth" });
+      }
+    },
+    [activeIndex, numPerfumes, lenis],
+  );
+
+  // ─── Derived values ────────────────────────────────────────────────────────
   const currentPerfume = perfumes[activeIndex];
   const panelPerfume = perfumes[detailsIndex];
 
-  const enterClass =
-    direction === 1 ? "perfume-enter-right" : "perfume-enter-left";
+  const enterClass = direction === 1 ? "perfume-enter-right" : "perfume-enter-left";
   const exitClass = direction === 1 ? "perfume-exit-left" : "perfume-exit-right";
 
+  // Give enough scroll travel: each perfume gets its own 100vh slot
   const sceneHeight = useMemo(
-    () => `${Math.max(1, numPerfumes - 1) * 100}vh`,
+    () => `${numPerfumes * 100}vh`,
     [numPerfumes],
   );
 
-  const jumpToIndex = (index: number) => {
-    if (index === activeIndex) return;
-    const jumpDirection: 1 | -1 = index > activeIndex ? 1 : -1;
-    directionRef.current = jumpDirection;
-    setDirection(jumpDirection);
-    prevIndexRef.current = index;
-    setActiveIndex(index);
-  };
-
+  // ─── Mobile fallback ───────────────────────────────────────────────────────
   if (isMobile) {
     return (
       <section className="fc-mobile" aria-label="Featured collection">
@@ -213,27 +260,41 @@ export default function FeaturedCollection() {
     );
   }
 
+  // ─── Desktop showroom ──────────────────────────────────────────────────────
   return (
     <section className="fc-showroom" aria-label="Featured collection">
+      {/* Tall scroll container — creates the scroll travel distance */}
       <div ref={containerRef} className="fc-scroll-wrapper" style={{ height: sceneHeight }}>
+        {/* Sticky scene — locks in viewport while wrapper scrolls beneath it */}
         <div className="fc-sticky-scene">
+
+          {/* LAYER 1: Platform — never moves */}
           <div className="fc-platform-layer" aria-hidden>
             <div className="fc-ground-shadow" />
             <div className="fc-platform" />
           </div>
 
+          {/* LAYER 2: Perfume stage — slides on index change */}
           <div className="fc-perfume-layer" aria-live="off">
+            {/* Leaving perfume — exits with animation */}
             {leavingIndex !== null && (
-              <div className={`fc-perfume-frame ${exitClass}`}>
+              <div
+                key={`leaving-${leavingAnimKey}`}
+                className={`fc-perfume-frame ${exitClass}`}
+                aria-hidden
+              >
                 <img
                   src={perfumes[leavingIndex].image}
                   alt=""
                   className="fc-perfume-image"
-                  aria-hidden
                 />
               </div>
             )}
-            <div className={`fc-perfume-frame ${enterClass}`} key={`active-${currentPerfume.id}`}>
+            {/* Active perfume — enters with animation */}
+            <div
+              key={`active-${currentPerfume.id}-${animKeyRef.current}`}
+              className={`fc-perfume-frame ${enterClass}`}
+            >
               <img
                 src={currentPerfume.image}
                 alt={currentPerfume.name}
@@ -242,9 +303,11 @@ export default function FeaturedCollection() {
             </div>
           </div>
 
+          {/* LAYER 3: Details panel — fades on index change */}
           <aside
             className={`fc-details-panel${detailsVisible ? " fc-details-panel--visible" : ""}`}
             aria-live="polite"
+            aria-atomic="true"
           >
             <p className="fc-eyebrow">Our featured</p>
             <h2 className="fc-name">{panelPerfume.name}</h2>
@@ -263,6 +326,7 @@ export default function FeaturedCollection() {
             </div>
           </aside>
 
+          {/* LAYER 4: Thumbnail rail — right side vertical strip */}
           <nav
             className="fc-thumbnail-rail"
             aria-label={`Perfume collection, ${numPerfumes} items`}
@@ -288,6 +352,20 @@ export default function FeaturedCollection() {
               </button>
             ))}
           </nav>
+
+          {/* Scroll progress indicator */}
+          <div className="fc-scroll-hint" aria-hidden>
+            <span className="fc-scroll-hint-text">
+              {activeIndex + 1} / {numPerfumes}
+            </span>
+            <div className="fc-scroll-progress">
+              <div
+                className="fc-scroll-progress-bar"
+                style={{ height: `${((activeIndex + 1) / numPerfumes) * 100}%` }}
+              />
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
