@@ -1,7 +1,17 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useEffect, useRef } from "react";
+import {
+  motion,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+  type Transition,
+} from "framer-motion";
+import { useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
+import { products } from "../../data/products";
+import "../../styles/HeroSection.css";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,42 +26,47 @@ const LAYER1_IMAGE_URL = "/layer1.png";
 const LAYER2_IMAGE_URL = "/layer2_1.png";
 
 export default function HeroSection() {
-  const containerRef = useRef<HTMLElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
   const layer1Ref = useRef<HTMLDivElement>(null);
   const layer2Ref = useRef<HTMLDivElement>(null);
-  const layer3Ref = useRef<HTMLDivElement>(null);
-  const eyebrowRef = useRef<HTMLDivElement>(null);
-  const headlineLine1Ref = useRef<HTMLSpanElement>(null);
-  const headlineLine2Ref = useRef<HTMLSpanElement>(null);
-  const ctaRowRef = useRef<HTMLDivElement>(null);
-  const taglineRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const prefersReducedMotion = useMemo(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    [],
+  );
+
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  const productYTransform = useTransform(scrollYProgress, [0, 1], ["0%", "-22%"]);
+  const productRotateTransform = useTransform(scrollYProgress, [0, 1], [0, 5]);
+  const productOpacity = useTransform(scrollYProgress, [0, 0.65, 1], [1, 0.75, 0]);
+  const smoothY = useSpring(productYTransform, { stiffness: 60, damping: 18 });
+  const smoothRotate = useSpring(productRotateTransform, { stiffness: 60, damping: 18 });
+
+  const btnX = useMotionValue(0);
+  const btnY = useMotionValue(0);
+  const springX = useSpring(btnX, { stiffness: 300, damping: 25 });
+  const springY = useSpring(btnY, { stiffness: 300, damping: 25 });
+
+  const revealTransition = (delay = 0): Transition => ({
+    duration: prefersReducedMotion ? 0 : 1.1,
+    ease: [0.16, 1, 0.3, 1],
+    delay: prefersReducedMotion ? 0 : delay,
+  });
 
   useEffect(() => {
-    const container = containerRef.current;
+    const container = heroRef.current;
     const layer1 = layer1Ref.current;
     const layer2 = layer2Ref.current;
-    const layer3 = layer3Ref.current;
-    const eyebrow = eyebrowRef.current;
-    const line1 = headlineLine1Ref.current;
-    const line2 = headlineLine2Ref.current;
-    const ctaRow = ctaRowRef.current;
-    const tagline = taglineRef.current;
-
-    if (
-      !container ||
-      !layer1 ||
-      !layer2 ||
-      !layer3 ||
-      !eyebrow ||
-      !line1 ||
-      !line2 ||
-      !ctaRow ||
-      !tagline
-    ) {
+    if (!container || !layer1 || !layer2) {
       return;
     }
 
-    const prefersReducedMotion = window.matchMedia(
+    const userPrefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
@@ -61,7 +76,7 @@ export default function HeroSection() {
       });
     };
 
-    if (prefersReducedMotion) {
+    if (userPrefersReducedMotion) {
       refresh();
       return;
     }
@@ -88,37 +103,6 @@ export default function HeroSection() {
           scrub: 1,
         },
       });
-
-      gsap.fromTo(
-        layer3,
-        { yPercent: 0, opacity: 1 },
-        {
-          yPercent: -20,
-          opacity: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: container,
-            start: "top top",
-            end: "bottom top",
-            scrub: 1,
-          },
-        },
-      );
-
-      gsap.set(eyebrow, { y: 12, opacity: 0 });
-      gsap.set([line1, line2], { y: 20, opacity: 0 });
-      gsap.set(ctaRow, { y: 20, opacity: 0 });
-      gsap.set(tagline, { opacity: 0 });
-
-      const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-      tl.to(eyebrow, { y: 0, opacity: 1, duration: 0.8 });
-      tl.to(
-        [line1, line2],
-        { y: 0, opacity: 1, duration: 1.2, stagger: 0.2 },
-        "+=0.2",
-      );
-      tl.to(ctaRow, { y: 0, opacity: 1, duration: 0.6 }, ">-0.35");
-      tl.to(tagline, { opacity: 1, duration: 1 }, "+=0.8");
     }, container);
 
     refresh();
@@ -128,126 +112,175 @@ export default function HeroSection() {
     };
   }, []);
 
+  const handleMagnetMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (prefersReducedMotion) return;
+    const btn = btnRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const maxDist = 100;
+    if (dist < maxDist) {
+      const pull = (1 - dist / maxDist) * 0.35;
+      btnX.set(dx * pull);
+      btnY.set(dy * pull);
+    }
+  };
+
+  const handleMagnetLeave = () => {
+    btnX.set(0);
+    btnY.set(0);
+  };
+
+  const heroProduct = products[0];
+
   return (
-    <section
-      ref={containerRef}
-      className="relative flex min-h-screen items-end overflow-hidden px-12 pb-16"
-    >
-      <div
-        ref={layer1Ref}
-        className="absolute inset-0 overflow-hidden will-change-transform"
-        aria-hidden
-      >
+    <section ref={heroRef} className="hs2-section" aria-label="Hero">
+      <div ref={layer1Ref} className="hs2-bg-layer1" aria-hidden>
         <div
-          className="absolute inset-0 scale-105 bg-cover bg-center bg-no-repeat bg-[#1a1410]"
+          className="hs2-bg-img"
           style={{ backgroundImage: `url(${LAYER1_IMAGE_URL})` }}
         />
-        <div className="absolute inset-0" style={{ background: VOID_BG }} />
+        <div className="hs2-bg-overlay" style={{ background: VOID_BG }} />
       </div>
 
-      <div
-        ref={layer2Ref}
-        className="pointer-events-none absolute inset-0 overflow-hidden will-change-transform"
-        aria-hidden
-      >
+      <div ref={layer2Ref} className="hs2-bg-layer2" aria-hidden>
         <div
-          className="absolute inset-0 scale-110 bg-cover bg-center bg-no-repeat opacity-[0.22] mix-blend-soft-light"
+          className="hs2-bg-texture"
           style={{ backgroundImage: `url(${LAYER2_IMAGE_URL})` }}
         />
-        <div className="absolute inset-0" style={{ background: VIGNETTE_BG }} />
+        <div className="hs2-bg-overlay" style={{ background: VIGNETTE_BG }} />
       </div>
 
-      <div
-        ref={layer3Ref}
-        className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-2 items-end gap-16 will-change-transform"
-      >
-        <div className="py-8 pr-6 md:py-12 md:pr-10">
-          <div
-            ref={eyebrowRef}
-            className="mb-8 uppercase"
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "11px",
-              fontWeight: 300,
-              letterSpacing: "0.18em",
-              color: "var(--sand)",
+      <div className="hs2-content-grid">
+        <div className="hs2-left">
+          <motion.div
+            className="hs2-eyebrow"
+            initial={
+              prefersReducedMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }
+            }
+            animate={{ opacity: 1, x: 0 }}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 0.8,
+              ease: [0.16, 1, 0.3, 1],
             }}
           >
-            New Collection 2025
-          </div>
+            <span className="hs2-eyebrow-dot" aria-hidden />
+            <span>New Collection 2025</span>
+          </motion.div>
 
-          <h1
-            className="mb-8"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(52px, 6vw, 88px)",
-              fontWeight: 400,
-              color: "var(--text-primary)",
-              lineHeight: 1.0,
-            }}
-          >
-            <span ref={headlineLine1Ref} className="block">
-              The Art
-            </span>
-            <span
-              ref={headlineLine2Ref}
-              className="block font-normal italic"
-              style={{ color: "var(--sand)" }}
+          <h1 className="hs2-headline" aria-label="The Art of Scent">
+            <motion.span
+              className="hs2-hl-line1"
+              initial={
+                prefersReducedMotion
+                  ? { opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)" }
+                  : { opacity: 0, y: 30, clipPath: "inset(0 0 100% 0)" }
+              }
+              animate={{ opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)" }}
+              transition={revealTransition(0)}
             >
-              of Scent
-            </span>
+              The Art
+            </motion.span>
+            <br />
+            <motion.em
+              className="hs2-hl-line2"
+              initial={
+                prefersReducedMotion
+                  ? { opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)" }
+                  : { opacity: 0, y: 30, clipPath: "inset(0 0 100% 0)" }
+              }
+              animate={{ opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)" }}
+              transition={revealTransition(0.1)}
+            >
+              of Scent.
+            </motion.em>
           </h1>
 
-          <div ref={ctaRowRef} className="flex items-center gap-6">
-            <button
-              type="button"
-              className="transition-colors duration-300 hover:bg-[var(--gold-pale)]"
-              style={{
-                border: "0.5px solid var(--sand)",
-                color: "var(--void)",
-                background: "var(--sand)",
-                padding: "14px 36px",
-                fontFamily: "var(--font-body)",
-                fontSize: "12px",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                borderRadius: "2px",
-              }}
+          <motion.p
+            className="hs2-notes"
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 1, delay: prefersReducedMotion ? 0 : 0.6 }}
+          >
+            Dark woods · Amber · Smoke — 50 ml
+          </motion.p>
+
+          <motion.div
+            className="hs2-cta-row"
+            initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 0.8,
+              ease: [0.16, 1, 0.3, 1],
+              delay: prefersReducedMotion ? 0 : 0.75,
+            }}
+          >
+            <motion.div
+              className="hs2-cta-magnet"
+              onMouseMove={handleMagnetMove}
+              onMouseLeave={handleMagnetLeave}
+              style={{ display: "inline-block" }}
             >
-              Explore Now
-            </button>
-            <Link to="/product" className="flex items-center gap-2 nav-link">
-              View All →
+              <motion.button
+                ref={btnRef}
+                type="button"
+                className="hs2-cta-btn"
+                style={{ x: springX, y: springY }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                whileTap={{ scale: prefersReducedMotion ? 1 : 0.97 }}
+              >
+                <span>Explore Now</span>
+                <span className="hs2-cta-arrow" aria-hidden>
+                  →
+                </span>
+              </motion.button>
+            </motion.div>
+
+            <Link to="/product" className="hs2-secondary-link">
+              View All <span aria-hidden>→</span>
             </Link>
-          </div>
+          </motion.div>
         </div>
 
-        <div ref={taglineRef} className="text-right">
-          <p
-            className="font-display mb-6 text-lg font-light italic leading-relaxed"
-            style={{ color: "var(--text-secondary)" }}
+        <div className="hs2-right">
+          <motion.div
+            className="hs2-product-wrap"
+            initial={
+              prefersReducedMotion
+                ? { opacity: 1, y: 0, scale: 1 }
+                : { opacity: 0, y: 40, scale: 0.95 }
+            }
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 1.2,
+              delay: prefersReducedMotion ? 0 : 0.4,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            style={{
+              y: prefersReducedMotion ? "0%" : smoothY,
+              rotate: prefersReducedMotion ? 0 : smoothRotate,
+              opacity: prefersReducedMotion ? 1 : productOpacity,
+            }}
           >
-            &quot;Crafted for those who wear
-            <br />
-            their story on their skin.&quot;
-          </p>
-          <div className="gold-line ml-auto" />
+            {heroProduct.image ? (
+              <img
+                src={heroProduct.image}
+                alt="Oud — signature fragrance"
+                className="hs2-product-img"
+                draggable={false}
+              />
+            ) : null}
+            <div className="hs2-product-glow" aria-hidden />
+          </motion.div>
         </div>
       </div>
 
-      <div className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2">
-        <span
-          className="uppercase"
-          style={{
-            fontFamily: "var(--font-body)",
-            fontWeight: 300,
-            fontSize: "10px",
-            color: "var(--text-muted)",
-            letterSpacing: "0.18em",
-          }}
-        >
-          Scroll
-        </span>
+      <div className="hs2-scroll-hint" aria-hidden>
+        <span className="hs2-scroll-text">Scroll</span>
         <div className="hero-scroll-line" aria-hidden />
       </div>
     </section>

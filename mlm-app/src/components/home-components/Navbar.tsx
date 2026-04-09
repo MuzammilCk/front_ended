@@ -1,27 +1,51 @@
-import { Link, useLocation } from "react-router-dom";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Heart, Menu, Search, ShoppingBag, X, ArrowRight } from "lucide-react";
+import { products } from "../../data/products";
+import "../../styles/Navbar.css";
 
 const SCROLL_THRESHOLD = 60;
+const MOBILE_BREAKPOINT = 900;
+const MEGA_MENU_CLOSE_DELAY = 150;
 
-const NAV_ITEMS = [
-  { label: "Home", to: "/" as const },
-  { label: "Collection", to: "/product" as const },
-  { label: "Atelier", to: "/product" as const },
-  { label: "Journal", to: "/product" as const },
-];
+const NAV_LINKS = [
+  { label: "Home", to: "/" as const, mega: false },
+  { label: "Shop", to: "/product" as const, mega: true },
+  { label: "Atelier", to: "/product" as const, mega: true },
+  { label: "Journal", to: "/" as const, mega: false },
+  { label: "About", to: "/" as const, mega: false },
+] as const;
+
+type MegaMenuKind = "shop" | "atelier" | null;
+
+function isMobileViewport() {
+  return window.innerWidth < MOBILE_BREAKPOINT;
+}
 
 function navItemIsActive(pathname: string, label: string, to: string) {
-  if (to === "/") return pathname === "/";
-  if (label === "Collection")
+  if (label === "Shop") {
     return pathname === "/product" || pathname.startsWith("/product/");
-  return false;
+  }
+  if (to === "/") return pathname === "/";
+  return pathname === to;
 }
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [megaMenu, setMegaMenu] = useState<MegaMenuKind>(null);
+
   const logoRef = useRef<HTMLAnchorElement>(null);
+  const paletteInputRef = useRef<HTMLInputElement>(null);
+  const searchTriggerRef = useRef<HTMLButtonElement>(null);
+  const paletteRef = useRef<HTMLDivElement>(null);
+  const megaMenuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const onScroll = () => {
@@ -34,16 +58,83 @@ export default function Navbar() {
 
   useEffect(() => {
     setMobileOpen(false);
+    setMegaMenu(null);
+    setPaletteOpen(false);
+    setQuery("");
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!mobileOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMobileOpen(false);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((open) => !open);
+        return;
+      }
+      if (e.key === "Escape") {
+        setPaletteOpen(false);
+        setMobileOpen(false);
+        setMegaMenu(null);
+      }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [mobileOpen]);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (paletteOpen) {
+      requestAnimationFrame(() => {
+        paletteInputRef.current?.focus();
+      });
+      return;
+    }
+    setQuery("");
+    searchTriggerRef.current?.focus();
+  }, [paletteOpen]);
+
+  useEffect(() => {
+    if (!paletteOpen) return;
+    const paletteEl = paletteRef.current;
+    if (!paletteEl) return;
+
+    const onTrapFocus = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const focusables = paletteEl.querySelectorAll<HTMLElement>(
+        'input, button, a[href], [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", onTrapFocus);
+    return () => window.removeEventListener("keydown", onTrapFocus);
+  }, [paletteOpen]);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (isMobileViewport()) {
+        setMegaMenu(null);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (megaMenuTimerRef.current) {
+        clearTimeout(megaMenuTimerRef.current);
+      }
+    };
+  }, []);
 
   const onLogoMove = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
     const el = logoRef.current;
@@ -64,34 +155,127 @@ export default function Navbar() {
     logoRef.current?.style.setProperty("--nb-my", "0px");
   }, []);
 
+  const openPalette = useCallback(() => {
+    setPaletteOpen(true);
+    setMobileOpen(false);
+  }, []);
+
+  const closePalette = useCallback(() => {
+    setPaletteOpen(false);
+  }, []);
+
+  const clearMegaMenuTimer = useCallback(() => {
+    if (megaMenuTimerRef.current) {
+      clearTimeout(megaMenuTimerRef.current);
+      megaMenuTimerRef.current = null;
+    }
+  }, []);
+
+  const startMegaMenuCloseTimer = useCallback(() => {
+    clearMegaMenuTimer();
+    megaMenuTimerRef.current = setTimeout(() => {
+      setMegaMenu(null);
+    }, MEGA_MENU_CLOSE_DELAY);
+  }, [clearMegaMenuTimer]);
+
+  const openMegaMenu = useCallback(
+    (menu: Exclude<MegaMenuKind, null>) => {
+      if (isMobileViewport()) return;
+      clearMegaMenuTimer();
+      setMegaMenu(menu);
+    },
+    [clearMegaMenuTimer],
+  );
+
+  const filteredProducts = useMemo(() => {
+    if (!query.trim()) return [];
+    const normalizedQuery = query.trim().toLowerCase();
+    return products
+      .filter(
+        (product) =>
+          product.name.toLowerCase().includes(normalizedQuery) ||
+          product.family.toLowerCase().includes(normalizedQuery),
+      )
+      .slice(0, 6);
+  }, [query]);
+
+  const quickLinks = useMemo(
+    () => [
+      { label: "All Fragrances", to: "/product" },
+      { label: "Woody Collection", to: "/product" },
+      { label: "Floral Collection", to: "/product" },
+      { label: "Your Cart", to: "/cart" },
+    ],
+    [],
+  );
+
+  const categoryLinks =
+    megaMenu === "atelier"
+      ? [
+          { label: "The Story", to: "/" },
+          { label: "Our Process", to: "/" },
+          { label: "Ingredients", to: "/" },
+          { label: "Sustainability", to: "/" },
+          { label: "Press", to: "/" },
+        ]
+      : [
+          { label: "All Fragrances", to: "/product" },
+          { label: "Woody & Resinous", to: "/product" },
+          { label: "Floral & Romantic", to: "/product" },
+          { label: "Fresh & Aquatic", to: "/product" },
+          { label: "Oriental & Spicy", to: "/product" },
+          { label: "New Arrivals", to: "/product" },
+          { label: "Bestsellers", to: "/product" },
+        ];
+
   return (
-    <header
-      className={`nb-header fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${
-        scrolled ? "nb-scrolled" : "nb-top"
-      }`}
-    >
-      <div className="nb-inner">
+    <header className="nb2-header">
+      <div className={`nb2-inner${scrolled ? " nb2-inner--pill" : ""}`}>
         <Link
           ref={logoRef}
           to="/"
-          className="nb-logo"
+          className="nb2-logo"
           onMouseMove={onLogoMove}
           onMouseLeave={onLogoLeave}
         >
-          <span className="nb-logo-stack">
-            <span className="nb-logo-text">HADI</span>
-            <span className="nb-logo-sub">PERFUMES</span>
+          <span className="nb2-logo-stack">
+            <span className="nb2-logo-text">HADI</span>
+            <span className="nb2-logo-sub">PERFUMES</span>
           </span>
         </Link>
 
-        <nav className="nb-nav nb-nav-desktop" aria-label="Primary">
-          {NAV_ITEMS.map((item) => {
+        <nav className="nb2-nav nb2-nav-desktop" role="navigation" aria-label="Primary">
+          {NAV_LINKS.map((item) => {
             const active = navItemIsActive(location.pathname, item.label, item.to);
+            const menuType: Exclude<MegaMenuKind, null> | null =
+              item.label === "Shop"
+                ? "shop"
+                : item.label === "Atelier"
+                  ? "atelier"
+                  : null;
+
+            if (item.mega && menuType) {
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  className={`nb2-link nb2-link-btn${active ? " nb2-link--active" : ""}`}
+                  aria-expanded={megaMenu === menuType}
+                  onMouseEnter={() => openMegaMenu(menuType)}
+                  onMouseLeave={startMegaMenuCloseTimer}
+                  onFocus={() => setMegaMenu(null)}
+                  onClick={() => navigate(item.to)}
+                >
+                  {item.label}
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.label}
                 to={item.to}
-                className={`nb-link${active ? " nb-link--active" : ""}`}
+                className={`nb2-link${active ? " nb2-link--active" : ""}`}
                 aria-current={active ? "page" : undefined}
               >
                 {item.label}
@@ -100,91 +284,112 @@ export default function Navbar() {
           })}
         </nav>
 
-        <div className="nb-actions">
-          <Link to="/login" className="nb-action-link nb-login-desktop">
+        <div className="nb2-actions">
+          <Link to="/login" className="nb2-action-link nb2-login-desktop">
             Login
           </Link>
-          <span className="nb-divider nb-login-desktop" aria-hidden />
-          <Link to="/wishlist" className="nb-icon-btn" aria-label="Wishlist">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              aria-hidden
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
+          <span className="nb2-divider nb2-login-desktop" aria-hidden />
+
+          <Link to="/wishlist" className="nb2-icon-btn" aria-label="Wishlist">
+            <Heart size={16} strokeWidth={1.5} />
           </Link>
-          <Link to="/cart" className="nb-icon-btn" aria-label="Cart">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              aria-hidden
-            >
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <path d="M16 10a4 4 0 01-8 0" />
-            </svg>
+          <Link to="/cart" className="nb2-icon-btn" aria-label="Cart">
+            <ShoppingBag size={16} strokeWidth={1.5} />
           </Link>
 
           <button
+            ref={searchTriggerRef}
             type="button"
-            className="nb-menu-btn"
+            className="nb2-search-btn"
+            onClick={openPalette}
+            aria-label="Open command palette"
+          >
+            <Search size={15} strokeWidth={1.7} />
+            <span className="nb2-search-kbd" aria-hidden>
+              ⌘K
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className="nb2-menu-btn"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
-            aria-controls="nb-mobile-panel"
-            onClick={() => setMobileOpen((o) => !o)}
+            aria-controls="nb2-mobile-panel"
+            onClick={() => setMobileOpen((open) => !open)}
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              aria-hidden
-            >
-              {mobileOpen ? (
-                <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-              ) : (
-                <>
-                  <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-                </>
-              )}
-            </svg>
+            {mobileOpen ? <X size={18} strokeWidth={1.6} /> : <Menu size={18} strokeWidth={1.6} />}
           </button>
         </div>
       </div>
 
+      <AnimatePresence>
+        {megaMenu ? (
+          <motion.div
+            className="nb2-megamenu"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            onMouseEnter={clearMegaMenuTimer}
+            onMouseLeave={startMegaMenuCloseTimer}
+          >
+            <div className="nb2-megamenu-inner">
+              <div className="nb2-megamenu-left">
+                <p className="nb2-mm-eyebrow">Browse by</p>
+                <h3 className="nb2-mm-title">
+                  {megaMenu === "shop" ? "The Collection" : "Our Craft"}
+                </h3>
+                <nav className="nb2-mm-links" role="navigation" aria-label="Mega menu">
+                  {categoryLinks.map((item) => (
+                    <Link key={`${megaMenu}-${item.label}`} to={item.to} className="nb2-mm-link">
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+              <div className="nb2-megamenu-right">
+                <p className="nb2-mm-eyebrow">Featured</p>
+                {products[0].image ? (
+                  <img
+                    src={products[0].image}
+                    alt="Oud featured fragrance"
+                    className="nb2-mm-product-img"
+                  />
+                ) : null}
+                <h4 className="nb2-mm-product-name">{products[0].name}</h4>
+                <p className="nb2-mm-product-price">${products[0].price}</p>
+                <Link to={`/product/${products[0].id}`} className="nb2-mm-cta">
+                  Shop Now <span aria-hidden>→</span>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
       {mobileOpen ? (
         <button
           type="button"
-          className="nb-mobile-scrim"
+          className="nb2-mobile-scrim"
           aria-label="Close menu"
           onClick={() => setMobileOpen(false)}
         />
       ) : null}
 
       <div
-        id="nb-mobile-panel"
-        className={`nb-mobile-panel${mobileOpen ? " nb-mobile-panel--open" : ""}`}
+        id="nb2-mobile-panel"
+        className={`nb2-mobile-panel${mobileOpen ? " nb2-mobile-panel--open" : ""}`}
         aria-hidden={!mobileOpen}
       >
-        <nav className="nb-mobile-nav" aria-label="Mobile primary">
-          {NAV_ITEMS.map((item) => {
+        <nav className="nb2-mobile-nav" role="navigation" aria-label="Mobile primary">
+          {NAV_LINKS.map((item) => {
             const active = navItemIsActive(location.pathname, item.label, item.to);
             return (
               <Link
-                key={`m-${item.label}`}
+                key={`mobile-${item.label}`}
                 to={item.to}
-                className={`nb-mobile-link${active ? " nb-mobile-link--active" : ""}`}
+                className={`nb2-mobile-link${active ? " nb2-mobile-link--active" : ""}`}
                 aria-current={active ? "page" : undefined}
                 onClick={() => setMobileOpen(false)}
               >
@@ -192,57 +397,104 @@ export default function Navbar() {
               </Link>
             );
           })}
-        </nav>
-        <div className="nb-mobile-actions">
-          <Link
-            to="/login"
-            className="nb-mobile-link nb-mobile-link--muted"
-            onClick={() => setMobileOpen(false)}
-          >
+          <Link to="/login" className="nb2-mobile-link nb2-mobile-link--muted" onClick={() => setMobileOpen(false)}>
             Login
           </Link>
-          <div className="nb-mobile-icons">
-            <Link
-              to="/wishlist"
-              className="nb-icon-btn nb-icon-btn--lg"
-              aria-label="Wishlist"
-              onClick={() => setMobileOpen(false)}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                aria-hidden
-              >
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-            </Link>
-            <Link
-              to="/cart"
-              className="nb-icon-btn nb-icon-btn--lg"
-              aria-label="Cart"
-              onClick={() => setMobileOpen(false)}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                aria-hidden
-              >
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <path d="M16 10a4 4 0 01-8 0" />
-              </svg>
-            </Link>
-          </div>
+        </nav>
+        <div className="nb2-mobile-icons">
+          <Link to="/wishlist" className="nb2-icon-btn nb2-icon-btn--lg" aria-label="Wishlist" onClick={() => setMobileOpen(false)}>
+            <Heart size={18} strokeWidth={1.5} />
+          </Link>
+          <Link to="/cart" className="nb2-icon-btn nb2-icon-btn--lg" aria-label="Cart" onClick={() => setMobileOpen(false)}>
+            <ShoppingBag size={18} strokeWidth={1.5} />
+          </Link>
+          <button type="button" className="nb2-icon-btn nb2-icon-btn--lg" aria-label="Open command palette" onClick={openPalette}>
+            <Search size={18} strokeWidth={1.7} />
+          </button>
         </div>
       </div>
+
+      <AnimatePresence>
+        {paletteOpen ? (
+          <>
+            <motion.div
+              className="nb2-palette-scrim"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={closePalette}
+            />
+            <motion.div
+              ref={paletteRef}
+              className="nb2-palette"
+              initial={{ opacity: 0, scale: 0.97, y: -12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: -12 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Command palette"
+            >
+              <div className="nb2-palette-input-row">
+                <Search size={16} strokeWidth={1.7} aria-hidden />
+                <input
+                  ref={paletteInputRef}
+                  autoFocus
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search fragrances, categories..."
+                  aria-label="Search fragrances"
+                />
+                <kbd>Esc</kbd>
+              </div>
+
+              <div className="nb2-palette-results">
+                {!query.trim() ? (
+                  quickLinks.map((item) => (
+                    <Link
+                      key={item.label}
+                      to={item.to}
+                      className="nb2-palette-row"
+                      onClick={() => closePalette()}
+                    >
+                      <ArrowRight size={14} strokeWidth={1.7} />
+                      <span className="nb2-palette-quick-label">{item.label}</span>
+                      <span className="nb2-palette-quick-route">{item.to}</span>
+                    </Link>
+                  ))
+                ) : filteredProducts.length > 0 ? (
+                  filteredProducts.map((product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      className="nb2-palette-row nb2-palette-result-btn"
+                      onClick={() => {
+                        navigate(`/product/${product.id}`);
+                        closePalette();
+                      }}
+                    >
+                      {product.image ? (
+                        <img src={product.image} alt="" className="nb2-palette-thumb" />
+                      ) : (
+                        <span className="nb2-palette-thumb-fallback" aria-hidden />
+                      )}
+                      <span className="nb2-palette-result-copy">
+                        <span className="nb2-palette-result-name">{product.name}</span>
+                        <span className="nb2-palette-result-family">{product.family}</span>
+                      </span>
+                      <span className="nb2-palette-price">${product.price}</span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="nb2-palette-empty">No results found</div>
+                )}
+              </div>
+            </motion.div>
+          </>
+        ) : null}
+      </AnimatePresence>
     </header>
   );
 }

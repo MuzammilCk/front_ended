@@ -1,6 +1,6 @@
-import oud from "/featured/Same_as_above_202604091220-removebg-preview.png"
-import kunanfa from "../assets/kunafa.jpeg"
-import kashimiri from "../assets/kashmiri.jpeg"
+import oud from "../assets/oud.png"
+import kunanfa from "../assets/kunafa.png"
+import kashimiri from "../assets/kashmiri.png"
 
 // src/data/products.ts
 
