@@ -1,376 +1,50 @@
+/* ═══════════════════════════════════════════════════════════════
+   FEATURED COLLECTION — Sticky scroll showroom
+   Architecture:
+     fc-showroom          → outer section, no padding (scroll handles spacing)
+     fc-scroll-wrapper    → tall div, creates scroll travel (height set inline)
+     fc-sticky-scene      → position: sticky, 100vh, locks to viewport
+       fc-platform-layer  → z-index 1, static decorative elements
+       fc-bottle-layer    → z-index 2, centre zone 30vw→80vw, animates
+       fc-brand-details   → z-index 3, left zone 0→30vw, fades on change
+       fc-thumb-rail      → z-index 4, right zone 80vw→100%, click to jump
+       fc-progress-wrap   → z-index 5, bottom center, thin progress line
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Section wrapper ─────────────────────────────────────────── */
 .fc-showroom {
   position: relative;
   background: var(--void);
-  margin-bottom: 0;
-  padding: clamp(2.5rem, 6vw, 5rem) clamp(1rem, 2.2vw, 2.2rem);
+  /* No padding — the sticky scene fills the viewport */
 }
 
-.fc-editorial-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  align-items: center;
-  gap: clamp(1rem, 2vw, 2rem);
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.fc-copy {
-  grid-column: span 5;
-  padding-right: clamp(0.5rem, 2vw, 1.6rem);
-}
-
-.fc-eyebrow {
-  margin: 0 0 0.6rem;
-  font-family: var(--font-body);
-  font-size: 0.64rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--sand) 70%, transparent);
-}
-
-.fc-title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(2.1rem, 4.2vw, 3.8rem);
-  line-height: 0.98;
-  font-weight: 400;
-  color: var(--text-primary);
-}
-
-.fc-description {
-  margin: 1rem 0 1.4rem;
-  max-width: 38ch;
-  font-size: clamp(0.86rem, 1.2vw, 1rem);
-  line-height: 1.65;
-  color: color-mix(in srgb, var(--text-secondary) 82%, transparent);
-}
-
-.fc-name {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3.1vw, 2.9rem);
-  font-weight: 400;
-  color: var(--sand);
-}
-
-.fc-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.fc-tag-pill {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid color-mix(in srgb, var(--gold) 44%, transparent);
-  background: color-mix(in srgb, var(--gold) 9%, transparent);
-  color: color-mix(in srgb, var(--gold-pale) 86%, var(--sand));
-  font-family: var(--font-body);
-  font-size: 0.56rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 0.32rem 0.62rem;
-}
-
-.fc-details-footer {
-  margin-top: 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.95rem;
-}
-
-.fc-price {
-  font-family: var(--font-display);
-  font-size: clamp(1.22rem, 2.2vw, 1.8rem);
-  color: var(--sand);
-}
-
-.fc-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent);
-  color: var(--gold);
-  font-family: var(--font-body);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-size: 0.6rem;
-  padding: 0.72rem 1.32rem;
-  transition: transform 0.28s var(--ease-out), background-color 0.28s var(--ease-out), color 0.28s var(--ease-out), box-shadow 0.28s var(--ease-out);
-}
-
-.fc-cta-btn:hover {
-  transform: translateY(-1px);
-  color: var(--void);
-  background: color-mix(in srgb, var(--gold) 90%, white 10%);
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--gold) 22%, transparent);
-}
-
-.fc-stage {
-  grid-column: span 7;
-  position: relative;
-  min-height: clamp(430px, 60vw, 700px);
-  border: 1px solid color-mix(in srgb, var(--sand) 12%, transparent);
-  background:
-    radial-gradient(circle at 58% 28%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 58%),
-    linear-gradient(170deg, color-mix(in srgb, var(--mahogany) 55%, var(--void)), var(--void));
-  overflow: hidden;
-}
-
-.fc-stage-light {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 58% 37%, color-mix(in srgb, var(--gold-pale) 33%, transparent) 0%, color-mix(in srgb, var(--gold) 10%, transparent) 32%, transparent 64%);
-  filter: blur(6px);
-  pointer-events: none;
-}
-
-.fc-stage-fog {
-  position: absolute;
-  left: 50%;
-  bottom: 5.5rem;
-  width: min(42vw, 500px);
-  height: min(8vw, 90px);
-  transform: translateX(-50%);
-  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--void) 38%, transparent), transparent 75%);
-  filter: blur(10px);
-  pointer-events: none;
-}
-
-.fc-stage-platform {
-  position: absolute;
-  left: 50%;
-  bottom: -3.8rem;
-  width: min(70%, 620px);
-  height: clamp(8.5rem, 15vw, 12rem);
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background:
-    radial-gradient(ellipse at 50% 34%, color-mix(in srgb, var(--sand) 14%, var(--void)), color-mix(in srgb, var(--void) 88%, black) 73%),
-    linear-gradient(to bottom, color-mix(in srgb, var(--void) 42%, black), color-mix(in srgb, black 86%, var(--void)));
-  box-shadow:
-    0 -1px 0 color-mix(in srgb, var(--sand) 18%, transparent),
-    0 24px 48px color-mix(in srgb, black 72%, transparent);
-}
-
-.fc-stage-bottle-wrap {
-  position: absolute;
-  left: 56%;
-  bottom: 7.2rem;
-  width: min(39%, 360px);
-  transform: translateX(-50%);
-  z-index: 2;
-}
-
-.fc-stage-bottle {
-  width: 100%;
-  height: auto;
-  max-height: min(60vh, 560px);
-  object-fit: contain;
-  animation: fcBottleIn 420ms var(--ease-out-quart) both;
-  filter:
-    drop-shadow(0 16px 24px color-mix(in srgb, black 55%, transparent))
-    drop-shadow(0 30px 38px color-mix(in srgb, black 62%, transparent));
-  transition: transform 0.42s var(--ease-out), filter 0.42s var(--ease-out);
-}
-
-.fc-stage:hover .fc-stage-bottle {
-  transform: translateY(-3px) scale(1.01);
-  filter:
-    drop-shadow(0 20px 28px color-mix(in srgb, black 48%, transparent))
-    drop-shadow(0 34px 42px color-mix(in srgb, black 56%, transparent));
-}
-
-.fc-thumbnail-rail {
-  position: absolute;
-  right: clamp(0.6rem, 1.2vw, 1rem);
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  max-height: 72%;
-  overflow-y: auto;
-  padding-right: 0.2rem;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--sand) 38%, transparent) transparent;
-}
-
-.fc-thumbnail-rail::-webkit-scrollbar {
-  width: 4px;
-}
-
-.fc-thumbnail-rail::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--sand) 38%, transparent);
-  border-radius: 20px;
-}
-
-.fc-thumb-btn {
-  width: 3.7rem;
-  height: 3.9rem;
-  border: 1px solid color-mix(in srgb, var(--sand) 26%, transparent);
-  background: color-mix(in srgb, var(--void) 48%, transparent);
-  padding: 0.35rem;
-  cursor: pointer;
-  transition: transform 0.24s var(--ease-out), border-color 0.24s var(--ease-out), background-color 0.24s var(--ease-out), box-shadow 0.24s var(--ease-out);
-}
-
-.fc-thumb-btn:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--gold) 56%, transparent);
-}
-
-.fc-thumb-btn--active {
-  border-color: var(--gold);
-  background: color-mix(in srgb, var(--gold) 9%, transparent);
-  box-shadow: 0 8px 16px color-mix(in srgb, var(--gold) 12%, transparent);
-}
-
-.fc-thumb-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-@keyframes fcBottleIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@media (max-width: 1080px) {
-  .fc-editorial-grid {
-    grid-template-columns: 1fr;
-    gap: 1.15rem;
-  }
-
-  .fc-copy {
-    grid-column: auto;
-    padding-right: 0;
-    order: 1;
-  }
-
-  .fc-stage {
-    grid-column: auto;
-    order: 2;
-    min-height: 500px;
-  }
-
-  .fc-thumbnail-rail {
-    right: 0.8rem;
-  }
-}
-
-@media (max-width: 767px) {
-  .fc-showroom {
-    padding: 2rem 1rem;
-  }
-
-  .fc-copy {
-    order: 1;
-  }
-
-  .fc-stage {
-    order: 2;
-    min-height: 430px;
-  }
-
-  .fc-stage-bottle-wrap {
-    left: 50%;
-    width: min(56%, 290px);
-    bottom: 6.9rem;
-  }
-
-  .fc-stage-platform {
-    width: min(88%, 520px);
-    bottom: -4.1rem;
-  }
-
-  .fc-thumbnail-rail {
-    order: 3;
-    position: static;
-    transform: none;
-    margin: 0.85rem 0 0;
-    max-height: none;
-    overflow: visible;
-    flex-direction: row;
-    gap: 0.5rem;
-    justify-content: flex-start;
-    padding-right: 0;
-  }
-
-  .fc-thumb-btn {
-    width: 3.2rem;
-    height: 3.2rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fc-stage-bottle,
-  .fc-cta-btn,
-  .fc-thumb-btn {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-/* ─── Showroom wrapper ──────────────────────────────────────────────────────── */
-
-.fc-showroom {
-  position: relative;
-  background: var(--void);
-  margin-bottom: 0;
-}
-
-/* Tall container — creates the scroll travel. Height is set inline via JS. */
+/* ─── Tall scroll container ───────────────────────────────────── */
 .fc-scroll-wrapper {
   position: relative;
-  /* NO overflow: hidden here — that would break sticky */
+  /* NEVER add overflow: hidden here — it breaks sticky */
 }
 
-/* ─── Sticky scene — 100vh, locks while wrapper scrolls ────────────────────── */
-
+/* ─── Sticky viewport scene ───────────────────────────────────── */
 .fc-sticky-scene {
   position: sticky;
   top: 0;
   height: 100vh;
   overflow: hidden;
-
-  /*
-   * LAYOUT ZONES (left → right):
-   *   0  – 32vw  →  Details panel
-   *   32vw – 82vw →  Perfume stage (centered at ~57vw)
-   *   82vw – 100% → Thumbnail rail
-   *
-   * Zones are enforced by each layer's absolute positioning.
-   * No layer overlaps another zone.
-   */
-
   background:
     radial-gradient(
-      circle at 55% 30%,
-      color-mix(in srgb, var(--mahogany, #3a1a10) 16%, transparent),
-      transparent 56%
+      circle at 55% 28%,
+      color-mix(in srgb, var(--mahogany) 18%, transparent),
+      transparent 54%
     ),
     radial-gradient(
-      circle at 50% 90%,
-      color-mix(in srgb, var(--gold, #c9a96e) 7%, transparent),
-      transparent 65%
+      circle at 50% 92%,
+      color-mix(in srgb, var(--gold) 8%, transparent),
+      transparent 62%
     ),
-    var(--void, #080400);
+    var(--void);
 }
 
-/* ─── Layer 1: Platform ─────────────────────────────────────────────────────── */
-
+/* ─── Layer 1: Platform ───────────────────────────────────────── */
 .fc-platform-layer {
   position: absolute;
   inset: 0;
@@ -380,208 +54,162 @@
 
 .fc-ground-shadow {
   position: absolute;
-  /* Center the shadow under the perfume stage center (~57vw) */
-  left: 57%;
-  bottom: 9rem;
-  width: min(36vw, 580px);
-  height: clamp(2.5rem, 7vw, 5rem);
+  left: 55%;
+  bottom: 9.5rem;
+  width: min(38vw, 560px);
+  height: clamp(2rem, 6vw, 4rem);
   transform: translateX(-50%);
   background: radial-gradient(
     ellipse at center,
-    color-mix(in srgb, var(--void, #080400) 40%, transparent) 0%,
-    color-mix(in srgb, var(--void, #080400) 80%, transparent) 56%,
+    color-mix(in srgb, var(--void) 50%, transparent) 0%,
+    color-mix(in srgb, var(--void) 82%, transparent) 55%,
     transparent 100%
   );
-  filter: blur(8px);
+  filter: blur(10px);
 }
 
 .fc-platform {
   position: absolute;
-  /* Platform is centered under the perfume (~57vw from left) */
-  left: 57%;
-  bottom: -3.5rem;
-  width: min(56vw, 780px);
-  height: clamp(11rem, 18vw, 14rem);
+  left: 55%;
+  bottom: -3.8rem;
+  width: min(54vw, 760px);
+  height: clamp(10rem, 17vw, 13rem);
   transform: translateX(-50%);
   border-radius: 50%;
   background:
     radial-gradient(
       ellipse at 50% 36%,
-      color-mix(in srgb, var(--sand, #d4c5a9) 13%, var(--void, #080400)) 0%,
-      color-mix(in srgb, var(--void, #080400) 86%, black) 75%
+      color-mix(in srgb, var(--sand) 12%, var(--void)) 0%,
+      color-mix(in srgb, var(--void) 88%, black) 74%
     ),
     linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--void, #080400) 45%, black),
-      color-mix(in srgb, black 82%, var(--void, #080400))
+      color-mix(in srgb, var(--void) 44%, black),
+      color-mix(in srgb, black 84%, var(--void))
     );
   box-shadow:
-    0 -2px 0 color-mix(in srgb, var(--sand, #d4c5a9) 18%, transparent),
-    0 24px 54px color-mix(in srgb, black 76%, transparent);
+    0 -2px 0 color-mix(in srgb, var(--sand) 16%, transparent),
+    0 28px 56px color-mix(in srgb, black 78%, transparent);
 }
 
-/* ─── Layer 2: Perfume stage ────────────────────────────────────────────────── */
-
-.fc-perfume-layer {
+/* ─── Layer 2: Bottle stage ───────────────────────────────────── */
+.fc-bottle-layer {
   position: absolute;
-  /* Confined to the center zone: 32vw → 82vw */
-  left: 32vw;
-  right: calc(100% - 82vw);
+  /* Centre zone: 30vw to 80vw */
+  left: 30vw;
+  right: calc(100% - 80vw);
   top: 0;
   bottom: 0;
   z-index: 2;
   pointer-events: none;
 }
 
-.fc-perfume-frame {
+.fc-bottle-frame {
   position: absolute;
-  /* Center within the perfume layer (which is 50vw wide) */
   left: 50%;
-  bottom: clamp(9rem, 11vw, 10.5rem);
-  width: min(28vw, 420px);
+  bottom: clamp(9rem, 11vw, 11rem);
+  width: min(26vw, 400px);
   transform: translateX(-50%);
 }
 
-.fc-perfume-image {
+.fc-bottle-img {
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(66vh, 640px);
+  max-height: min(68vh, 640px);
   object-fit: contain;
-  filter: drop-shadow(0 22px 28px color-mix(in srgb, black 65%, transparent));
+  filter: drop-shadow(0 24px 32px color-mix(in srgb, black 68%, transparent));
 }
 
-/* ─── Keyframe animations (enter/exit with directional slide) ───────────────── */
-
+/* ─── Bottle enter/exit keyframes ─────────────────────────────── */
 /*
- * IMPORTANT: animations must also set the final transform (translateX(-50%))
- * because the .fc-perfume-frame static rule has that transform,
- * and animation overrides it for the duration. `animation-fill-mode: both`
- * (via "both") holds the `to` state after completion.
- */
-
+   Each animation also sets the final translateX(-50%) because the
+   .fc-bottle-frame rule has that transform, and CSS animations
+   override transforms for their full duration. animation-fill-mode: both
+   holds the `to` state after the animation completes.
+*/
 @keyframes fc-enter-right {
-  from {
-    transform: translateX(calc(-50% + 90px));
-    opacity: 0;
-  }
-  to {
-    transform: translateX(-50%);
-    opacity: 1;
-  }
+  from { transform: translateX(calc(-50% + 80px)); opacity: 0; }
+  to   { transform: translateX(-50%);              opacity: 1; }
 }
-
 @keyframes fc-enter-left {
-  from {
-    transform: translateX(calc(-50% - 90px));
-    opacity: 0;
-  }
-  to {
-    transform: translateX(-50%);
-    opacity: 1;
-  }
+  from { transform: translateX(calc(-50% - 80px)); opacity: 0; }
+  to   { transform: translateX(-50%);              opacity: 1; }
 }
-
 @keyframes fc-exit-left {
-  from {
-    transform: translateX(-50%);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(calc(-50% - 90px));
-    opacity: 0;
-  }
+  from { transform: translateX(-50%);              opacity: 1; }
+  to   { transform: translateX(calc(-50% - 80px)); opacity: 0; }
 }
-
 @keyframes fc-exit-right {
-  from {
-    transform: translateX(-50%);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(calc(-50% + 90px));
-    opacity: 0;
-  }
+  from { transform: translateX(-50%);              opacity: 1; }
+  to   { transform: translateX(calc(-50% + 80px)); opacity: 0; }
 }
 
-.perfume-enter-right {
-  animation: fc-enter-right 0.62s cubic-bezier(0.77, 0, 0.18, 1) both;
-}
+.fc-enter-right { animation: fc-enter-right 0.58s cubic-bezier(0.77, 0, 0.18, 1) both; }
+.fc-enter-left  { animation: fc-enter-left  0.58s cubic-bezier(0.77, 0, 0.18, 1) both; }
+.fc-exit-left   { animation: fc-exit-left   0.58s cubic-bezier(0.77, 0, 0.18, 1) both; }
+.fc-exit-right  { animation: fc-exit-right  0.58s cubic-bezier(0.77, 0, 0.18, 1) both; }
 
-.perfume-enter-left {
-  animation: fc-enter-left 0.62s cubic-bezier(0.77, 0, 0.18, 1) both;
-}
-
-.perfume-exit-left {
-  animation: fc-exit-left 0.62s cubic-bezier(0.77, 0, 0.18, 1) both;
-}
-
-.perfume-exit-right {
-  animation: fc-exit-right 0.62s cubic-bezier(0.77, 0, 0.18, 1) both;
-}
-
-/* ─── Layer 3: Details panel ────────────────────────────────────────────────── */
-
-.fc-details-panel {
+/* ─── Layer 3: Brand details — NO box, pure type ─────────────── */
+.fc-brand-details {
   position: absolute;
-  /* Constrained to the LEFT ZONE only: 0 → 32vw */
-  left: clamp(1.5rem, 4vw, 3.5rem);
+  /* Left zone: 0 to 30vw */
+  left: clamp(2rem, 5vw, 4rem);
   top: 50%;
   z-index: 3;
-
-  /* Max width must not overflow into the perfume zone (32vw) */
-  width: min(22rem, 27vw);
-
-  transform: translateY(calc(-50% - 12px));
+  width: min(20rem, 26vw);
+  /* Starts 14px below center, slides up on visible */
+  transform: translateY(calc(-50% + 14px));
   opacity: 0;
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity 0.38s ease, transform 0.38s ease;
 }
 
-.fc-details-panel--visible {
+.fc-brand-details--visible {
   opacity: 1;
   transform: translateY(-50%);
 }
 
+/* ─── Text inside brand details ───────────────────────────────── */
 .fc-eyebrow {
-  margin: 0 0 0.8rem;
+  margin: 0 0 0.75rem;
   font-family: var(--font-body);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
-  letter-spacing: 0.24em;
-  color: color-mix(in srgb, var(--sand, #d4c5a9) 68%, transparent);
+  letter-spacing: 0.26em;
+  color: color-mix(in srgb, var(--sand) 58%, transparent);
 }
 
 .fc-name {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 3.2vw, 3rem);
+  font-size: clamp(1.8rem, 3.4vw, 3.2rem);
   font-weight: 300;
-  line-height: 1.02;
-  color: var(--sand, #d4c5a9);
+  line-height: 1.0;
+  color: var(--sand);
 }
 
 .fc-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1.1rem;
+  gap: 0.45rem;
+  margin-top: 1rem;
 }
 
 .fc-tag-pill {
   display: inline-flex;
   align-items: center;
-  border: 1px solid color-mix(in srgb, var(--gold, #c9a96e) 45%, transparent);
-  color: color-mix(in srgb, var(--gold, #c9a96e) 92%, white);
-  background: color-mix(in srgb, var(--gold, #c9a96e) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 42%, transparent);
+  color: color-mix(in srgb, var(--gold) 90%, white);
+  background: color-mix(in srgb, var(--gold) 9%, transparent);
   font-family: var(--font-body);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
-  font-size: 0.56rem;
-  padding: 0.3rem 0.65rem;
+  font-size: 0.54rem;
+  padding: 0.28rem 0.6rem;
 }
 
 .fc-details-footer {
-  margin-top: 1.4rem;
+  margin-top: 1.3rem;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -591,7 +219,7 @@
 .fc-price {
   font-family: var(--font-display);
   font-size: clamp(1.1rem, 2.2vw, 1.7rem);
-  color: var(--sand, #d4c5a9);
+  color: var(--sand);
 }
 
 .fc-cta-btn {
@@ -599,114 +227,111 @@
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  border: 1px solid color-mix(in srgb, var(--gold, #c9a96e) 55%, transparent);
-  color: var(--gold, #c9a96e);
+  border: 1px solid color-mix(in srgb, var(--gold) 52%, transparent);
+  color: var(--gold);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   font-family: var(--font-body);
-  font-size: 0.6rem;
-  padding: 0.7rem 1.3rem;
-  transition: all 0.3s ease;
+  font-size: 0.58rem;
+  padding: 0.68rem 1.28rem;
+  transition: background 0.28s ease, color 0.28s ease, transform 0.28s ease;
 }
 
 .fc-cta-btn:hover {
-  color: var(--void, #080400);
-  background: var(--gold, #c9a96e);
+  color: var(--void);
+  background: var(--gold);
+  transform: translateY(-1px);
 }
 
-/* ─── Layer 4: Thumbnail rail ────────────────────────────────────────────────── */
-
-.fc-thumbnail-rail {
+/* ─── Layer 4: Thumbnail rail ─────────────────────────────────── */
+.fc-thumb-rail {
   position: absolute;
-  /* Right zone: 82vw → 100%, centered vertically */
-  right: 1.5rem;
+  right: 1.4rem;
   top: 50%;
   transform: translateY(-50%);
   z-index: 4;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  max-height: 72vh;
+  gap: 0.6rem;
+  max-height: 70vh;
   overflow-y: auto;
-  padding: 0.2rem 0.35rem 0.2rem 0;
+  padding: 0.15rem 0.3rem 0.15rem 0;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--sand, #d4c5a9) 35%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--sand) 32%, transparent) transparent;
 }
 
-.fc-thumbnail-rail::-webkit-scrollbar {
-  width: 3px;
-}
-
-.fc-thumbnail-rail::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.fc-thumbnail-rail::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--sand, #d4c5a9) 35%, transparent);
-  border-radius: 8px;
+.fc-thumb-rail::-webkit-scrollbar { width: 2px; }
+.fc-thumb-rail::-webkit-scrollbar-track { background: transparent; }
+.fc-thumb-rail::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--sand) 32%, transparent);
+  border-radius: 4px;
 }
 
 .fc-thumb-btn {
-  width: 4.25rem;
-  border: 1px solid color-mix(in srgb, var(--sand, #d4c5a9) 22%, transparent);
-  background: color-mix(in srgb, var(--void, #080400) 36%, transparent);
-  padding: 0.45rem;
+  width: 4rem;
+  border: 1px solid color-mix(in srgb, var(--sand) 20%, transparent);
+  background: transparent;
+  padding: 0.4rem;
   cursor: pointer;
-  transition: transform 0.32s ease, border-color 0.32s ease, background 0.32s ease;
+  transition: transform 0.28s ease, border-color 0.28s ease, background 0.28s ease;
 }
 
 .fc-thumb-btn--active {
-  border-color: var(--gold, #c9a96e);
+  border-color: var(--gold);
   transform: scale(1.08);
-  background: color-mix(in srgb, var(--gold, #c9a96e) 8%, transparent);
+  background: color-mix(in srgb, var(--gold) 7%, transparent);
 }
 
 .fc-thumb-btn:hover:not(.fc-thumb-btn--active) {
-  border-color: color-mix(in srgb, var(--sand, #d4c5a9) 45%, transparent);
+  border-color: color-mix(in srgb, var(--sand) 42%, transparent);
 }
 
-.fc-thumb-image {
+.fc-thumb-img {
   width: 100%;
-  height: 3rem;
+  height: 2.8rem;
   object-fit: contain;
   display: block;
 }
 
-/* ─── Scroll progress indicator ─────────────────────────────────────────────── */
-
-.fc-scroll-hint {
+/* ─── Scroll progress — thin vertical line, no counter ───────── */
+.fc-progress-wrap {
   position: absolute;
-  bottom: 2rem;
+  bottom: 1.8rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
   pointer-events: none;
 }
 
-.fc-scroll-progress {
+.fc-progress-track {
   width: 1px;
-  height: 2.5rem;
-  background: color-mix(in srgb, var(--sand, #d4c5a9) 18%, transparent);
+  height: 2.8rem;
+  background: color-mix(in srgb, var(--sand) 16%, transparent);
   position: relative;
 }
 
-.fc-scroll-progress-bar {
+.fc-progress-fill {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  background: color-mix(in srgb, var(--gold, #c9a96e) 70%, transparent);
-  transition: height 0.45s cubic-bezier(0.77, 0, 0.18, 1);
+  background: color-mix(in srgb, var(--gold) 65%, transparent);
+  transition: height 0.42s cubic-bezier(0.77, 0, 0.18, 1);
 }
 
-/* ─── Mobile fallback ────────────────────────────────────────────────────────── */
-
+/* ─── Mobile ──────────────────────────────────────────────────── */
 .fc-mobile {
-  background: var(--void, #080400);
-  padding: 2rem 1rem;
+  background: var(--void);
+  padding: 3rem 1.25rem 0;
+}
+
+.fc-mobile-eyebrow {
+  margin: 0 0 1.6rem;
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.26em;
+  color: color-mix(in srgb, var(--sand) 58%, transparent);
 }
 
 .fc-mobile-grid {
@@ -715,88 +340,63 @@
 }
 
 .fc-mobile-card {
-  border: 1px solid color-mix(in srgb, var(--sand, #d4c5a9) 12%, transparent);
-  background: color-mix(in srgb, var(--void, #080400) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sand) 10%, transparent);
 }
 
-.fc-mobile-image-wrap {
-  height: 15rem;
+.fc-mobile-img-wrap {
+  height: 16rem;
   display: flex;
   align-items: center;
   justify-content: center;
   background: radial-gradient(
     circle at center,
-    color-mix(in srgb, var(--gold, #c9a96e) 12%, transparent),
-    transparent 65%
+    color-mix(in srgb, var(--gold) 11%, transparent),
+    transparent 62%
   );
 }
 
-.fc-mobile-image {
-  width: 55%;
+.fc-mobile-img {
+  width: 52%;
   max-height: 88%;
   object-fit: contain;
-  filter: drop-shadow(0 20px 24px color-mix(in srgb, black 60%, transparent));
+  filter: drop-shadow(0 18px 22px color-mix(in srgb, black 58%, transparent));
 }
 
-.fc-mobile-content {
-  padding: 1rem;
-}
+.fc-mobile-body { padding: 1rem 1rem 1.2rem; }
 
 .fc-mobile-name {
   margin: 0;
-  color: var(--sand, #d4c5a9);
+  color: var(--sand);
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  font-weight: 400;
 }
 
 .fc-mobile-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-top: 0.7rem;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
 }
 
 .fc-mobile-footer {
   margin-top: 1rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.7rem;
+  gap: 0.9rem;
 }
 
-.fc-mobile-price {
-  color: var(--sand, #d4c5a9);
-  font-family: var(--font-display);
-}
-
-/* ─── Desktop-only guard ─────────────────────────────────────────────────────── */
-
-@media (max-width: 767px) {
-  .fc-showroom {
-    display: none;
-  }
-}
-
-/* ─── Large screen micro-adjustments ────────────────────────────────────────── */
-
-@media (min-width: 1600px) {
-  .fc-details-panel {
-    width: min(24rem, 25vw);
-    left: clamp(2rem, 5vw, 5rem);
-  }
-}
-
-/* ─── Reduce motion ──────────────────────────────────────────────────────────── */
-
+/* ─── Reduced motion ──────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .perfume-enter-right,
-  .perfume-enter-left,
-  .perfume-exit-left,
-  .perfume-exit-right {
+  .fc-enter-right,
+  .fc-enter-left,
+  .fc-exit-left,
+  .fc-exit-right {
     animation: none !important;
   }
-
-  .fc-details-panel {
-    transition: opacity 0.1s ease !important;
+  .fc-brand-details,
+  .fc-cta-btn,
+  .fc-thumb-btn {
+    transition: none !important;
   }
 }
