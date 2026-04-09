@@ -13,8 +13,8 @@ interface FeaturedPerfume {
   thumbnailImage: string;
 }
 
-const FALLBACK_IMAGE = "/featured/holder.png";
-const ALT_IMAGE = "/featured/holder.png";
+const FALLBACK_IMAGE = "/featured/1.png";
+const ALT_IMAGE = "/featured/1.png";
 
 export default function FeaturedCollection() {
   const lenis = useScrollContext();

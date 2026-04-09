@@ -1,4 +1,4 @@
-import oud from "../assets/oud.jpeg"
+import oud from "/featured/Same_as_above_202604091220-removebg-preview.png"
 import kunanfa from "../assets/kunafa.jpeg"
 import kashimiri from "../assets/kashmiri.jpeg"
 
