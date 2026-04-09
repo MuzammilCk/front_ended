@@ -1,404 +1,545 @@
-/* ═══════════════════════════════════════════════════════════════
-   FEATURED COLLECTION — Sticky scroll showroom
-   Architecture:
-     fc-showroom          → outer section, no padding (scroll handles spacing)
-     fc-scroll-wrapper    → tall div, creates scroll travel (height set inline)
-     fc-sticky-scene      → position: sticky, 100vh, locks to viewport
-       fc-platform-layer  → z-index 1, static decorative elements
-       fc-bottle-layer    → z-index 2, centre zone 30vw→80vw, animates
-       fc-brand-details   → z-index 3, left zone 0→30vw, fades on change
-       fc-thumb-rail      → z-index 4, right zone 80vw→100%, click to jump
-       fc-progress-wrap   → z-index 5, bottom center, thin progress line
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ─── Section wrapper ─────────────────────────────────────────── */
-.fc-showroom {
-  position: relative;
-  background: var(--void);
-  /* No padding — the sticky scene fills the viewport */
+.fc2-section {
+  padding: clamp(5rem, 10vh, 8rem) 0;
+  background: var(--obsidian);
 }
 
-/* ─── Tall scroll container ───────────────────────────────────── */
-.fc-scroll-wrapper {
-  position: relative;
-  /* NEVER add overflow: hidden here — it breaks sticky */
-}
-
-/* ─── Sticky viewport scene ───────────────────────────────────── */
-.fc-sticky-scene {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow: hidden;
-  background:
-    radial-gradient(
-      circle at 55% 28%,
-      color-mix(in srgb, var(--mahogany) 18%, transparent),
-      transparent 54%
-    ),
-    radial-gradient(
-      circle at 50% 92%,
-      color-mix(in srgb, var(--gold) 8%, transparent),
-      transparent 62%
-    ),
-    var(--void);
-}
-
-/* ─── Layer 1: Platform ───────────────────────────────────────── */
-.fc-platform-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.fc-ground-shadow {
-  position: absolute;
-  left: 55%;
-  bottom: 9.5rem;
-  width: min(38vw, 560px);
-  height: clamp(2rem, 6vw, 4rem);
-  transform: translateX(-50%);
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, var(--void) 50%, transparent) 0%,
-    color-mix(in srgb, var(--void) 82%, transparent) 55%,
-    transparent 100%
-  );
-  filter: blur(10px);
-}
-
-.fc-platform {
-  position: absolute;
-  left: 56%;
-  bottom: -2rem;           /* was -3.8rem — raise it up */
-  width: min(52vw, 720px);
-  height: clamp(10rem, 16vw, 13rem);
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background:
-    radial-gradient(
-      ellipse at 50% 30%,
-      color-mix(in srgb, var(--sand) 28%, var(--void)) 0%,
-      color-mix(in srgb, var(--sand) 8%, var(--void)) 45%,
-      color-mix(in srgb, var(--void) 94%, black) 100%
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--void) 100%, black),
-      color-mix(in srgb, black 90%, var(--void))
-    );
-  box-shadow:
-    0 -1px 0 color-mix(in srgb, var(--sand) 45%, transparent),   /* bright rim */
-    0 -4px 18px color-mix(in srgb, var(--gold) 22%, transparent), /* glow above rim */
-    0 32px 60px color-mix(in srgb, black 80%, transparent);       /* depth below */
-}
-
-/* ─── Layer 2: Bottle stage ───────────────────────────────────── */
-.fc-bottle-layer {
-  position: absolute;
-  /* Centre zone: 30vw to 80vw */
-  left: 30vw;
-  right: calc(100% - 80vw);
-  top: 0;
-  bottom: 0;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.fc-bottle-frame {
-  position: absolute;
-  left: 50%;
-  bottom: clamp(9rem, 11vw, 11rem);
-  width: min(26vw, 400px);
-  transform: translateX(-50%);
-}
-
-.fc-bottle-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: min(68vh, 640px);
-  object-fit: contain;
-  filter: drop-shadow(0 24px 32px color-mix(in srgb, black 68%, transparent));
-}
-
-/* ─── Bottle enter/exit keyframes ─────────────────────────────── */
-/*
-   Each animation also sets the final translateX(-50%) because the
-   .fc-bottle-frame rule has that transform, and CSS animations
-   override transforms for their full duration. animation-fill-mode: both
-   holds the `to` state after the animation completes.
-*/
-@keyframes fc-enter-right {
-  from { transform: translateX(calc(-50% + 80px)); opacity: 0; }
-  to   { transform: translateX(-50%);              opacity: 1; }
-}
-@keyframes fc-enter-left {
-  from { transform: translateX(calc(-50% - 80px)); opacity: 0; }
-  to   { transform: translateX(-50%);              opacity: 1; }
-}
-@keyframes fc-exit-left {
-  from { transform: translateX(-50%);              opacity: 1; }
-  to   { transform: translateX(calc(-50% - 80px)); opacity: 0; }
-}
-@keyframes fc-exit-right {
-  from { transform: translateX(-50%);              opacity: 1; }
-  to   { transform: translateX(calc(-50% + 80px)); opacity: 0; }
-}
-
-.fc-enter-right { animation: fc-enter-right 0.58s cubic-bezier(0.77, 0, 0.18, 1) both; }
-.fc-enter-left  { animation: fc-enter-left  0.58s cubic-bezier(0.77, 0, 0.18, 1) both; }
-.fc-exit-left   { animation: fc-exit-left   0.58s cubic-bezier(0.77, 0, 0.18, 1) both; }
-.fc-exit-right  { animation: fc-exit-right  0.58s cubic-bezier(0.77, 0, 0.18, 1) both; }
-
-/* ─── Layer 3: Brand details — NO box, pure type ─────────────── */
-.fc-brand-details {
-  position: absolute;
-  /* Left zone: 0 to 30vw */
-  left: clamp(2rem, 5vw, 4rem);
-  top: 50%;
-  z-index: 3;
-  width: min(20rem, 26vw);
-  /* Starts 14px below center, slides up on visible */
-  transform: translateY(calc(-50% + 14px));
-  opacity: 0;
-  transition: opacity 0.38s ease, transform 0.38s ease;
-}
-
-.fc-brand-details--visible {
-  opacity: 1;
-  transform: translateY(-50%);
-}
-
-/* ─── Text inside brand details ───────────────────────────────── */
-.fc-eyebrow {
-  margin: 0 0 0.75rem;
-  font-family: var(--font-body);
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.26em;
-  color: color-mix(in srgb, var(--sand) 58%, transparent);
-}
-
-.fc-name {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3.4vw, 3.2rem);
-  font-weight: 300;
-  line-height: 1.0;
-  color: var(--sand);
-}
-
-.fc-tags {
+.fc2-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 clamp(1.5rem, 5vw, 4rem);
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-top: 1rem;
+  flex-direction: column;
+  gap: 2.5rem;
 }
 
-.fc-tag-pill {
+.fc2-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.fc2-eyebrow-row {
   display: inline-flex;
   align-items: center;
-  border: 1px solid color-mix(in srgb, var(--gold) 42%, transparent);
-  color: color-mix(in srgb, var(--gold) 90%, white);
-  background: color-mix(in srgb, var(--gold) 9%, transparent);
+  gap: 0.75rem;
+}
+
+.fc2-eyebrow-line {
+  width: 32px;
+  height: 1px;
+  background: var(--sand);
+}
+
+.fc2-eyebrow-text {
   font-family: var(--font-body);
-  letter-spacing: 0.13em;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  font-size: 0.54rem;
-  padding: 0.28rem 0.6rem;
-}
-
-.fc-details-footer {
-  margin-top: 1.3rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.fc-price {
-  font-family: var(--font-display);
-  font-size: clamp(1.1rem, 2.2vw, 1.7rem);
   color: var(--sand);
 }
 
-.fc-cta-btn {
+.fc2-headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  line-height: 0.95;
+  font-weight: 300;
+  color: var(--text-primary);
+}
+
+.fc2-headline em {
+  font-style: italic;
+  font-weight: 300;
+}
+
+.fc2-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  background: var(--ghost);
+  width: fit-content;
+}
+
+.fc2-tab {
+  position: relative;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  padding: 0.55rem 1rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.fc2-tab-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(201, 169, 110, 0.12);
+  border: 0.5px solid rgba(201, 169, 110, 0.25);
+  z-index: 0;
+}
+
+.fc2-tab-label {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: color 200ms var(--ease-out);
+}
+
+.fc2-tab:hover .fc2-tab-label {
+  color: var(--text-secondary);
+}
+
+.fc2-tab--active .fc2-tab-label {
+  color: var(--sand);
+}
+
+.fc2-tab:focus-visible {
+  outline: 1px solid var(--specular-edge);
+  outline-offset: 2px;
+}
+
+.fc2-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 320px;
+  gap: 12px;
+  width: 100%;
+}
+
+.fc2-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--mahogany);
+  cursor: pointer;
+}
+
+.fc2-card--primary {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.fc2-card-img-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.fc2-card--secondary .fc2-card-img-wrap {
+  height: 65%;
+}
+
+.fc2-card--primary .fc2-card-img-wrap {
+  height: 100%;
+}
+
+.fc2-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 600ms var(--ease-luxury);
+}
+
+.fc2-card:hover .fc2-card-img {
+  transform: scale(1.04);
+}
+
+.fc2-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  padding: 0.24rem 0.45rem;
+  font-family: var(--font-body);
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sand);
+  background: rgba(201, 169, 110, 0.1);
+  border: 0.5px solid rgba(201, 169, 110, 0.25);
+  border-radius: 0;
+}
+
+.fc2-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fc2-card--primary .fc2-card-body {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem;
+  background: linear-gradient(
+    to top,
+    rgba(10, 7, 5, 0.9) 0%,
+    rgba(10, 7, 5, 0.4) 60%,
+    transparent 100%
+  );
+  z-index: 2;
+}
+
+.fc2-card--secondary .fc2-card-body {
+  padding: 0.75rem 1rem 1rem;
+  background: var(--mahogany);
+}
+
+.fc2-card-family {
+  font-family: var(--font-body);
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fc2-card-name {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 0.98;
+}
+
+.fc2-card--secondary .fc2-card-name {
+  font-size: 1.15rem;
+}
+
+.fc2-card--primary .fc2-card-name {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.fc2-card-notes {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+}
+
+.fc2-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.fc2-card-price {
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: var(--sand);
+}
+
+.fc2-card--secondary .fc2-card-price {
+  font-size: 0.9rem;
+}
+
+.fc2-card--primary .fc2-card-price {
+  font-size: 1.1rem;
+}
+
+.fc2-card-link {
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  transition: color 200ms var(--ease-out);
+}
+
+.fc2-card-link:hover {
+  color: var(--sand);
+}
+
+.fc2-card-link:focus-visible {
+  outline: 1px solid var(--specular-edge);
+  outline-offset: 2px;
+}
+
+.fc2-action-pill {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  opacity: 0;
+  transition: opacity 220ms var(--ease-out-expo), transform 220ms var(--ease-out-expo);
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  background: rgba(13, 9, 5, 0.72);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: var(--border-glass);
+  border-radius: 9999px;
+  padding: 0.5rem 1.25rem;
+  box-shadow: var(--shadow-glass);
+  white-space: nowrap;
+  z-index: 4;
+}
+
+.fc2-card:hover .fc2-action-pill {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.fc2-action-btn {
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0;
+}
+
+.fc2-action-btn:focus-visible {
+  outline: 1px solid var(--specular-edge);
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+
+.fc2-action-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--frost);
+}
+
+.fc2-mobile-cart-btn {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: var(--border-glass);
+  background: rgba(201, 169, 110, 0.15);
+  color: var(--text-primary);
+  z-index: 4;
+}
+
+.fc2-mobile-cart-btn:focus-visible {
+  outline: 1px solid var(--specular-edge);
+  outline-offset: 2px;
+}
+
+.fc2-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+  background: rgba(10, 7, 5, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.fc2-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(480px, 100vw);
+  height: 100vh;
+  z-index: 200;
+  background: var(--ink);
+  border-left: var(--border-glass);
+  overflow-y: auto;
+  padding: 1.5rem 1.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.fc2-drawer-close {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  font-family: var(--font-body);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.fc2-drawer-close:focus-visible,
+.fc2-drawer-add:focus-visible,
+.fc2-drawer-link:focus-visible {
+  outline: 1px solid var(--specular-edge);
+  outline-offset: 2px;
+}
+
+.fc2-drawer-img-wrap {
+  width: 100%;
+  max-height: 45vh;
+  background: var(--mahogany);
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.fc2-drawer-img {
+  width: 100%;
+  max-height: 45vh;
+  object-fit: contain;
+  display: block;
+}
+
+.fc2-drawer-family {
+  font-family: var(--font-body);
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fc2-drawer-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  font-weight: 300;
+  line-height: 0.96;
+  color: var(--text-primary);
+}
+
+.fc2-badge--drawer {
+  position: static;
+  width: fit-content;
+}
+
+.fc2-drawer-notes {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+}
+
+.fc2-drawer-price {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--sand);
+}
+
+.fc2-drawer-ml {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.fc2-drawer-add,
+.fc2-drawer-link {
+  width: 100%;
+  height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  border: 1px solid color-mix(in srgb, var(--gold) 52%, transparent);
-  color: var(--gold);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
   font-family: var(--font-body);
-  font-size: 0.58rem;
-  padding: 0.68rem 1.28rem;
-  transition: background 0.28s ease, color 0.28s ease, transform 0.28s ease;
-}
-
-.fc-cta-btn:hover {
-  color: var(--void);
-  background: var(--gold);
-  transform: translateY(-1px);
-}
-
-/* ─── Layer 4: Thumbnail rail ─────────────────────────────────── */
-.fc-thumb-rail {
-  position: absolute;
-  right: 1.4rem;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  max-height: 70vh;
-  overflow-y: auto;
-  padding: 0.15rem 0.3rem 0.15rem 0;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--sand) 32%, transparent) transparent;
-}
-
-.fc-thumb-rail::-webkit-scrollbar { width: 2px; }
-.fc-thumb-rail::-webkit-scrollbar-track { background: transparent; }
-.fc-thumb-rail::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--sand) 32%, transparent);
-  border-radius: 4px;
-}
-
-.fc-thumb-btn {
-  width: 4rem;
-  border: 1px solid color-mix(in srgb, var(--sand) 20%, transparent);
-  background: transparent;
-  padding: 0.4rem;
-  cursor: pointer;
-  transition: transform 0.28s ease, border-color 0.28s ease, background 0.28s ease;
-}
-
-.fc-thumb-btn--active {
-  border-color: var(--gold);
-  transform: scale(1.08);
-  background: color-mix(in srgb, var(--gold) 7%, transparent);
-}
-
-.fc-thumb-btn:hover:not(.fc-thumb-btn--active) {
-  border-color: color-mix(in srgb, var(--sand) 42%, transparent);
-}
-
-.fc-thumb-img {
-  width: 100%;
-  height: 2.8rem;
-  object-fit: contain;
-  display: block;
-}
-
-/* ─── Scroll progress — thin vertical line, no counter ───────── */
-.fc-progress-wrap {
-  position: absolute;
-  bottom: 1.8rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5;
-  pointer-events: none;
-}
-
-.fc-progress-track {
-  width: 1px;
-  height: 2.8rem;
-  background: color-mix(in srgb, var(--sand) 16%, transparent);
-  position: relative;
-}
-
-.fc-progress-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background: color-mix(in srgb, var(--gold) 65%, transparent);
-  transition: height 0.42s cubic-bezier(0.77, 0, 0.18, 1);
-}
-
-/* ─── Mobile ──────────────────────────────────────────────────── */
-.fc-mobile {
-  background: var(--void);
-  padding: 3rem 1.25rem 0;
-}
-
-.fc-mobile-eyebrow {
-  margin: 0 0 1.6rem;
-  font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  letter-spacing: 0.26em;
-  color: color-mix(in srgb, var(--sand) 58%, transparent);
-}
-
-.fc-mobile-grid {
-  display: grid;
-  gap: 1rem;
-}
-
-.fc-mobile-card {
-  border: 1px solid color-mix(in srgb, var(--sand) 10%, transparent);
-}
-
-.fc-mobile-img-wrap {
-  height: 16rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(
-    circle at center,
-    color-mix(in srgb, var(--gold) 11%, transparent),
-    transparent 62%
-  );
-}
-
-.fc-mobile-img {
-  width: 52%;
-  max-height: 88%;
-  object-fit: contain;
-  filter: drop-shadow(0 18px 22px color-mix(in srgb, black 58%, transparent));
-}
-
-.fc-mobile-body { padding: 1rem 1rem 1.2rem; }
-
-.fc-mobile-name {
-  margin: 0;
-  color: var(--sand);
-  font-family: var(--font-display);
-  font-size: 1.5rem;
   font-weight: 400;
+  border-radius: 2px;
+  transition: all 200ms var(--ease-out);
 }
 
-.fc-mobile-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.65rem;
+.fc2-drawer-add {
+  border: 0;
+  background: var(--sand);
+  color: var(--void);
+  cursor: pointer;
 }
 
-.fc-mobile-footer {
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
+.fc2-drawer-add:hover {
+  background: var(--gold);
 }
 
-/* ─── Reduced motion ──────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .fc-enter-right,
-  .fc-enter-left,
-  .fc-exit-left,
-  .fc-exit-right {
-    animation: none !important;
+.fc2-drawer-link {
+  border: 0.5px solid rgba(201, 169, 110, 0.3);
+  color: var(--sand);
+  background: transparent;
+}
+
+.fc2-drawer-link:hover {
+  background: rgba(201, 169, 110, 0.08);
+}
+
+@media (max-width: 1024px) {
+  .fc2-bento-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  .fc-brand-details,
-  .fc-cta-btn,
-  .fc-thumb-btn {
-    transition: none !important;
+
+  .fc2-card--primary {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .fc2-inner {
+    gap: 2rem;
+  }
+
+  .fc2-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .fc2-tab {
+    flex: 0 0 auto;
+  }
+
+  .fc2-bento-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+  }
+
+  .fc2-card--primary {
+    grid-column: span 1;
+  }
+
+  .fc2-card--secondary .fc2-card-img-wrap {
+    height: 240px;
+  }
+}
+
+@media (hover: none) {
+  .fc2-action-pill {
+    display: none;
+  }
+
+  .fc2-mobile-cart-btn {
+    display: inline-flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc2-card-img {
+    transition: none;
+  }
+
+  .fc2-action-pill {
+    transition: none;
   }
 }
