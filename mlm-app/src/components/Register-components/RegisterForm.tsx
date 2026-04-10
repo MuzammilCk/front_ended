@@ -21,6 +21,7 @@ export default function RegisterForm({
     formData.email &&
     formData.phone &&
     formData.password &&
+    formData.referralCode &&
     passwordsMatch &&
     agreeToTerms;
 
@@ -203,10 +204,10 @@ export default function RegisterForm({
         )}
       </div>
 
-      {/* Referral Code (Optional) */}
+      {/* Referral Code (Required) */}
       <div>
-        <label className="block mb-2 text-sm font-medium text-white/60">
-          Referral Code <span className="text-xs">(Optional)</span>
+        <label className="block mb-2 text-sm font-medium text-white/80">
+          Referral Code <span className="text-xs text-[#c9a96e]">(Required)</span>
         </label>
         <input
           type="text"

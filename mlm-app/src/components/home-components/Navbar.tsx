@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "../../lib/motion";
 import { Heart, Menu, Search, ShoppingBag, X, ArrowRight } from "lucide-react";
 import { products } from "../../data/products";
 import "../../styles/Navbar.css";
@@ -57,10 +57,14 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    setMobileOpen(false);
-    setMegaMenu(null);
-    setPaletteOpen(false);
-    setQuery("");
+    const frame = requestAnimationFrame(() => {
+      setMobileOpen(false);
+      setMegaMenu(null);
+      setPaletteOpen(false);
+      setQuery("");
+    });
+
+    return () => cancelAnimationFrame(frame);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -81,14 +85,16 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    if (paletteOpen) {
-      requestAnimationFrame(() => {
+    const frame = requestAnimationFrame(() => {
+      if (paletteOpen) {
         paletteInputRef.current?.focus();
-      });
-      return;
-    }
-    setQuery("");
-    searchTriggerRef.current?.focus();
+        return;
+      }
+      setQuery("");
+      searchTriggerRef.current?.focus();
+    });
+
+    return () => cancelAnimationFrame(frame);
   }, [paletteOpen]);
 
   useEffect(() => {

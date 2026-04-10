@@ -216,3 +216,29 @@ when endpoint is implemented in hadi-perfumes-api
 CORS: confirm backend CORS_ORIGIN env var includes frontend dev URL (localhost:5173)
 
 
+
+## 2026-04-10 — Signup 400 fix + referral code flow
+
+What changed:
+- src/api/auth.ts: Removed `phone` and `attempt_id` from SignupPayload interface.
+  Backend SignupDto only accepts full_name, password, referral_code — the other
+  two fields are read server-side from the JWT Bearer token, not the request body.
+- src/pages/Register.tsx: Removed phone and attempt_id from the signup() call body.
+  Added useSearchParams to pre-fill referralCode from ?ref= URL query param.
+  Added client-side guard in handleSubmit (step=form) that blocks OTP send if
+  referralCode is empty, with a clear user-facing error.
+- src/components/Register-components/RegisterForm.tsx: Added referralCode to
+  isFormValid so the submit button stays disabled until code is present. Updated
+  label from "Optional" to "Required" with gold accent.
+
+Why:
+- Backend uses forbidNonWhitelisted: true — any extra field = 400 immediately.
+- referral_code has @IsNotEmpty() — empty string always fails validation.
+- Both user journeys now work: link-click (pre-fill) and manual entry.
+
+Follow-up:
+- [ ] If a ?ref= code is invalid (doesn't exist in DB), the error from backend
+      currently surfaces as a raw JSON string in the Alert. Parse err.body as JSON
+      and show err.body.message[0] for a cleaner user error message.
+- [ ] Consider trimming referralCode before sending (.trim()) to handle accidental
+      spaces when users manually copy-paste codes.
