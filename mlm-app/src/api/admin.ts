@@ -121,7 +121,9 @@ export async function adminModerateListing(
   id: string,
   payload: ModerationActionPayload,
 ): Promise<Listing> {
-  return apiRequest<Listing>(`/admin/listings/${id}/moderate`, {
+  // Extract and lowercase the action ('approve', 'reject') to map straight to the backend URL
+  const actionPath = payload.action.toLowerCase();
+  return apiRequest<Listing>(`/admin/listings/${id}/${actionPath}`, {
     method: 'POST',
     headers: adminHeaders(),
     body: JSON.stringify(payload),
