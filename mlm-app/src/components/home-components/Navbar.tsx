@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "../../lib/motion";
 import { Heart, Menu, Search, ShoppingBag, X, ArrowRight } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 import { products } from "../../data/products";
 import "../../styles/Navbar.css";
 
@@ -32,6 +33,7 @@ function navItemIsActive(pathname: string, label: string, to: string) {
 }
 
 export default function Navbar() {
+  const { isLoggedIn, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -291,10 +293,29 @@ export default function Navbar() {
         </nav>
 
         <div className="nb2-actions">
-          <Link to="/login" className="nb2-action-link nb2-login-desktop">
-            Login
-          </Link>
-          <span className="nb2-divider nb2-login-desktop" aria-hidden />
+          {isLoggedIn ? (
+            <>
+              <Link to="/profile" className="nb2-action-link nb2-login-desktop">
+                Account
+              </Link>
+              <button
+                type="button"
+                onClick={() => void logout()}
+                className="nb2-action-link nb2-login-desktop"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
+              >
+                Sign Out
+              </button>
+              <span className="nb2-divider nb2-login-desktop" aria-hidden />
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="nb2-action-link nb2-login-desktop">
+                Login
+              </Link>
+              <span className="nb2-divider nb2-login-desktop" aria-hidden />
+            </>
+          )}
 
           <Link to="/wishlist" className="nb2-icon-btn" aria-label="Wishlist">
             <Heart size={16} strokeWidth={1.5} />
@@ -403,9 +424,28 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <Link to="/login" className="nb2-mobile-link nb2-mobile-link--muted" onClick={() => setMobileOpen(false)}>
-            Login
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link to="/profile" className="nb2-mobile-link nb2-mobile-link--muted" onClick={() => setMobileOpen(false)}>
+                Account
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  void logout();
+                }}
+                className="nb2-mobile-link nb2-mobile-link--muted"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", width: "100%" }}
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className="nb2-mobile-link nb2-mobile-link--muted" onClick={() => setMobileOpen(false)}>
+              Login
+            </Link>
+          )}
         </nav>
         <div className="nb2-mobile-icons">
           <Link to="/wishlist" className="nb2-icon-btn nb2-icon-btn--lg" aria-label="Wishlist" onClick={() => setMobileOpen(false)}>

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AuthGuard } from "./components/AuthGuard";
 import Home from "./pages/Home";
@@ -20,6 +20,7 @@ function App() {
           <Route path="/login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
           <Route path="/register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
           <Route path="/product" element={<ErrorBoundary><Product /></ErrorBoundary>} />
+          <Route path="/shop" element={<Navigate to="/product" replace />} />
           <Route
             path="/product/:id"
             element={

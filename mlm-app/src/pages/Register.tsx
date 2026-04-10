@@ -118,7 +118,7 @@ export default function Register() {
           sessionToken,
         );
         setStep("done");
-        navigate("/");
+        navigate("/product");
       } catch (err) {
         if (err instanceof ApiError) {
           setApiError(

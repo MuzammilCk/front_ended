@@ -1,4 +1,10 @@
 {
+  "scripts": {
+    "dev": "npm --prefix mlm-app run dev",
+    "build": "npm --prefix mlm-app run build",
+    "lint": "npm --prefix mlm-app run lint",
+    "preview": "npm --prefix mlm-app run preview"
+  },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.2.11",
     "@fontsource/jost": "^5.2.8"

@@ -7,7 +7,8 @@ import {
   type Transition,
 } from "../../lib/motion";
 import { useEffect, useMemo, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { Link, useNavigate } from "react-router-dom";
 import "../../styles/HeroSection.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -23,6 +24,8 @@ const LAYER1_IMAGE_URL = "/layer1.png";
 const LAYER2_IMAGE_URL = "/layer2_1.png";
 
 export default function HeroSection() {
+  const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
   const heroRef = useRef<HTMLElement>(null);
   const layer1Ref = useRef<HTMLDivElement>(null);
   const layer2Ref = useRef<HTMLDivElement>(null);
@@ -216,8 +219,9 @@ export default function HeroSection() {
                 style={{ x: springX, y: springY }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 whileTap={{ scale: prefersReducedMotion ? 1 : 0.97 }}
+                onClick={() => navigate("/product")}
               >
-                <span>Explore Now</span>
+                <span>{isLoggedIn ? "Shop Now" : "Explore Now"}</span>
                 <span className="hs2-cta-arrow" aria-hidden>
                   →
                 </span>

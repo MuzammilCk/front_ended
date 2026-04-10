@@ -43,7 +43,7 @@ export default function Login() {
     setIsLoading(true);
     try {
       await login({ identifier, password: formData.password });
-      navigate("/");
+      navigate("/product");
     } catch (err) {
       if (err instanceof ApiError) {
         setApiError(err.body || "Invalid credentials. Please try again.");

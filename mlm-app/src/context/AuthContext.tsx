@@ -29,7 +29,7 @@ export interface UseAuthReturn {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<UseAuthReturn | null>(null);
+export const AuthContext = createContext<UseAuthReturn | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
