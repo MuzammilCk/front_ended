@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { sendOtp } from "../api/auth";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import { ApiError } from "../api/client";
 import LoginHeader from "../components/Login-components/LoginHeader";
 import LoginHero from "../components/Login-components/LoginHero";
-import LoginMethodToggle from "../components/Login-components/LoginMethodToggle";
 import LoginForm from "../components/Login-components/LoginForm";
 import LoginFooter from "../components/Login-components/LoginFooter";
 import { Alert } from "../components/ui/Alert";
 
 export default function Login() {
-  const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
@@ -19,92 +21,66 @@ export default function Login() {
 
   const [apiError, setApiError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setApiError("");
 
-    // Phone path — wire sendOtp (backend has no login endpoint yet)
-    if (loginMethod === "phone") {
-      if (!formData.phone.trim()) {
-        setApiError("Phone number is required.");
-        return;
-      }
-      setIsLoading(true);
-      try {
-        await sendOtp({ phone: formData.phone });
-        setOtpSent(true);
-      } catch (err) {
-        if (err instanceof ApiError) {
-          setApiError(err.body || "Failed to send OTP. Please try again.");
-        } else {
-          setApiError("Network error. Please check your connection.");
-        }
-      } finally {
-        setIsLoading(false);
-      }
+    if (!formData.phone.trim()) {
+      setApiError("Phone number is required.");
+      return;
+    }
+    if (!formData.password.trim()) {
+      setApiError("Password is required.");
       return;
     }
 
-    // Email path — no backend endpoint available yet
-    setApiError("Email login is not available yet. Please use phone + OTP.");
+    setIsLoading(true);
+    try {
+      await login({ phone: formData.phone, password: formData.password });
+      navigate("/");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const parsed = (() => {
+          try { return JSON.parse(err.body); } catch { return null; }
+        })();
+        setApiError(parsed?.message ?? "Invalid phone or password.");
+      } else {
+        setApiError("Network error. Please check your connection.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen p-6 text-white">
-      {/* Header */}
       <LoginHeader />
-
-      {/* Login Container */}
       <div className="max-w-md mx-auto">
-        {/* Hero Section */}
         <LoginHero />
 
-        {/* Login Method Toggle */}
-        <LoginMethodToggle
-          loginMethod={loginMethod}
-          setLoginMethod={setLoginMethod}
-        />
+        {/* Remove the method toggle — backend only supports phone+password login */}
 
-        {/* API status — inserted between toggle and form */}
         {apiError && (
-          <Alert variant="error" className="mb-4">
-            {apiError}
-          </Alert>
+          <Alert variant="error" className="mb-4">{apiError}</Alert>
         )}
-
-        {otpSent && (
-          <Alert variant="success" className="mb-4">
-            OTP sent to {formData.phone}. Use the Register page to complete your account setup.
-          </Alert>
-        )}
-
         {isLoading && (
-          <Alert variant="info" className="mb-4 text-center">
-            Sending OTP…
-          </Alert>
+          <Alert variant="info" className="mb-4 text-center">Signing in…</Alert>
         )}
 
-        {/* Login Form */}
         <LoginForm
-          loginMethod={loginMethod}
-          setLoginMethod={setLoginMethod}
+          loginMethod="phone"
+          setLoginMethod={() => {}}
           formData={formData}
           setFormData={setFormData}
           handleChange={handleChange}
           handleSubmit={handleSubmit}
         />
       </div>
-
-      {/* Footer */}
       <LoginFooter />
     </div>
   );

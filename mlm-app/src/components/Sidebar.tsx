@@ -1,7 +1,6 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
-import { clearTokens } from "../api/client";
-import { logout as apiLogout } from "../api/auth";
+import { useAuth } from "../hooks/useAuth";
 import {
   X,
   Home,
@@ -26,7 +25,7 @@ export default function Sidebar({
   onClose,
 }: SidebarProps) {
   const location = useLocation();
-  const navigate = useNavigate();
+  const { logout } = useAuth();
   const onCloseRef = useRef(onClose);
 
   useEffect(() => {
@@ -205,19 +204,7 @@ export default function Sidebar({
           <button
             type="button"
             className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm text-[#e8dcc8]/60 hover:text-[#c9a96e] transition-all duration-300 rounded-xl hover:bg-[#c9a96e]/5 group"
-            onClick={async () => {
-              const refreshToken = localStorage.getItem('refresh_token');
-              if (refreshToken) {
-                try {
-                  await apiLogout(refreshToken);
-                } catch {
-                  clearTokens();
-                }
-              } else {
-                clearTokens();
-              }
-              navigate('/login');
-            }}
+            onClick={logout}
           >
             <LogOut className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
             <span>Sign Out</span>
