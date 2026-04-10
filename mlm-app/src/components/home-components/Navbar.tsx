@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "../../lib/motion";
-import { Heart, Menu, Search, ShoppingBag, X, ArrowRight } from "lucide-react";
+import { Heart, Menu, Search, ShoppingBag, X, ArrowRight, User, LogOut, Package, Wallet } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { products } from "../../data/products";
 import "../../styles/Navbar.css";
@@ -42,6 +42,7 @@ export default function Navbar() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [megaMenu, setMegaMenu] = useState<MegaMenuKind>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const logoRef = useRef<HTMLAnchorElement>(null);
   const paletteInputRef = useRef<HTMLInputElement>(null);
@@ -293,29 +294,61 @@ export default function Navbar() {
         </nav>
 
         <div className="nb2-actions">
-          {isLoggedIn ? (
-            <>
-              <Link to="/profile" className="nb2-action-link nb2-login-desktop">
-                Account
-              </Link>
-              <button
-                type="button"
-                onClick={() => void logout()}
-                className="nb2-action-link nb2-login-desktop"
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
-              >
-                Sign Out
-              </button>
-              <span className="nb2-divider nb2-login-desktop" aria-hidden />
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="nb2-action-link nb2-login-desktop">
-                Login
-              </Link>
-              <span className="nb2-divider nb2-login-desktop" aria-hidden />
-            </>
-          )}
+          {/* USER ACCOUNT ICON & DROPDOWN */}
+          <div 
+            className="relative group flex items-center"
+            onMouseEnter={() => isLoggedIn && setIsProfileOpen(true)}
+            onMouseLeave={() => isLoggedIn && setIsProfileOpen(false)}
+          >
+            <Link 
+              to={isLoggedIn ? "/profile" : "/login"} 
+              className="nb2-icon-btn"
+              aria-label="User Account"
+            >
+              <User size={16} strokeWidth={1.5} />
+              {isLoggedIn && (
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#c9a96e] rounded-full border border-[#0a0705]"></span>
+              )}
+            </Link>
+
+            {/* THE MODERN DROPDOWN */}
+            {isLoggedIn && (
+              <div className={`absolute right-0 top-full pt-4 transition-all duration-300 ${
+                isProfileOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2 pointer-events-none"
+              }`}>
+                <div className="w-56 bg-[#0a0705]/95 backdrop-blur-xl border border-[#c9a96e]/20 rounded-lg shadow-2xl overflow-hidden p-2 text-left">
+                  
+                  <div className="px-4 py-3 border-b border-[#c9a96e]/10 mb-2">
+                    <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]">Welcome back</p>
+                    <p className="font-display text-lg text-[#e8dcc8]">User</p>
+                  </div>
+
+                  <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors">
+                    <User size={16} strokeWidth={1.5} /> My Profile
+                  </Link>
+                  <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors">
+                    <Package size={16} strokeWidth={1.5} /> My Orders
+                  </Link>
+                  <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors">
+                    <Wallet size={16} strokeWidth={1.5} /> Wallet
+                  </Link>
+
+                  <div className="mt-2 pt-2 border-t border-[#c9a96e]/10">
+                    <button 
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        void logout();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400/80 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+                    >
+                      <LogOut size={16} strokeWidth={1.5} /> Sign Out
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            )}
+          </div>
 
           <Link to="/wishlist" className="nb2-icon-btn" aria-label="Wishlist">
             <Heart size={16} strokeWidth={1.5} />
@@ -424,30 +457,33 @@ export default function Navbar() {
               </Link>
             );
           })}
+        </nav>
+        
+        <div className="nb2-mobile-actions flex-col items-start gap-4 p-6 w-full">
           {isLoggedIn ? (
-            <>
-              <Link to="/profile" className="nb2-mobile-link nb2-mobile-link--muted" onClick={() => setMobileOpen(false)}>
-                Account
-              </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileOpen(false);
-                  void logout();
-                }}
-                className="nb2-mobile-link nb2-mobile-link--muted"
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", width: "100%" }}
-              >
+            <div className="w-full border-t border-[#c9a96e]/10 pt-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-xs text-[#c9a96e]">Logged in as</p>
+                  <p className="text-lg font-display text-[#e8dcc8]">User</p>
+                </div>
+              </div>
+              <Link to="/profile" className="block py-2 text-sm text-[#e8dcc8]/70" onClick={() => setMobileOpen(false)}>View Profile</Link>
+              <Link to="/cart" className="block py-2 text-sm text-[#e8dcc8]/70" onClick={() => setMobileOpen(false)}>My Orders</Link>
+              <button onClick={() => { setMobileOpen(false); void logout(); }} className="block w-full text-left py-2 text-sm text-red-400/80 mt-2">
                 Sign Out
               </button>
-            </>
+            </div>
           ) : (
-            <Link to="/login" className="nb2-mobile-link nb2-mobile-link--muted" onClick={() => setMobileOpen(false)}>
-              Login
-            </Link>
+            <div className="w-full border-t border-[#c9a96e]/10 pt-4">
+              <Link to="/login" className="block w-full text-center py-3 border border-[#c9a96e] text-[#c9a96e] rounded-md text-xs uppercase tracking-widest" onClick={() => setMobileOpen(false)}>
+                Sign In / Register
+              </Link>
+            </div>
           )}
-        </nav>
-        <div className="nb2-mobile-icons">
+        </div>
+
+        <div className="nb2-mobile-icons pb-6 px-6">
           <Link to="/wishlist" className="nb2-icon-btn nb2-icon-btn--lg" aria-label="Wishlist" onClick={() => setMobileOpen(false)}>
             <Heart size={18} strokeWidth={1.5} />
           </Link>

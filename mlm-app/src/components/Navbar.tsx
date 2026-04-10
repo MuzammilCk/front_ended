@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { User, Heart, ShoppingBag, LogOut, Package, Wallet } from "lucide-react";
 
 interface NavbarProps {
   cartCount?: number;
@@ -10,6 +11,7 @@ interface NavbarProps {
 export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps) {
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isLoggedIn, logout } = useAuth();
 
   // Define all navigation items
@@ -67,31 +69,62 @@ export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps
 
           {/* Icons Section */}
           <div className="flex items-center gap-4">
-            {/* Auth button */}
-            {isLoggedIn ? (
-              <div className="hidden md:flex items-center gap-3">
-                <Link
-                  to="/profile"
-                  className="text-sm text-white/60 hover:text-white transition-colors"
-                >
-                  Account
-                </Link>
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="text-sm text-white/40 hover:text-white/70 transition-colors"
-                >
-                  Sign out
-                </button>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="hidden md:inline-flex text-sm px-4 py-2 border border-[#c9a96e]/40 text-[#c9a96e] hover:bg-[#c9a96e]/10 rounded-lg transition-colors"
+            
+            {/* USER ACCOUNT ICON & DROPDOWN */}
+            <div 
+              className="relative group hidden md:flex items-center"
+              onMouseEnter={() => isLoggedIn && setIsProfileOpen(true)}
+              onMouseLeave={() => isLoggedIn && setIsProfileOpen(false)}
+            >
+              <Link 
+                to={isLoggedIn ? "/profile" : "/login"} 
+                className="relative group inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
+                aria-label="User Account"
               >
-                Login
+                <User className="w-5 h-5 transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
+                {isLoggedIn && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-[#c9a96e] rounded-full border border-[#0a0705]"></span>
+                )}
               </Link>
-            )}
+
+              {/* THE MODERN DROPDOWN */}
+              {isLoggedIn && (
+                <div className={`absolute right-0 top-full pt-4 transition-all duration-300 ${
+                  isProfileOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2 pointer-events-none"
+                }`}>
+                  <div className="w-56 bg-[#0a0705]/95 backdrop-blur-xl border border-[#c9a96e]/20 rounded-lg shadow-2xl overflow-hidden p-2">
+                    
+                    <div className="px-4 py-3 border-b border-[#c9a96e]/10 mb-2">
+                      <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]">Welcome back</p>
+                      <p className="font-display text-lg text-[#e8dcc8]">User</p>
+                    </div>
+
+                    <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors">
+                      <User className="w-4 h-4" /> My Profile
+                    </Link>
+                    <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors">
+                      <Package className="w-4 h-4" /> My Orders
+                    </Link>
+                    <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors">
+                      <Wallet className="w-4 h-4" /> Wallet
+                    </Link>
+
+                    <div className="mt-2 pt-2 border-t border-[#c9a96e]/10">
+                      <button 
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          logout();
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400/80 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" /> Sign Out
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Wishlist Icon */}
             <Link
@@ -99,9 +132,7 @@ export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps
               aria-label="Wishlist"
               className="relative group inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
             >
-              <svg className="w-5 h-5 transition-colors text-white/70 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
+              <Heart className="w-5 h-5 transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
               {wishlistCount > 0 && (
                 <span className="absolute -top-2 -right-2 flex items-center justify-center w-4 h-4 text-[10px] text-white bg-red-500 rounded-full">
                   {wishlistCount}
@@ -115,9 +146,7 @@ export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps
               aria-label="Cart"
               className="relative group inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
             >
-              <svg className="w-5 h-5 transition-colors text-white/70 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
+              <ShoppingBag className="w-5 h-5 transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 flex items-center justify-center w-4 h-4 text-[10px] text-white bg-red-500 rounded-full">
                   {cartCount}
@@ -159,6 +188,34 @@ export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps
                           {item.name}
                         </Link>
                       ))}
+                      
+                      <div className="mt-2 border-t border-[#222]">
+                        {isLoggedIn ? (
+                          <>
+                            <div className="px-4 py-3">
+                              <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]">Logged in as</p>
+                              <p className="font-display text-sm text-[#e8dcc8]">User</p>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                setIsDropdownOpen(false);
+                                logout();
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400/80 hover:text-red-400 hover:bg-red-400/10 transition-colors text-left"
+                            >
+                              <LogOut className="w-4 h-4" /> Sign Out
+                            </button>
+                          </>
+                        ) : (
+                          <Link 
+                            to="/login"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 text-sm transition-colors text-[#c9a96e] hover:bg-white/5"
+                          >
+                            <User className="w-4 h-4" /> Login
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </>
