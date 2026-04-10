@@ -5,7 +5,7 @@ import {
   useMotionValue,
   useSpring,
   type Transition,
-} from "framer-motion";
+} from "../../lib/motion";
 import { useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import "../../styles/HeroSection.css";

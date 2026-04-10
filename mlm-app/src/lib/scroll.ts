@@ -16,34 +16,37 @@ const luxuryEasing = (t: number) =>
   Math.min(1, 1.001 - Math.pow(2, -10 * t));
 
 export function ScrollProvider({ children }: { children: ReactNode }) {
-  const [lenis, setLenis] = useState<Lenis | null>(null);
+  const [lenis] = useState<Lenis | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
 
-  useEffect(() => {
-    const instance = new Lenis({
+    return new Lenis({
       duration: 1.4,
       easing: luxuryEasing,
       orientation: "vertical",
       smoothWheel: true,
     });
+  });
 
-    setLenis(instance);
+  useEffect(() => {
+    if (!lenis) return;
 
     const onGsapTick = (time: number) => {
-      instance.raf(time * 1000);
+      lenis.raf(time * 1000);
     };
 
     gsap.ticker.add(onGsapTick);
     gsap.ticker.lagSmoothing(0);
 
-    const teardownScrollTrigger = initScrollTrigger(instance);
+    const teardownScrollTrigger = initScrollTrigger(lenis);
 
     return () => {
       teardownScrollTrigger();
       gsap.ticker.remove(onGsapTick);
-      instance.destroy();
-      setLenis(null);
+      lenis.destroy();
     };
-  }, []);
+  }, [lenis]);
 
   return createElement(ScrollContext.Provider, { value: lenis }, children);
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { sendOtp, verifyOtp, signup } from "../api/auth";
 import { ApiError } from "../api/client";
 import RegisterHeader from "../components/Register-components/RegisterHeader";
@@ -7,16 +7,19 @@ import RegisterHero from "../components/Register-components/RegisterHero";
 import RegisterForm from "../components/Register-components/RegisterForm";
 import RegisterFooter from "../components/Register-components/RegisterFooter";
 import { Alert } from "../components/ui/Alert";
-import { Button } from "../components/ui/Button";
 
 export default function Register() {
+  const [searchParams] = useSearchParams();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     password: "",
     confirmPassword: "",
-    referralCode: "",
+    // Pre-fill from ?ref= URL param (referral link flow).
+    // Falls back to "" so the user can type it manually.
+    referralCode: searchParams.get("ref") ?? "",
   });
 
   const navigate = useNavigate();
@@ -36,13 +39,17 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setApiError("");
 
-    // Step 1 — phone is submitted → send OTP
+    // Step 1 — phone submitted → send OTP
     if (step === "form") {
       if (!formData.phone.trim()) {
         setApiError("Phone number is required.");
+        return;
+      }
+      // Guard: referral_code is required by the backend (@IsNotEmpty)
+      if (!formData.referralCode.trim()) {
+        setApiError("A referral code is required to create an account.");
         return;
       }
       setIsLoading(true);
@@ -61,7 +68,7 @@ export default function Register() {
       return;
     }
 
-    // Step 2 — OTP is submitted → verify and get session token
+    // Step 2 — OTP submitted → verify and get session token
     if (step === "otp") {
       if (!otp.trim() || otp.length !== 6) {
         setApiError("Please enter the 6-digit OTP sent to your phone.");
@@ -96,15 +103,16 @@ export default function Register() {
       setIsLoading(true);
       setApiError("");
       try {
+        // FIX: Only send the 3 fields SignupDto accepts.
+        // phone and attempt_id come from the JWT session token (Bearer header),
+        // not from the request body — sending them causes a 400.
         await signup(
           {
-            phone: formData.phone,
             full_name: formData.name,
             password: formData.password,
             referral_code: formData.referralCode,
-            attempt_id: "", // extracted server-side from the session_token JWT
           },
-          sessionToken, // passed as Authorization Bearer header
+          sessionToken,
         );
         setStep("done");
         navigate("/");
@@ -127,15 +135,11 @@ export default function Register() {
 
   return (
     <div className="min-h-screen p-6 text-white">
-      {/* Header */}
       <RegisterHeader />
 
-      {/* Register Container */}
       <div className="max-w-md mx-auto">
-        {/* Hero Section */}
         <RegisterHero />
 
-        {/* API status messages — inserted between hero and form */}
         {apiError && (
           <Alert variant="error" className="anim-rise mb-4">
             {apiError}
@@ -163,33 +167,28 @@ export default function Register() {
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
               className="w-full px-4 py-3 text-center text-2xl tracking-widest bg-black/40 border border-[#c9a96e]/30 text-[#e8dcc8] rounded-lg focus:outline-none focus:border-[#c9a96e] transition"
             />
-            <Button
+            <button
               type="button"
-              onClick={(e) =>
-                handleSubmit(e as unknown as React.FormEvent)
-              }
+              onClick={(e) => handleSubmit(e as unknown as React.FormEvent)}
               disabled={isLoading}
-              variant="outlineGold"
-              className="w-full mt-3 py-2.5 text-sm tracking-widest hover:text-black"
+              className="w-full mt-3 py-2.5 text-sm tracking-widest border border-[#c9a96e] text-[#c9a96e] rounded-lg hover:bg-[#c9a96e] hover:text-black transition disabled:opacity-50"
             >
               {isLoading ? "Verifying…" : "VERIFY OTP"}
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
               onClick={() => {
                 setStep("form");
                 setOtp("");
                 setApiError("");
               }}
-              variant="ghost"
-              className="w-full mt-2 py-2 text-xs"
+              className="w-full mt-2 py-2 text-xs text-white/40 hover:text-white/60 transition"
             >
               ← Change phone number
-            </Button>
+            </button>
           </div>
         )}
 
-        {/* Registration Form */}
         <RegisterForm
           formData={formData}
           handleChange={handleChange}
@@ -197,7 +196,6 @@ export default function Register() {
         />
       </div>
 
-      {/* Footer */}
       <RegisterFooter />
     </div>
   );

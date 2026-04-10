@@ -41,11 +41,9 @@ export async function verifyOtp(payload: VerifyOtpPayload): Promise<OtpVerifyRes
 // ─── Signup ──────────────────────────────────────────────────────────────────
 
 export interface SignupPayload {
-  phone: string;
   full_name: string;
   password: string;
   referral_code: string;
-  attempt_id: string; // from verifyOtp session (onboarding attempt ID)
 }
 
 export async function signup(
@@ -94,4 +92,3 @@ export async function getOnboardingStatus(): Promise<OnboardingStatus> {
     method: 'GET',
   });
 }
-

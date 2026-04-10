@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "../../lib/motion";
 import { ShoppingBag, Expand, X } from "lucide-react";
 import { products, families } from "../../data/products";
 import "../../styles/FeaturedCollection.css";
