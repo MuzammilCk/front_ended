@@ -121,7 +121,8 @@ export async function adminModerateListing(
   id: string,
   payload: ModerationActionPayload,
 ): Promise<Listing> {
-  return apiRequest<Listing>(`/admin/listings/${id}/moderate`, {
+  const actionPath = payload.action.toLowerCase();
+  return apiRequest<Listing>(`/admin/listings/${id}/${actionPath}`, {
     method: 'POST',
     headers: adminHeaders(),
     body: JSON.stringify(payload),
@@ -287,4 +288,3 @@ export async function adminListGraphCorrections(params: {
     headers: adminHeaders(),
   });
 }
-

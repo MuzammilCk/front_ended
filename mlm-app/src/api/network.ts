@@ -28,8 +28,7 @@ export async function getDownline(params: GetDownlineParams = {}): Promise<Netwo
 }
 
 export async function getQualificationState(): Promise<QualificationState> {
-  return apiRequest<QualificationState>('/network/qualification', {
+  return apiRequest<QualificationState>('/network/qualification-status', {
     method: 'GET',
   });
 }
-

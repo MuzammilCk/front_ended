@@ -14,9 +14,12 @@ export async function createPaymentIntent(
   orderId: string,
   payload: CreatePaymentIntentPayload,
 ): Promise<PaymentIntentResponse> {
-  return apiRequest<PaymentIntentResponse>(`/orders/${orderId}/payment-intent`, {
+  const requestBody = {
+    ...payload,
+    order_id: orderId,
+  };
+  return apiRequest<PaymentIntentResponse>(`/payments/intent`, {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(requestBody),
   });
 }
-

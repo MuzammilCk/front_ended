@@ -109,8 +109,7 @@ export async function getOrder(orderId: string): Promise<OrderWithItems> {
 }
 
 export async function cancelOrder(orderId: string): Promise<Order> {
-  return apiRequest<Order>(`/orders/${orderId}`, {
-    method: 'DELETE',
+  return apiRequest<Order>(`/orders/${orderId}/cancel`, {
+    method: 'POST',
   });
 }
-
