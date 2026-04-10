@@ -1,7 +1,7 @@
 // src/api/auth.ts
 // Auth service module — OTP onboarding flow + token management.
 // Endpoints: POST /auth/otp/send, /auth/otp/verify, /auth/signup,
-//            /auth/refresh, /auth/logout, GET /me/onboarding-status
+//            /auth/refresh, /auth/logout, /auth/login, GET /me/onboarding-status
 
 import { apiRequest, setTokens, clearTokens } from './client';
 import type {
@@ -43,20 +43,16 @@ export async function verifyOtp(payload: VerifyOtpPayload): Promise<OtpVerifyRes
 export interface SignupPayload {
   full_name: string;
   password: string;
-  referral_code: string;
+  referral_code?: string;
 }
 
 export async function signup(
   payload: SignupPayload,
-  sessionToken?: string,
+  sessionToken: string,
 ): Promise<SignupResponse> {
-  const headers: Record<string, string> = {};
-  if (sessionToken) {
-    headers['Authorization'] = `Bearer ${sessionToken}`;
-  }
   const response = await apiRequest<SignupResponse>('/auth/signup', {
     method: 'POST',
-    headers,
+    headers: { Authorization: `Bearer ${sessionToken}` },
     body: JSON.stringify(payload),
   });
   setTokens(response.access_token, response.refresh_token);
@@ -82,6 +78,20 @@ export async function logout(refreshTokenValue: string): Promise<{ success: bool
     body: JSON.stringify({ refresh_token: refreshTokenValue }),
   });
   clearTokens();
+  return response;
+}
+
+export interface LoginPayload {
+  phone: string;
+  password: string;
+}
+
+export async function login(payload: LoginPayload): Promise<SignupResponse> {
+  const response = await apiRequest<SignupResponse>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  setTokens(response.access_token, response.refresh_token);
   return response;
 }
 

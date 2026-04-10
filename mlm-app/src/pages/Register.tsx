@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { sendOtp, verifyOtp, signup } from "../api/auth";
+import { sendOtp, verifyOtp } from "../api/auth";
 import { ApiError } from "../api/client";
+import { useAuth } from "../hooks/useAuth";
 import RegisterHeader from "../components/Register-components/RegisterHeader";
 import RegisterHero from "../components/Register-components/RegisterHero";
 import RegisterForm from "../components/Register-components/RegisterForm";
@@ -23,6 +24,7 @@ export default function Register() {
   });
 
   const navigate = useNavigate();
+  const { signup } = useAuth();
   type RegisterStep = "form" | "otp" | "creating" | "done";
   const [step, setStep] = useState<RegisterStep>("form");
   const [otp, setOtp] = useState("");
@@ -110,7 +112,7 @@ export default function Register() {
           {
             full_name: formData.name,
             password: formData.password,
-            referral_code: formData.referralCode,
+            referral_code: formData.referralCode || undefined,
           },
           sessionToken,
         );

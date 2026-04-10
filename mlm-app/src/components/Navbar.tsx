@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "../hooks/useAuth";
 
 interface NavbarProps {
   cartCount?: number;
@@ -9,6 +10,7 @@ interface NavbarProps {
 export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps) {
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { isLoggedIn, logout } = useAuth();
 
   // Define all navigation items
   const navItems = [
@@ -65,6 +67,32 @@ export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps
 
           {/* Icons Section */}
           <div className="flex items-center gap-4">
+            {/* Auth button */}
+            {isLoggedIn ? (
+              <div className="hidden md:flex items-center gap-3">
+                <Link
+                  to="/profile"
+                  className="text-sm text-white/60 hover:text-white transition-colors"
+                >
+                  Account
+                </Link>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="text-sm text-white/40 hover:text-white/70 transition-colors"
+                >
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="hidden md:inline-flex text-sm px-4 py-2 border border-[#c9a96e]/40 text-[#c9a96e] hover:bg-[#c9a96e]/10 rounded-lg transition-colors"
+              >
+                Login
+              </Link>
+            )}
+
             {/* Wishlist Icon */}
             <Link
               to="/wishlist"
