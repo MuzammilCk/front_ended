@@ -279,7 +279,7 @@ export default function Product() {
 
                       <div className="flex items-center justify-center gap-4 text-sm">
                         <span className="text-[#c9a96e]">
-                          AED {item.price}
+                          INR {item.price}
                         </span>
 
                         <button

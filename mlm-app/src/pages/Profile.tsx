@@ -107,7 +107,7 @@ export default function Profile() {
       action: "Order #AUR-1234",
       date: "2 days ago",
       status: "Delivered",
-      amount: "AED 450",
+      amount: "INR 450",
     },
     {
       action: "Added to Wishlist",
@@ -119,13 +119,13 @@ export default function Profile() {
       action: "Wallet Top-up",
       date: "1 week ago",
       status: "Completed",
-      amount: "+AED 500",
+      amount: "+INR 500",
     },
     {
       action: "Order #AUR-1233",
       date: "2 weeks ago",
       status: "Delivered",
-      amount: "AED 890",
+      amount: "INR 890",
     },
   ];
 

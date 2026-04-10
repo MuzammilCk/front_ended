@@ -102,7 +102,7 @@ export default function AddProductTab({
             </select>
           </div>
           <div>
-            <label className={labelCls}>Price (AED) *</label>
+            <label className={labelCls}>Price (INR) *</label>
             <input
               type="number"
               className={inputCls}
@@ -206,7 +206,7 @@ export default function AddProductTab({
               {form.notes || "Scent notes will appear here"}
             </p>
             <p className="font-serif text-lg font-light text-[#c9a96e] mt-1">
-              {form.price ? `AED ${form.price}` : "AED —"}
+              {form.price ? `INR ${form.price}` : "INR —"}
             </p>
           </div>
         </div>

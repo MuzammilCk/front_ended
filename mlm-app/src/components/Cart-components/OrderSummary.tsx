@@ -10,17 +10,17 @@ export default function OrderSummary({ subtotal, shipping }) {
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>AED {subtotal}</span>
+          <span>INR {subtotal}</span>
         </div>
 
         <div className="flex justify-between">
           <span>Shipping</span>
-          <span>{shipping === 0 ? "Free" : `AED ${shipping}`}</span>
+          <span>{shipping === 0 ? "Free" : `INR ${shipping}`}</span>
         </div>
 
         <div className="flex justify-between mt-4 font-bold">
           <span>Total</span>
-          <span className="text-[#c9a96e]">AED {total}</span>
+          <span className="text-[#c9a96e]">INR {total}</span>
         </div>
       </div>
 

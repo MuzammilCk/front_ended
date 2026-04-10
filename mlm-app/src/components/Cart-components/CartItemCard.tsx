@@ -35,7 +35,7 @@ export default function CartItemCard({ item, updateQuantity, removeItem }) {
         </button>
       </div>
 
-      <p className="text-[#c9a96e]">AED {item.price * item.quantity}</p>
+      <p className="text-[#c9a96e]">INR {item.price * item.quantity}</p>
     </div>
   );
 }

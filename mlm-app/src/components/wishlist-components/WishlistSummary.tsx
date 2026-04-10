@@ -12,7 +12,7 @@ export default function WishlistSummary({ items }) {
         <div className="flex justify-between">
           <span>Total Value</span>
           <span className="text-[#c9a96e]">
-            AED {items.reduce((s, i) => s + i.price, 0)}
+            INR {items.reduce((s, i) => s + i.price, 0)}
           </span>
         </div>
       </div>

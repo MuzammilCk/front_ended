@@ -32,7 +32,7 @@ export default function WishlistItemCard({
           <p className="text-xs text-[#c9b99a]/40">{item.notes}</p>
 
           <div className="flex gap-3 mt-3">
-            <span className="text-[#c9a96e]">AED {item.price}</span>
+            <span className="text-[#c9a96e]">INR {item.price}</span>
           </div>
         </div>
 

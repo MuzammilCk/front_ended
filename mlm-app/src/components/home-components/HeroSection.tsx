@@ -3,14 +3,11 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   motion,
   useMotionValue,
-  useScroll,
   useSpring,
-  useTransform,
   type Transition,
 } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
-import { products } from "../../data/products";
 import "../../styles/HeroSection.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -35,17 +32,6 @@ export default function HeroSection() {
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     [],
   );
-
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-
-  const productYTransform = useTransform(scrollYProgress, [0, 1], ["0%", "-22%"]);
-  const productRotateTransform = useTransform(scrollYProgress, [0, 1], [0, 5]);
-  const productOpacity = useTransform(scrollYProgress, [0, 0.65, 1], [1, 0.75, 0]);
-  const smoothY = useSpring(productYTransform, { stiffness: 60, damping: 18 });
-  const smoothRotate = useSpring(productRotateTransform, { stiffness: 60, damping: 18 });
 
   const btnX = useMotionValue(0);
   const btnY = useMotionValue(0);
@@ -134,8 +120,6 @@ export default function HeroSection() {
     btnX.set(0);
     btnY.set(0);
   };
-
-  const heroProduct = products[0];
 
   return (
     <section ref={heroRef} className="hs2-section" aria-label="Hero">
@@ -246,37 +230,6 @@ export default function HeroSection() {
           </motion.div>
         </div>
 
-        <div className="hs2-right">
-          <motion.div
-            className="hs2-product-wrap"
-            initial={
-              prefersReducedMotion
-                ? { opacity: 1, y: 0, scale: 1 }
-                : { opacity: 0, y: 40, scale: 0.95 }
-            }
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{
-              duration: prefersReducedMotion ? 0 : 1.2,
-              delay: prefersReducedMotion ? 0 : 0.4,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            style={{
-              y: prefersReducedMotion ? "0%" : smoothY,
-              rotate: prefersReducedMotion ? 0 : smoothRotate,
-              opacity: prefersReducedMotion ? 1 : productOpacity,
-            }}
-          >
-            {heroProduct.image ? (
-              <img
-                src={heroProduct.image}
-                alt="Oud — signature fragrance"
-                className="hs2-product-img"
-                draggable={false}
-              />
-            ) : null}
-            <div className="hs2-product-glow" aria-hidden />
-          </motion.div>
-        </div>
       </div>
 
       <div className="hs2-scroll-hint" aria-hidden>

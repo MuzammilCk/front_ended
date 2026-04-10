@@ -140,7 +140,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                   </div>
                   <h3 className="fp-card-name">{item.name}</h3>
                   <div className="fp-card-price-row">
-                    <span className="fp-card-price">AED {item.price}</span>
+                    <span className="fp-card-price">INR {item.price}</span>
                     <span className="fp-card-arrow">→</span>
                   </div>
                 </div>

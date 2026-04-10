@@ -41,7 +41,7 @@ export default function OrdersTab() {
               {s.orders.toLocaleString()}
             </p>
             <p className="text-[10px] text-[#c9b99a]/25">
-              AED {s.rev.toLocaleString()}
+              INR {s.rev.toLocaleString()}
             </p>
           </div>
         ))}
@@ -79,7 +79,7 @@ export default function OrdersTab() {
               {o.customer}
             </span>
             <span className="text-xs text-[#c9b99a]/45">{o.product}</span>
-            <span className="text-xs text-[#e8dcc8]">AED {o.amount}</span>
+            <span className="text-xs text-[#e8dcc8]">INR {o.amount}</span>
             <span className="text-[10px] text-[#c9b99a]/30">{o.date}</span>
             <span
               className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${statusCls[o.status]}`}
@@ -117,7 +117,7 @@ export default function OrdersTab() {
             </span>
             <span className="text-xs text-[#c9a96e]">{m.orders}</span>
             <span className="text-xs text-[#c9b99a]/50">
-              AED {m.revenue.toLocaleString()}
+              INR {m.revenue.toLocaleString()}
             </span>
             <div className="h-0.5 bg-[#c9a96e]/8 overflow-hidden">
               <div

@@ -8,7 +8,7 @@ export default function RecommendedProducts({ products }) {
           <div key={p.id} className="p-4 border rounded-lg">
             <h3>{p.name}</h3>
             <p className="text-xs">{p.type}</p>
-            <p className="text-[#c9a96e] mt-2">AED {p.price}</p>
+            <p className="text-[#c9a96e] mt-2">INR {p.price}</p>
           </div>
         ))}
       </div>

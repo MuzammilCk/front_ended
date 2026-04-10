@@ -1,18 +1,23 @@
 import oud from "../assets/oud.png"
-import kunanfa from "../assets/kunafa.png"
-import kashimiri from "../assets/kashmiri.png"
+import kunafa from "../assets/kunafa.png"
+import kashmiri from "../assets/kashmiri.png"
+import Gynaikes from "../assets/Gynaikes.png"
+import TamDao from "../assets/TamDao.png"
+import HadiSignature from "../assets/Signature.png"
+import SandalKerala from "../assets/Sandal.png"
+import HadiClassic from "../assets/Classic.png"
 
 // src/data/products.ts
 
 export const products = [
-  { id: 1, name: "Oud", type: "Eau de Parfum", family: "Woody", notes: "Dark woods · Amber · Smoke", price: 420, ml: "50ml", badge: "Bestseller", intensity: 90 , image:oud },
-  { id: 2, name: "Rose Sauvage", type: "Extrait de Parfum", family: "Floral", notes: "Damask Rose · Musk · Velvet", price: 580, ml: "50ml", badge: "New", intensity: 75, image:kunanfa },
-  { id: 3, name: "Sel de Mer", type: "Eau de Cologne", family: "Fresh", notes: "Sea Salt · Bergamot · Driftwood", price: 310, ml: "100ml", badge: null, intensity: 55 , image:kashimiri},
-  { id: 4, name: "Ambre Brûlé", type: "Eau de Parfum", family: "Oriental", notes: "Burnt Amber · Vanilla · Saffron", price: 495, ml: "50ml", badge: "Limited", intensity: 85 },
-  { id: 5, name: "Vétiver Glacé", type: "Eau de Toilette", family: "Woody", notes: "Vetiver · Ice · Cedar", price: 275, ml: "100ml", badge: null, intensity: 60 },
-  { id: 6, name: "Iris Obscur", type: "Extrait de Parfum", family: "Floral", notes: "Orris · Violet · White Musk", price: 640, ml: "30ml", badge: "Exclusive", intensity: 80 },
-  { id: 7, name: "Poivre Noir", type: "Eau de Parfum", family: "Oriental", notes: "Black Pepper · Leather · Patchouli", price: 390, ml: "50ml", badge: null, intensity: 88 },
-  { id: 8, name: "Côte d'Azur", type: "Eau de Cologne", family: "Fresh", notes: "Citrus · Marine · White Tea", price: 240, ml: "100ml", badge: "New", intensity: 45 },
+  { id: 1, name: "Oud Baklawa", type: "Perfume Oil", family: "Oriental", notes: "Oud · Baklava · Amber · Warm Spice", price: 420, ml: "12ml", badge: "Bestseller", intensity: 90, image: oud },
+  { id: 2, name: "Kunafa Chocolate", type: "Perfume Oil", family: "Gourmand", notes: "Dark Chocolate · Pastry · Vanilla · Sweet Musk", price: 350, ml: "12ml", badge: "New", intensity: 75, image: kunafa },
+  { id: 3, name: "Kashmiri Qahwa", type: "Perfume Oil", family: "Oriental", notes: "Cardamom · Saffron · Green Tea · Rose", price: 280, ml: "6ml", badge: null, intensity: 55, image: kashmiri },
+  { id: 4, name: "Gynaikes 360", type: "Eau de Parfum", family: "Fresh", notes: "Citrus · White Musk · Light Woods", price: 310, ml: "15ml", badge: "Limited", intensity: 65, image: Gynaikes },
+  { id: 5, name: "Tam Dao", type: "Eau de Parfum", family: "Woody", notes: "Sandalwood · Cypress · White Musk", price: 495, ml: "75ml", badge: null, intensity: 70, image: TamDao },
+  { id: 6, name: "Hadi Signature", type: "Perfume Oil", family: "Oriental", notes: "Amber · Oud · Warm Resins", price: 320, ml: "12ml", badge: "Exclusive", intensity: 80, image: HadiSignature },
+  { id: 7, name: "Sandal Kerala", type: "Eau de Parfum", family: "Woody", notes: "Kerala Sandalwood · Vetiver · Earthy Musk", price: 390, ml: "50ml", badge: null, intensity: 78, image: SandalKerala },
+  { id: 8, name: "Hådi Classic", type: "Eau de Parfum", family: "Oriental", notes: "Amber · Patchouli · Golden Musk", price: 440, ml: "50ml", badge: "New", intensity: 72, image: HadiClassic },
 ];
 
 export const families = ["All", "Woody", "Floral", "Fresh", "Oriental"];

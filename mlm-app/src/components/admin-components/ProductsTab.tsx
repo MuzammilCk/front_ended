@@ -57,7 +57,7 @@ export default function ProductsTab({
             </span>
             <span className="text-[11px] text-[#c9b99a]/40">{p.type}</span>
             <span className="text-[11px] text-[#c9b99a]/40">{p.family}</span>
-            <span className="text-[11px] text-[#c9a96e]">AED {p.price}</span>
+            <span className="text-[11px] text-[#c9a96e]">INR {p.price}</span>
             <span
               className={`text-[11px] ${p.stock < 15 ? "text-rose-400" : "text-[#c9b99a]/50"}`}
             >

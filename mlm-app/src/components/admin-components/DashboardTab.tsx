@@ -34,7 +34,7 @@ export default function DashboardTab({
         {[
           {
             label: "Total Revenue",
-            value: "AED 1.61M",
+            value: "INR 1.61M",
             sub: "+18% vs last year",
             color: "text-[#c9a96e]",
           },
@@ -52,8 +52,8 @@ export default function DashboardTab({
           },
           {
             label: "Avg Order Value",
-            value: "AED 450",
-            sub: "Up AED 23 MoM",
+            value: "INR 450",
+            sub: "Up INR 23 MoM",
             color: "text-rose-400",
           },
         ].map((k, i) => (
@@ -130,7 +130,7 @@ export default function DashboardTab({
               { label: "Total Orders", value: totalOrders.toLocaleString() },
               {
                 label: "Total Revenue",
-                value: `AED ${totalRevenue.toLocaleString()}`,
+                value: `INR ${totalRevenue.toLocaleString()}`,
               },
               { label: "Best Month", value: "Dec · 510 orders" },
             ].map((s) => (
@@ -162,7 +162,7 @@ export default function DashboardTab({
                     {p.name}
                   </span>
                   <span className="text-[10px] text-[#c9a96e]">
-                    AED {p.revenue.toLocaleString()}
+                    INR {p.revenue.toLocaleString()}
                   </span>
                 </div>
                 <div className="h-0.5 bg-[#c9a96e]/8 overflow-hidden">
@@ -213,7 +213,7 @@ export default function DashboardTab({
               {o.customer}
             </span>
             <span className="text-xs text-[#c9b99a]/45">{o.product}</span>
-            <span className="text-xs text-[#e8dcc8]">AED {o.amount}</span>
+            <span className="text-xs text-[#e8dcc8]">INR {o.amount}</span>
             <span
               className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${statusCls[o.status]}`}
             >

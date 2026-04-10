@@ -11,7 +11,7 @@ export default function WalletCard({ balance }) {
       <div className="p-6 text-center">
         <p className="text-sm text-[#c9b99a]/60">Available Balance</p>
         <p className="mt-2 text-4xl font-light text-[#c9a96e]">
-          AED {balance.toFixed(2)}
+          INR {balance.toFixed(2)}
         </p>
         <button className="w-full px-4 py-2 mt-6 text-sm rounded-lg text-[#c9a96e] border border-[#c9a96e]/30 hover:bg-[#c9a96e]/10">
           Add Funds

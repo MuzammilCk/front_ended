@@ -160,7 +160,7 @@ export default function ProductDetail() {
               {/* Price */}
               <div className="pt-4 border-t border-[#2a2a2a]">
                 <p className="text-3xl text-[#c9a96e] font-light tracking-wide">
-                  AED {parseFloat(listing.price).toLocaleString('en-AE', {
+                  INR {parseFloat(listing.price).toLocaleString('en-IN', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}

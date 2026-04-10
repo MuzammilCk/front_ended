@@ -153,7 +153,7 @@ export default function FeaturedCollection({
         family: item.family,
         type: item.type,
         notes: item.notes,
-        price: `AED ${item.price}`,
+        price: `INR ${item.price}`,
         ml: item.ml,
         badge: item.badge,
         image: item.image,
