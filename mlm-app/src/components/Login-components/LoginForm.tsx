@@ -118,20 +118,7 @@ export default function LoginForm({
         </div>
       </div>
 
-      {/* Referral Code (Optional) */}
-      <div>
-        <label className="block mb-2 text-sm font-medium text-white/60">
-          Referral Code <span className="text-xs">(Optional)</span>
-        </label>
-        <input
-          type="text"
-          name="referralCode"
-          value={formData.referralCode}
-          onChange={handleChange}
-          className="w-full px-4 py-3 rounded-lg bg-[#111] border border-[#333] focus:border-white/30 focus:outline-none transition-colors"
-          placeholder="Enter referral code"
-        />
-      </div>
+
 
       {/* Forgot Password */}
       <div className="text-right">

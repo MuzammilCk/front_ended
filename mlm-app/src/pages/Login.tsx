@@ -1,22 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { login } from "../api/auth";
 import { ApiError } from "../api/client";
 import LoginHeader from "../components/Login-components/LoginHeader";
 import LoginHero from "../components/Login-components/LoginHero";
+import LoginMethodToggle from "../components/Login-components/LoginMethodToggle";
 import LoginForm from "../components/Login-components/LoginForm";
 import LoginFooter from "../components/Login-components/LoginFooter";
 import { Alert } from "../components/ui/Alert";
 
 export default function Login() {
-  const { login } = useAuth();
   const navigate = useNavigate();
-
+  const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
     password: "",
-    referralCode: "",
   });
 
   const [apiError, setApiError] = useState("");
@@ -30,25 +29,24 @@ export default function Login() {
     e.preventDefault();
     setApiError("");
 
-    if (!formData.phone.trim()) {
-      setApiError("Phone number is required.");
+    const identifier = loginMethod === "phone" ? formData.phone.trim() : formData.email.trim();
+
+    if (!identifier) {
+      setApiError(loginMethod === "phone" ? "Phone number is required." : "Email is required.");
       return;
     }
-    if (!formData.password.trim()) {
+    if (!formData.password) {
       setApiError("Password is required.");
       return;
     }
 
     setIsLoading(true);
     try {
-      await login({ phone: formData.phone, password: formData.password });
+      await login({ identifier, password: formData.password });
       navigate("/");
     } catch (err) {
       if (err instanceof ApiError) {
-        const parsed = (() => {
-          try { return JSON.parse(err.body); } catch { return null; }
-        })();
-        setApiError(parsed?.message ?? "Invalid phone or password.");
+        setApiError(err.body || "Invalid credentials. Please try again.");
       } else {
         setApiError("Network error. Please check your connection.");
       }
@@ -62,19 +60,12 @@ export default function Login() {
       <LoginHeader />
       <div className="max-w-md mx-auto">
         <LoginHero />
-
-        {/* Remove the method toggle — backend only supports phone+password login */}
-
-        {apiError && (
-          <Alert variant="error" className="mb-4">{apiError}</Alert>
-        )}
-        {isLoading && (
-          <Alert variant="info" className="mb-4 text-center">Signing in…</Alert>
-        )}
-
+        <LoginMethodToggle loginMethod={loginMethod} setLoginMethod={setLoginMethod} />
+        {apiError && <Alert variant="error" className="mb-4">{apiError}</Alert>}
+        {isLoading && <Alert variant="info" className="mb-4 text-center">Signing in…</Alert>}
         <LoginForm
-          loginMethod="phone"
-          setLoginMethod={() => {}}
+          loginMethod={loginMethod}
+          setLoginMethod={setLoginMethod}
           formData={formData}
           setFormData={setFormData}
           handleChange={handleChange}

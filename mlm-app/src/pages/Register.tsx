@@ -105,14 +105,15 @@ export default function Register() {
       setIsLoading(true);
       setApiError("");
       try {
-        // FIX: Only send the 3 fields SignupDto accepts.
-        // phone and attempt_id come from the JWT session token (Bearer header),
-        // not from the request body — sending them causes a 400.
+        // FIX: Only send the accepted fields.
+        // phone comes from the JWT session token (Bearer header),
+        // not from the request body.
         await signup(
           {
             full_name: formData.name,
             password: formData.password,
-            referral_code: formData.referralCode || undefined,
+            ...(formData.referralCode.trim() ? { referral_code: formData.referralCode.trim() } : {}),
+            attempt_id: "",
           },
           sessionToken,
         );

@@ -44,6 +44,7 @@ export interface SignupPayload {
   full_name: string;
   password: string;
   referral_code?: string;
+  attempt_id?: string;
 }
 
 export async function signup(
@@ -81,13 +82,21 @@ export async function logout(refreshTokenValue: string): Promise<{ success: bool
   return response;
 }
 
+// ─── Login (password-based) ──────────────────────────────────────────────────
+
 export interface LoginPayload {
-  phone: string;
+  identifier: string; // E.164 phone OR email
   password: string;
 }
 
-export async function login(payload: LoginPayload): Promise<SignupResponse> {
-  const response = await apiRequest<SignupResponse>('/auth/login', {
+export interface LoginResponse {
+  user: { id: string; phone: string; email: string | null; status: string };
+  access_token: string;
+  refresh_token: string;
+}
+
+export async function login(payload: LoginPayload): Promise<LoginResponse> {
+  const response = await apiRequest<LoginResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
