@@ -168,7 +168,7 @@ export default function FeaturedCollection({
         price: `INR ${item.price}`,
         ml: item.ml,
         badge: item.badge,
-        image: item.image_url,
+        image: item.image_url || (item as any).image,
         intensity: item.intensity,
         featuredLevel: "secondary" as FeaturedLevel,
       }));
