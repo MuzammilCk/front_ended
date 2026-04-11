@@ -21,8 +21,7 @@ import type {
 // Token is read from env — never hardcoded.
 
 function adminHeaders(): Record<string, string> {
-  type AdminEnv = { VITE_ADMIN_TOKEN?: string };
-  const token = (import.meta as { env?: AdminEnv }).env?.VITE_ADMIN_TOKEN;
+  const token = sessionStorage.getItem('admin_token') ?? '';
   if (!token) return {};
   return { 'x-admin-token': token };
 }
