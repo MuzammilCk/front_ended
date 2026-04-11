@@ -27,6 +27,7 @@ export interface CreateListingPayload {
   authenticity_status?: string;
   status?: string;
   media_ids?: string[];
+  media_keys?: string[];
 }
 
 export interface UpdateListingPayload {
@@ -67,8 +68,8 @@ export async function adminGetListings(params: { limit?: number; page?: number; 
 }
 
 export async function adminCreateListing(payload: CreateListingPayload): Promise<Listing> {
-  const { media_ids, ...rest } = payload;
-  const dto = { ...rest, currency: 'INR' };
+  const { media_ids, media_keys, ...rest } = payload;
+  const dto = { ...rest, currency: 'INR', media_keys };
   
   return apiRequest<Listing>('/admin/listings', {
     method: 'POST',

@@ -19,6 +19,7 @@ const frames = Array.from({ length: TOTAL_FRAMES }, (_, i) => {
 });
 
 const ProductSequence = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const frameObj = useRef({ current: 0 });
@@ -85,13 +86,13 @@ const ProductSequence = () => {
           scrub: true,
         }
       });
-    }, canvasRef);
+    }, containerRef);
 
     return () => ctxSt.revert();
   }, []);
 
   return (
-    <div id="sequence-container" className="relative w-full h-screen bg-black overflow-hidden border-b border-[#2a2a2a]">
+    <div ref={containerRef} id="sequence-container" className="relative w-full h-screen bg-black overflow-hidden border-b border-[#2a2a2a]">
       <div className="absolute inset-x-0 top-[15%] hero-titles flex flex-col items-center justify-center z-10 pointer-events-none">
         <h2 className="text-[#e8dcc8] text-5xl md:text-7xl font-display uppercase tracking-widest text-center mt-12 drop-shadow-2xl">
           360° Vision

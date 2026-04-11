@@ -7,8 +7,8 @@ type ViteEnv = { VITE_SUPABASE_URL?: string };
 const SUPABASE_URL: string =
   (import.meta as { env?: ViteEnv }).env?.VITE_SUPABASE_URL ?? '';
 
-export function getImageUrl(storageKey: string | undefined | null): string {
-  if (!storageKey) return '';
+export function getImageUrl(storageKey: string | undefined | null): string | undefined {
+  if (!storageKey) return undefined;
   if (storageKey.startsWith('http://') || storageKey.startsWith('https://')) {
     return storageKey;
   }

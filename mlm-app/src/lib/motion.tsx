@@ -12,14 +12,28 @@ type MotionValue = {
 
 const cache = new Map<string, MotionComponent>();
 
+const MOTION_PROPS = [
+  "initial", "animate", "exit", "transition", "variants",
+  "whileHover", "whileTap", "whileFocus", "whileDrag", "whileInView",
+  "layout", "layoutId", "layoutScroll", "layoutRoot",
+  "drag", "dragConstraints", "dragElastic", "dragMomentum",
+  "onDrag", "onDragStart", "onDragEnd", "onDirectionLock",
+  "onViewportEnter", "onViewportLeave", "onAnimationStart", "onAnimationComplete",
+  "onHoverStart", "onHoverEnd", "onTap", "onTapStart", "onTapCancel"
+];
+
 function createMotionComponent(tag: string): MotionComponent {
   if (cache.has(tag)) {
     return cache.get(tag)!;
   }
 
-  const Comp = forwardRef<HTMLElement, Record<string, unknown>>((props, ref) =>
-    createElement(tag, { ...props, ref }, props.children as ReactNode),
-  );
+  const Comp = forwardRef<HTMLElement, Record<string, unknown>>((props, ref) => {
+    const domProps = { ...props };
+    for (const p of MOTION_PROPS) {
+      delete domProps[p];
+    }
+    return createElement(tag, { ...domProps, ref }, props.children as ReactNode);
+  });
   Comp.displayName = `Motion(${tag})`;
   cache.set(tag, Comp as MotionComponent);
   return Comp as MotionComponent;

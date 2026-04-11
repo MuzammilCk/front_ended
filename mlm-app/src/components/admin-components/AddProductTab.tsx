@@ -42,7 +42,7 @@ export default function AddProductTab({
   setAddSuccess,
   setTab,
 }: AddProductTabProps) {
-  const [mediaIds, setMediaIds] = useState<string[]>([]);
+  const [mediaKeys, setMediaKeys] = useState<string[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -67,8 +67,8 @@ export default function AddProductTab({
       // Step 3: confirm with backend
       const asset = await confirmUpload(storage_key, { alt_text: file.name });
 
-      // Step 4: store media_id in form state, not the file itself
-      setMediaIds(prev => [...prev, asset.id]);
+      // Step 4: store storage_key in form state so it connects successfully to the Listing
+      setMediaKeys(prev => [...prev, asset.storage_key]);
       setPreviewUrl(asset.cdn_url);
     } catch {
       setUploadError('Upload failed. Please try again.');
@@ -100,7 +100,7 @@ export default function AddProductTab({
         price: Number(form.price),
         quantity: 50,
         status: 'active',
-        media_ids: mediaIds,
+        media_keys: mediaKeys,
       });
 
       setProducts((p) => [
@@ -116,7 +116,7 @@ export default function AddProductTab({
         ...p,
       ]);
       setForm(EMPTY_FORM);
-      setMediaIds([]);
+      setMediaKeys([]);
       setPreviewUrl(null);
       setAddSuccess(true);
       setTimeout(() => setAddSuccess(false), 3000);
@@ -264,9 +264,9 @@ export default function AddProductTab({
                   className="w-12 h-16 object-cover border border-[#c9a96e]/15"
                 />
               )}
-              {mediaIds.length > 0 && (
+              {mediaKeys.length > 0 && (
                 <span className="text-[10px] text-emerald-400/60">
-                  {mediaIds.length} image(s) attached
+                  {mediaKeys.length} image(s) attached
                 </span>
               )}
             </div>
@@ -293,7 +293,7 @@ export default function AddProductTab({
             {submitting ? "Creating…" : "Add to Catalogue"}
           </button>
           <button
-            onClick={() => { setForm(EMPTY_FORM); setMediaIds([]); setPreviewUrl(null); }}
+            onClick={() => { setForm(EMPTY_FORM); setMediaKeys([]); setPreviewUrl(null); }}
             className="border border-[#c9a96e]/25 text-[#c9a96e] text-[10px] tracking-[0.2em] uppercase px-5 py-3 hover:bg-[#c9a96e]/8 hover:border-[#c9a96e]/50 transition-all duration-300 font-light"
           >
             Reset
