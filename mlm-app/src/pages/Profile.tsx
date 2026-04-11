@@ -137,7 +137,7 @@ export default function Profile() {
               action: `Order #${order.id.slice(-6)}`,
               date: dateStr,
               status: order.status,
-              amount: "AED " + parseFloat(order.total_amount).toFixed(0),
+              amount: `${order.currency} ${parseFloat(order.total_amount).toFixed(0)}`,
             };
           });
           setActivities(mappedActivities);

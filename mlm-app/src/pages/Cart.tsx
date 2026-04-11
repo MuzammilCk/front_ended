@@ -7,7 +7,7 @@ import RecommendedProducts from "../components/Cart-components/RecommendedProduc
 
 import { createOrder, listOrders } from "../api/orders";
 import { getListings } from "../api/listings";
-import { getCart, updateCartItemQty, removeCartItem } from "../api/cart";
+import { getCart, updateCartItemQty, removeCartItem, clearCart } from "../api/cart";
 import { ApiError } from "../api/client";
 import type { Order, CartApiItem } from "../api/types";
 
@@ -46,8 +46,6 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartLoading, setCartLoading] = useState(true);
   const [cartError, setCartError] = useState("");
-  const [wishlist, setWishlist] = useState<number[]>([]);
-  const [cart, setCart] = useState<number[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -187,7 +185,8 @@ export default function Cart() {
       );
       setLastOrder(order);
       setCheckoutError("");
-      setCartItems([]); // Clear cart after successful order
+      setCartItems([]); // Clear UI
+      clearCart();       // Clear localStorage
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 409) {
@@ -206,8 +205,8 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif">
       <Sidebar
-        cartCount={cart.length}
-        wishlistCount={wishlist.length}
+        cartCount={cartItems.length}
+        wishlistCount={0}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />

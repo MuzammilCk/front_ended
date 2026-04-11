@@ -30,7 +30,7 @@ export default function Admin() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [addSuccess, setAddSuccess] = useState(false);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const [apiLoading, setApiLoading] = useState(false);
   const [adminOrders, setAdminOrders] = useState<Order[]>([]);
@@ -50,8 +50,8 @@ export default function Admin() {
           if (result.data.length > 0) {
             // Map backend Listing → AdminProductType shape
             const mapped: AdminProductType[] = result.data.map(
-              (listing, index) => ({
-                id: index + 1, // AdminProductType requires number id
+              (listing) => ({
+                id: listing.id, // Use backend UUID
                 name: listing.title,
                 type: listing.category?.name ?? "Parfum",
                 family: listing.category?.name ?? "General",

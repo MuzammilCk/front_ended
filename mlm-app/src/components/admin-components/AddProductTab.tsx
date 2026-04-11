@@ -104,7 +104,7 @@ export default function AddProductTab({
 
       setProducts((p) => [
         {
-          id: Date.now(),
+          id: crypto.randomUUID?.() ?? `local-${Date.now()}`,
           name: form.name,
           type: form.type,
           family: form.family,

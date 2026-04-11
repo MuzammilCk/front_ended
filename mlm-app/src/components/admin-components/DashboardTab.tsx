@@ -22,8 +22,9 @@ export default function DashboardTab({
   const totalRevenueNum = orders.reduce((sum, o) => sum + parseFloat(o.total_amount || "0"), 0);
   const avgOrderValueNum = orders.length > 0 ? totalRevenueNum / orders.length : 0;
 
-  const totalRevenue = ordersTotal > 0 ? `AED ${totalRevenueNum.toLocaleString()}` : "—";
-  const avgOrderValue = ordersTotal > 0 ? `AED ${avgOrderValueNum.toFixed(0)}` : "—";
+  const currency = orders.length > 0 ? orders[0].currency : 'INR';
+  const totalRevenue = ordersTotal > 0 ? `${currency} ${totalRevenueNum.toLocaleString()}` : "—";
+  const avgOrderValue = ordersTotal > 0 ? `${currency} ${avgOrderValueNum.toFixed(0)}` : "—";
   const totalOrdersStr = ordersTotal > 0 ? String(ordersTotal) : "—";
 
   // Chart data: Last 7 days
@@ -232,7 +233,7 @@ export default function DashboardTab({
               <span className="text-xs text-[#e8dcc8] font-light">
                 {o.buyer_id.slice(-6)}
               </span>
-              <span className="text-xs text-[#e8dcc8]">AED {parseFloat(o.total_amount).toFixed(2)}</span>
+              <span className="text-xs text-[#e8dcc8]">{o.currency} {parseFloat(o.total_amount).toFixed(2)}</span>
               <span
                 className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${ORDER_STATUS_CLS[o.status] || "bg-gray-500/10 text-gray-400"}`}
               >

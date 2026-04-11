@@ -15,6 +15,8 @@ interface UseHomepageReturn {
 // Module-level cache so multiple components share the same request.
 let cachedData: HomepageContent | null = null;
 let cachePromise: Promise<HomepageContent> | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export function useHomepage(): UseHomepageReturn {
   const [data, setData] = useState<HomepageContent | null>(cachedData);
@@ -22,7 +24,8 @@ export function useHomepage(): UseHomepageReturn {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (cachedData) {
+    // Use cached data if it's fresh
+    if (cachedData && Date.now() - cacheTimestamp < CACHE_TTL_MS) {
       setData(cachedData);
       setLoading(false);
       return;
@@ -40,9 +43,12 @@ export function useHomepage(): UseHomepageReturn {
         const result = await cachePromise;
         if (!cancelled) {
           cachedData = result;
+          cacheTimestamp = Date.now();
           setData(result);
         }
       } catch (err) {
+        // Allow retry on next mount by clearing the failed promise
+        cachePromise = null;
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to load homepage content');
         }

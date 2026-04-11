@@ -21,11 +21,11 @@ export function useAuth(): UseAuthReturn {
       try {
         await apiLogout(refreshToken);
       } catch {
-        clearTokens();
+        // API call failed — still clear local state below
       }
-    } else {
-      clearTokens();
     }
+    clearTokens();
+    localStorage.removeItem('auth_user');
     navigate('/login');
   }, [navigate]);
 

@@ -2,8 +2,8 @@ import React from "react";
 import type { AdminProductType } from "../../api/types";
 
 interface DeleteModalProps {
-  deleteId: number;
-  setDeleteId: (id: number | null) => void;
+  deleteId: string;
+  setDeleteId: (id: string | null) => void;
   setProducts: React.Dispatch<React.SetStateAction<AdminProductType[]>>;
 }
 

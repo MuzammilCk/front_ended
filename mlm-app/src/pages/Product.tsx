@@ -4,7 +4,9 @@ import "../styles/product.css";
 import Sidebar from "../components/Sidebar";
 
 import { getListings, getCategories } from "../api/listings";
+import { addToCart as apiAddToCart } from "../api/cart";
 import type { Listing, ProductCategory } from "../api/types";
+import { getImageUrl } from "../utils/imageUrl";
 import { Alert } from "../components/ui/Alert";
 
 export default function Product() {
@@ -20,8 +22,18 @@ export default function Product() {
     );
   };
 
-  const addToCart = (id: string) => {
+  const addToCart = async (id: string, item?: { title: string; price: string; image: string; notes: string }) => {
     setCart((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    try {
+      await apiAddToCart(id, 1, item ? {
+        title: item.title,
+        price: item.price,
+        image_url: item.image,
+        notes: item.notes,
+      } : undefined);
+    } catch {
+      setCart((prev) => prev.filter((x) => x !== id));
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -99,7 +111,7 @@ export default function Product() {
         price: parseFloat(listing.price),
         badge: listing.status === 'active' ? null : listing.status,
         image:
-          listing.images.length > 0 ? listing.images[0].storage_key : '',
+          listing.images.length > 0 ? getImageUrl(listing.images[0].storage_key) : '',
       }))
       : []; // show empty while loading — loading state shown below
 
@@ -315,7 +327,12 @@ export default function Product() {
                         </span>
 
                         <button
-                          onClick={() => addToCart(item.id)}
+                          onClick={() => addToCart(item.id, {
+                            title: item.name,
+                            price: String(item.price),
+                            image: item.image,
+                            notes: item.notes,
+                          })}
                           className="tracking-widest text-[#c9b99a66] hover:text-[#c9a96e] transition-colors"
                         >
                           {cart.includes(item.id) ? "ADDED ✓" : "ADD TO CART"}

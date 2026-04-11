@@ -4,7 +4,7 @@ interface ProductsTabProps {
   products: AdminProductType[];
   setProducts: React.Dispatch<React.SetStateAction<AdminProductType[]>>;
   setTab: (tab: AdminTabType) => void;
-  setDeleteId: (id: number) => void;
+  setDeleteId: (id: string) => void;
 }
 
 export default function ProductsTab({

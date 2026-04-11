@@ -56,9 +56,12 @@ export interface ModerationActionPayload {
 }
 
 export async function adminCreateListing(payload: CreateListingPayload): Promise<Listing> {
+  const { media_ids, ...rest } = payload;
+  const dto = { ...rest, currency: 'INR' };
+  
   return apiRequest<Listing>('/admin/listings', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(dto),
   });
 }
 
@@ -66,9 +69,11 @@ export async function adminUpdateListing(
   id: string,
   payload: UpdateListingPayload,
 ): Promise<Listing> {
+  const { media_ids, ...rest } = payload;
+  
   return apiRequest<Listing>(`/admin/listings/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(rest),
   });
 }
 

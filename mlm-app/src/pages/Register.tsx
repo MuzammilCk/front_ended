@@ -135,7 +135,7 @@ export default function Register() {
     };
 
     void performSignup();
-  }, [step, sessionToken]);
+  }, [step, sessionToken, formData, signup, navigate]);
 
   return (
     <div className="relative min-h-screen overflow-hidden">

@@ -12,7 +12,7 @@ export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout, userName } = useAuth();
 
   // Define all navigation items
   const navItems = [
@@ -96,7 +96,7 @@ export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps
                     
                     <div className="px-4 py-3 border-b border-[#c9a96e]/10 mb-2">
                       <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]">Welcome back</p>
-                      <p className="font-display text-lg text-[#e8dcc8]">User</p>
+                      <p className="font-display text-lg text-[#e8dcc8]">{userName || 'User'}</p>
                     </div>
 
                     <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors">
@@ -194,7 +194,7 @@ export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps
                           <>
                             <div className="px-4 py-3">
                               <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]">Logged in as</p>
-                              <p className="font-display text-sm text-[#e8dcc8]">User</p>
+                              <p className="font-display text-sm text-[#e8dcc8]">{userName || 'User'}</p>
                             </div>
                             <button 
                               onClick={() => {

@@ -107,7 +107,7 @@ export async function apiRequest<T>(
   const token = getAccessToken();
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(options.body ? { 'Content-Type': 'application/json' } : {}),
     ...(options.headers as Record<string, string> | undefined),
   };
 
@@ -124,11 +124,13 @@ export async function apiRequest<T>(
       headers['Authorization'] = `Bearer ${newToken}`;
       res = await fetch(url, { ...options, headers });
     } else {
-      // Refresh failed — clear and redirect to login
+      // Refresh failed — clear state and redirect
       clearTokens();
       localStorage.removeItem('auth_user');
       window.location.href = '/login';
-      throw new ApiError(401, 'Session expired');
+      // Return a never-resolving promise to prevent callers from
+      // processing a stale response while the redirect is in flight
+      return new Promise<never>(() => {});
     }
   }
 

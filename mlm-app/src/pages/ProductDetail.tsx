@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getListingById } from "../api/listings";
+import { addToCart as apiAddToCart } from "../api/cart";
 import type { Listing } from "../api/types";
+import { getImageUrl } from "../utils/imageUrl";
 import { Alert } from "../components/ui/Alert";
 import Sidebar from "../components/Sidebar";
 
@@ -143,8 +145,19 @@ export default function ProductDetail() {
     return () => { cancelled = true; };
   }, [id]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
+    if (!listing) return;
     setAddedToCart(true);
+    try {
+      await apiAddToCart(listing.id, 1, {
+        title: listing.title,
+        price: listing.price,
+        image_url: listing.images.length > 0 ? getImageUrl(listing.images[0].storage_key) : '',
+        notes: listing.description ?? '',
+      });
+    } catch {
+      // Optionally show error
+    }
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
@@ -213,7 +226,7 @@ export default function ProductDetail() {
             <div className="relative aspect-[3/4] overflow-hidden bg-[#0c0c0c]">
               {listing.images.length > 0 ? (
                 <img
-                  src={listing.images[0].storage_key}
+                  src={getImageUrl(listing.images[0].storage_key)}
                   alt={listing.title}
                   className="object-cover w-full h-full"
                 />
@@ -290,7 +303,7 @@ export default function ProductDetail() {
                       className="w-16 h-16 overflow-hidden border border-[#2a2a2a] hover:border-[#c9a96e]/40 transition cursor-pointer"
                     >
                       <img
-                        src={img.storage_key}
+                        src={getImageUrl(img.storage_key)}
                         alt={listing.title}
                         className="object-cover w-full h-full"
                         loading="lazy"

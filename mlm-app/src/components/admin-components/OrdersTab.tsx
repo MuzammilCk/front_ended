@@ -2,6 +2,7 @@ import type { Order } from "../../api/types";
 import { ORDER_STATUS_CLS } from "../../api/types";
 
 export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
+  const currency = orders.length > 0 ? orders[0].currency : 'INR';
   const sumRev = (items: Order[]) => items.reduce((s, o) => s + parseFloat(o.total_amount), 0);
   
   const todayOrders = orders.filter(o => o.created_at.startsWith(new Date().toISOString().split('T')[0]));
@@ -90,7 +91,7 @@ export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
             <span className="text-xs text-[#e8dcc8] font-light">
               {o.buyer_id.slice(-6)}
             </span>
-            <span className="text-xs text-[#e8dcc8]">AED {parseFloat(o.total_amount).toFixed(2)}</span>
+            <span className="text-xs text-[#e8dcc8]">{o.currency} {parseFloat(o.total_amount).toFixed(2)}</span>
             <span className="text-[10px] text-[#c9b99a]/30">{new Date(o.created_at).toLocaleDateString()}</span>
             <span
               className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${ORDER_STATUS_CLS[o.status] || "bg-gray-500/10 text-gray-400"}`}

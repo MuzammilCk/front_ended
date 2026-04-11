@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../api/auth";
-import { ApiError } from "../api/client";
+import { ApiError, getUserRole } from "../api/client";
+import { useAuth } from "../hooks/useAuth";
 import LoginHeader from "../components/Login-components/LoginHeader";
 import LoginHero from "../components/Login-components/LoginHero";
 import LoginMethodToggle from "../components/Login-components/LoginMethodToggle";
@@ -11,6 +11,7 @@ import { Alert } from "../components/ui/Alert";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const [formData, setFormData] = useState({
     email: "",
@@ -43,7 +44,13 @@ export default function Login() {
     setIsLoading(true);
     try {
       await login({ identifier, password: formData.password });
-      navigate("/product");
+      
+      const role = getUserRole();
+      if (role === "admin" || role === "content_manager") {
+        navigate("/admin");
+      } else {
+        navigate("/product");
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setApiError(err.body || "Invalid credentials. Please try again.");

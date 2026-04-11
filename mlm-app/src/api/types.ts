@@ -196,7 +196,7 @@ export interface GraphCorrectionLog {
 // ─── Admin UI Types (migrated from src/data/adminStore.ts) ───────────────────
 
 export interface AdminProductType {
-  id: number;
+  id: string;
   name: string;
   type: string;
   family: string;
