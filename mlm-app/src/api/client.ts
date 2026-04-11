@@ -15,6 +15,18 @@ export function getAccessToken(): string | null {
   return localStorage.getItem('access_token');
 }
 
+export function getUserFirstName(): string | null {
+  const token = localStorage.getItem('access_token');
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const fullName: string = payload.full_name || payload.name || '';
+    return fullName.trim().split(' ')[0] || null;
+  } catch {
+    return null;
+  }
+}
+
 export function setTokens(accessToken: string, refreshToken: string): void {
   localStorage.setItem('access_token', accessToken);
   localStorage.setItem('refresh_token', refreshToken);

@@ -27,6 +27,7 @@ export interface UseAuthReturn {
   login: (payload: LoginPayload) => Promise<void>;
   signup: (payload: SignupPayload, sessionToken: string) => Promise<void>;
   logout: () => Promise<void>;
+  userName?: string | null;
 }
 
 export const AuthContext = createContext<UseAuthReturn | null>(null);

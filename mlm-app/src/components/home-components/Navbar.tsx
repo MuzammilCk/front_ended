@@ -33,7 +33,7 @@ function navItemIsActive(pathname: string, label: string, to: string) {
 }
 
 export default function Navbar() {
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout, userName } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -42,13 +42,26 @@ export default function Navbar() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [megaMenu, setMegaMenu] = useState<MegaMenuKind>(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const logoRef = useRef<HTMLAnchorElement>(null);
   const paletteInputRef = useRef<HTMLInputElement>(null);
   const searchTriggerRef = useRef<HTMLButtonElement>(null);
   const paletteRef = useRef<HTMLDivElement>(null);
   const megaMenuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    if (profileOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [profileOpen]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -81,6 +94,7 @@ export default function Navbar() {
         setPaletteOpen(false);
         setMobileOpen(false);
         setMegaMenu(null);
+        setProfileOpen(false);
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -295,60 +309,63 @@ export default function Navbar() {
 
         <div className="nb2-actions">
           {/* USER ACCOUNT ICON & DROPDOWN */}
-          <div 
-            className="relative group flex items-center"
-            onMouseEnter={() => isLoggedIn && setIsProfileOpen(true)}
-            onMouseLeave={() => isLoggedIn && setIsProfileOpen(false)}
-          >
-            <Link 
-              to={isLoggedIn ? "/profile" : "/login"} 
-              className="nb2-icon-btn"
-              aria-label="User Account"
-            >
+          {!isLoggedIn ? (
+            <Link to="/login" className="nb2-icon-btn" aria-label="User Account">
               <User size={16} strokeWidth={1.5} />
-              {isLoggedIn && (
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#c9a96e] rounded-full border border-[#0a0705]"></span>
-              )}
             </Link>
+          ) : (
+            <div className="relative flex items-center" ref={profileDropdownRef}>
+              <button 
+                type="button"
+                className="nb2-icon-btn"
+                aria-label="User Account"
+                onClick={() => setProfileOpen(!profileOpen)}
+              >
+                <User size={16} strokeWidth={1.5} />
+              </button>
 
-            {/* THE MODERN DROPDOWN */}
-            {isLoggedIn && (
-              <div className={`absolute right-0 top-full pt-4 transition-all duration-300 ${
-                isProfileOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2 pointer-events-none"
-              }`}>
-                <div className="w-56 bg-[#0a0705]/95 backdrop-blur-xl border border-[#c9a96e]/20 rounded-lg shadow-2xl overflow-hidden p-2 text-left">
-                  
-                  <div className="px-4 py-3 border-b border-[#c9a96e]/10 mb-2">
-                    <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]">Welcome back</p>
-                    <p className="font-display text-lg text-[#e8dcc8]">User</p>
-                  </div>
+              <AnimatePresence>
+                {profileOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-2 w-56 bg-[#0d0a07] border border-[#c9a96e]/20 rounded-lg shadow-2xl overflow-hidden text-left z-50 backdrop-blur-xl"
+                  >
+                    <div className="px-4 py-3 border-b border-[#c9a96e]/10">
+                      <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/70">Welcome back</p>
+                      <p className="font-display text-[#e8dcc8] text-lg mt-0.5">{userName ?? 'User'}</p>
+                    </div>
 
-                  <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors">
-                    <User size={16} strokeWidth={1.5} /> My Profile
-                  </Link>
-                  <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors">
-                    <Package size={16} strokeWidth={1.5} /> My Orders
-                  </Link>
-                  <Link to="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors">
-                    <Wallet size={16} strokeWidth={1.5} /> Wallet
-                  </Link>
+                    <div className="py-1">
+                      <Link to="/profile" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-[#e8dcc8]/80 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 transition-colors">
+                        <User size={16} strokeWidth={1.5} /> My Profile
+                      </Link>
+                      <Link to="/cart" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-[#e8dcc8]/80 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 transition-colors">
+                        <Package size={16} strokeWidth={1.5} /> My Orders
+                      </Link>
+                      <Link to="/profile" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-[#e8dcc8]/80 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 transition-colors">
+                        <Wallet size={16} strokeWidth={1.5} /> Wallet
+                      </Link>
+                    </div>
 
-                  <div className="mt-2 pt-2 border-t border-[#c9a96e]/10">
-                    <button 
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        void logout();
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400/80 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
-                    >
-                      <LogOut size={16} strokeWidth={1.5} /> Sign Out
-                    </button>
-                  </div>
-
-                </div>
-              </div>
-            )}
-          </div>
+                    <div className="py-1 border-t border-[#c9a96e]/10">
+                      <button 
+                        onClick={() => {
+                          setProfileOpen(false);
+                          void logout();
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400/90 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                      >
+                        <LogOut size={16} strokeWidth={1.5} /> Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
           <Link to="/wishlist" className="nb2-icon-btn" aria-label="Wishlist">
             <Heart size={16} strokeWidth={1.5} />
@@ -465,7 +482,7 @@ export default function Navbar() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-xs text-[#c9a96e]">Logged in as</p>
-                  <p className="text-lg font-display text-[#e8dcc8]">User</p>
+                  <p className="text-lg font-display text-[#e8dcc8]">{userName ?? 'User'}</p>
                 </div>
               </div>
               <Link to="/profile" className="block py-2 text-sm text-[#e8dcc8]/70" onClick={() => setMobileOpen(false)}>View Profile</Link>

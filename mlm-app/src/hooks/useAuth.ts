@@ -1,7 +1,7 @@
-import { useContext, useCallback } from 'react';
+import { useContext, useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext, type UseAuthReturn } from '../context/AuthContext';
-import { getAccessToken, clearTokens } from '../api/client';
+import { getAccessToken, clearTokens, getUserFirstName } from '../api/client';
 import { logout as apiLogout } from '../api/auth';
 
 export function useAuth(): UseAuthReturn {
@@ -13,6 +13,7 @@ export function useAuth(): UseAuthReturn {
 
   // Re-derive on every navigation so the navbar always reflects real token state.
   const isLoggedIn = getAccessToken() !== null;
+  const [userName] = useState<string | null>(() => getUserFirstName());
 
   const logout = useCallback(async (): Promise<void> => {
     const refreshToken = localStorage.getItem('refresh_token');
@@ -31,5 +32,5 @@ export function useAuth(): UseAuthReturn {
   // Suppress unused variable warning — location is used to trigger re-render on nav
   void location;
 
-  return { ...ctx, isLoggedIn, logout };
+  return { ...ctx, isLoggedIn, logout, userName };
 }
