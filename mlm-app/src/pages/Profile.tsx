@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getOnboardingStatus } from "../api/auth";
+import { getOnboardingStatus, getMe, updateMe } from "../api/auth";
+import { listOrders } from "../api/orders";
 import type { OnboardingStatus } from "../api/types";
 
 import StatsCard from "../components/profile-components/StatsCard";
@@ -39,95 +40,120 @@ export default function Profile() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [cart, setCart] = useState<number[]>([]);
-  const [userData, setUserData] = useState<UserData>({
-    name: "Sophia Laurent",
-    email: "sophia.laurent@hadi-perfumes.com",
-    mobile: "+971 50 123 4567",
-    walletBalance: 1250,
-    referralCode: "HADI2025",
-    joinedDate: "January 2024",
-    address: "Downtown Dubai, UAE",
-  });
 
-  const [editForm, setEditForm] = useState(userData);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [editForm, setEditForm] = useState<UserData | null>(null);
 
-  const [onboardingStatus, setOnboardingStatus] = useState<
-    OnboardingStatus | null
-  >(null);
-  const [statusLoading, setStatusLoading] = useState(false);
+  const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
+  const [statusLoading, setStatusLoading] = useState(true);
+  const [saveError, setSaveError] = useState("");
+
+  const [stats, setStats] = useState([
+    { label: "Orders", value: "—", icon: ShoppingBag },
+    { label: "Wishlist", value: "—", icon: Heart },
+    { label: "Reviews", value: "—", icon: Gift },
+  ]);
+
+  const [activities, setActivities] = useState<any[]>([]);
 
   const handleCopyReferral = () => {
+    if (!userData) return;
     navigator.clipboard.writeText(userData.referralCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSave = () => {
-    setUserData(editForm);
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!editForm) return;
+    setSaveError("");
+    try {
+      await updateMe({ full_name: editForm.name, email: editForm.email });
+      setUserData(editForm);
+      setIsEditing(false);
+    } catch (err) {
+      setSaveError("Failed to save changes.");
+    }
   };
 
   const handleCancel = () => {
-    setEditForm(userData);
+    if (userData) setEditForm(userData);
     setIsEditing(false);
+    setSaveError("");
   };
 
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
-      // Defer state updates to avoid react-hooks/set-state-in-effect lint.
       await Promise.resolve();
       setStatusLoading(true);
-      getOnboardingStatus()
-        .then((data) => {
-          if (!cancelled) setOnboardingStatus(data);
-        })
-        .catch(() => {
-          // Silently fail — user may not be logged in yet
-          // Profile data stays as local placeholder state
-        })
-        .finally(() => {
-          if (!cancelled) setStatusLoading(false);
-        });
+
+      try {
+        const [me, status, orderCounts, recentOrders] = await Promise.all([
+          getMe().catch(() => null),
+          getOnboardingStatus().catch(() => null),
+          listOrders({ limit: 1 }).catch(() => null),
+          listOrders({ limit: 4 }).catch(() => null),
+        ]);
+
+        if (cancelled) return;
+
+        if (me) {
+          const joinedDate = me.onboarding_completed_at
+            ? new Date(me.onboarding_completed_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+            : 'Member';
+
+          const newUserData = {
+            name: me.full_name || "User",
+            email: me.email || "",
+            mobile: me.phone || "",
+            walletBalance: 0,
+            referralCode: me.id.slice(0, 8).toUpperCase(),
+            joinedDate,
+            address: "",
+          };
+          setUserData(newUserData);
+          setEditForm(newUserData);
+        }
+
+        if (status) {
+          setOnboardingStatus(status);
+        }
+
+        if (orderCounts) {
+          setStats([
+            { label: "Orders", value: orderCounts.total.toString(), icon: ShoppingBag },
+            { label: "Wishlist", value: "—", icon: Heart },
+            { label: "Reviews", value: "—", icon: Gift },
+          ]);
+        }
+
+        if (recentOrders && recentOrders.data.length > 0) {
+          const mappedActivities = recentOrders.data.map((order) => {
+            const diffTime = Math.abs(new Date().getTime() - new Date(order.created_at).getTime());
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            let dateStr = diffDays === 0 ? "Today" : `${diffDays} days ago`;
+
+            return {
+              action: `Order #${order.id.slice(-6)}`,
+              date: dateStr,
+              status: order.status,
+              amount: "AED " + parseFloat(order.total_amount).toFixed(0),
+            };
+          });
+          setActivities(mappedActivities);
+        } else {
+          setActivities([]);
+        }
+
+      } finally {
+        if (!cancelled) setStatusLoading(false);
+      }
     };
     void run();
     return () => {
       cancelled = true;
     };
   }, []);
-
-  const stats = [
-    { label: "Orders", value: "24", icon: ShoppingBag },
-    { label: "Wishlist", value: "12", icon: Heart },
-    { label: "Reviews", value: "8", icon: Gift },
-  ];
-
-  const activities = [
-    {
-      action: "Order #AUR-1234",
-      date: "2 days ago",
-      status: "Delivered",
-      amount: "INR 450",
-    },
-    {
-      action: "Added to Wishlist",
-      date: "3 days ago",
-      status: "Oud Cambodi",
-      amount: "",
-    },
-    {
-      action: "Wallet Top-up",
-      date: "1 week ago",
-      status: "Completed",
-      amount: "+INR 500",
-    },
-    {
-      action: "Order #AUR-1233",
-      date: "2 weeks ago",
-      status: "Delivered",
-      amount: "INR 890",
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif">
@@ -145,152 +171,137 @@ export default function Profile() {
           onClick={() => setIsSidebarOpen((prev) => !prev)}
           className="p-2 transition rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
         >
-          <svg
-            className="w-6 h-6 text-[#e8dcc8]"
-            fill="none"
-            stroke="currentColor"
-          >
+          <svg className="w-6 h-6 text-[#e8dcc8]" fill="none" stroke="currentColor">
             <path strokeWidth="1.5" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-
         <span className="text-sm text-[#c9a96e]">Profile</span>
       </div>
-      {/* Background Layer 1: The subtle texture image (barely visible) */}
-      <div
-        className="fixed inset-0 bg-cover bg-center opacity-20 pointer-events-none"
-        style={{ backgroundImage: 'url(/assets/profile-bg.png)' }}
-      />
+
+      <div className="fixed inset-0 bg-cover bg-center opacity-20 pointer-events-none" style={{ backgroundImage: 'url(/assets/profile-bg.png)' }} />
 
       <div className="relative max-w-6xl px-4 py-8 mx-auto md:px-8 md:py-12">
-        {/* Back */}
         <div className="mb-8">
-          <Link to="/" className="text-[#c9a96e]/70 hover:text-[#c9a96e]">
-            ← Back to Home
-          </Link>
+          <Link to="/" className="text-[#c9a96e]/70 hover:text-[#c9a96e]">← Back to Home</Link>
         </div>
 
-        {/* Header */}
-        <ProfileHeader
-          userData={userData}
-          editForm={editForm}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-          setEditForm={setEditForm}
-          handleSave={handleSave}
-          handleCancel={handleCancel}
-        />
-
-        {/* Account status from API — inserted after ProfileHeader */}
-        {onboardingStatus && (
-          <div className="flex gap-3 mb-6 flex-wrap">
-            <span className="px-3 py-1 text-xs rounded-full border border-[#c9a96e]/30 text-[#c9a96e]/80">
-              Account: {onboardingStatus.status}
-            </span>
-            <span className="px-3 py-1 text-xs rounded-full border border-[#c9a96e]/30 text-[#c9a96e]/80">
-              KYC: {onboardingStatus.kyc_status}
-            </span>
-            {onboardingStatus.onboarding_completed_at && (
-              <span className="px-3 py-1 text-xs rounded-full border border-[#c9a96e]/30 text-[#c9a96e]/80">
-                Member since:{' '}
-                {new Date(
-                  onboardingStatus.onboarding_completed_at,
-                ).toLocaleDateString()}
-              </span>
-            )}
+        {statusLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="w-8 h-8 border-2 border-[#c9a96e] border-t-transparent rounded-full animate-spin"></div>
           </div>
-        )}
-
-        {statusLoading && (
-          <div className="mb-6 text-xs text-[#c9b99a]/40">
-            Loading account status…
-          </div>
-        )}
-
-        {/* Stats */}
-        <div className="grid gap-4 mb-12 md:grid-cols-3">
-          {stats.map((s, i) => (
-            <StatsCard key={i} {...s} />
-          ))}
-        </div>
-
-        {/* Main Grid */}
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Personal Info */}
-          <div className="lg:col-span-2">
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl">
-              <div className="p-6 border-b border-[#c9a96e]/10">
-                <h2 className="text-xl">Personal Information</h2>
-              </div>
-
-              <div className="p-6 space-y-6">
-                <InfoField
-                  icon={Mail}
-                  label="Email Address"
-                  value={editForm.email}
-                  isEditing={isEditing}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, email: e.target.value })
-                  }
-                />
-
-                <InfoField
-                  icon={Phone}
-                  label="Mobile Number"
-                  value={editForm.mobile}
-                  isEditing={isEditing}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, mobile: e.target.value })
-                  }
-                />
-
-                <InfoField
-                  icon={MapPin}
-                  label="Address"
-                  value={editForm.address}
-                  isEditing={isEditing}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, address: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side */}
-          <div className="space-y-6">
-            <WalletCard balance={userData.walletBalance} />
-
-            <ReferralCard
-              code={userData.referralCode}
-              copied={copied}
-              onCopy={handleCopyReferral}
+        ) : userData && editForm ? (
+          <>
+            <ProfileHeader
+              userData={userData}
+              editForm={editForm}
+              isEditing={isEditing}
+              setIsEditing={setIsEditing}
+              setEditForm={setEditForm}
+              handleSave={handleSave}
+              handleCancel={handleCancel}
             />
 
-            {/* Security */}
-            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Shield className="w-5 h-5 text-[#c9a96e]" />
-                <h3 className="text-sm">Account Security</h3>
+            {saveError && (
+              <div className="mb-4 text-sm text-red-500 bg-red-500/10 p-3 rounded-lg border border-red-500/20">{saveError}</div>
+            )}
+
+            {onboardingStatus && (
+              <div className="flex gap-3 mb-6 flex-wrap">
+                <span className="px-3 py-1 text-xs rounded-full border border-[#c9a96e]/30 text-[#c9a96e]/80">
+                  Account: {onboardingStatus.status}
+                </span>
+                <span className="px-3 py-1 text-xs rounded-full border border-[#c9a96e]/30 text-[#c9a96e]/80">
+                  KYC: {onboardingStatus.kyc_status}
+                </span>
+                {onboardingStatus.onboarding_completed_at && (
+                  <span className="px-3 py-1 text-xs rounded-full border border-[#c9a96e]/30 text-[#c9a96e]/80">
+                    Member since:{' '}
+                    {new Date(onboardingStatus.onboarding_completed_at).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+            )}
+
+            <div className="grid gap-4 mb-12 md:grid-cols-3">
+              {stats.map((s, i) => (
+                <StatsCard key={i} {...s} />
+              ))}
+            </div>
+
+            <div className="grid gap-8 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl">
+                  <div className="p-6 border-b border-[#c9a96e]/10">
+                    <h2 className="text-xl">Personal Information</h2>
+                  </div>
+
+                  <div className="p-6 space-y-6">
+                    <InfoField
+                      icon={Mail}
+                      label="Email Address"
+                      value={editForm.email}
+                      isEditing={isEditing}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    />
+
+                    <InfoField
+                      icon={Phone}
+                      label="Mobile Number"
+                      value={editForm.mobile}
+                      isEditing={isEditing}
+                      onChange={(e) => setEditForm({ ...editForm, mobile: e.target.value })}
+                    />
+
+                    <InfoField
+                      icon={MapPin}
+                      label="Address"
+                      value={editForm.address}
+                      isEditing={isEditing}
+                      onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="flex justify-between">
-                <div className="flex items-center gap-2 text-xs text-[#c9b99a]/60">
-                  <Clock className="w-4 h-4" />
-                  2FA Available
+              <div className="space-y-6">
+                <WalletCard balance={userData.walletBalance} />
+
+                <ReferralCard
+                  code={userData.referralCode}
+                  copied={copied}
+                  onCopy={handleCopyReferral}
+                />
+
+                <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Shield className="w-5 h-5 text-[#c9a96e]" />
+                    <h3 className="text-sm">Account Security</h3>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2 text-xs text-[#c9b99a]/60">
+                      <Clock className="w-4 h-4" />
+                      2FA Available
+                    </div>
+                    <button className="text-xs text-[#c9a96e] hover:underline">
+                      Enable →
+                    </button>
+                  </div>
                 </div>
-                <button className="text-xs text-[#c9a96e] hover:underline">
-                  Enable →
-                </button>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Activity */}
-        <div className="mt-12">
-          <ActivityList activities={activities} />
-        </div>
+            <div className="mt-12">
+              {activities.length > 0 ? (
+                <ActivityList activities={activities} />
+              ) : (
+                <div className="text-[#c9b99a]/60 italic">No recent activity yet.</div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="py-20 text-center text-[#c9b99a]/60">Failed to load profile.</div>
+        )}
       </div>
     </div>
   );

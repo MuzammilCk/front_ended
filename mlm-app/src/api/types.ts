@@ -15,6 +15,17 @@ export interface AuthUser {
   status: string;
 }
 
+export interface MeProfile {
+  id: string;
+  phone: string;
+  email: string | null;
+  full_name: string | null;
+  status: string;
+  kyc_status: string;
+  sponsor_id: string | null;
+  onboarding_completed_at: string | null;
+}
+
 export interface SignupResponse extends AuthTokens {
   user: AuthUser;
 }

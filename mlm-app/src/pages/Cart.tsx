@@ -6,6 +6,7 @@ import OrderSummary from "../components/Cart-components/OrderSummary";
 import RecommendedProducts from "../components/Cart-components/RecommendedProducts";
 
 import { createOrder, listOrders } from "../api/orders";
+import { getListings } from "../api/listings";
 import { ApiError } from "../api/client";
 import type { Order } from "../api/types";
 
@@ -15,7 +16,7 @@ import { Alert } from "../components/ui/Alert";
 import { Button } from "../components/ui/Button";
 
 interface CartItem {
-  id: number;
+  id: string;
   name: string;
   type: string;
   price: number;
@@ -26,41 +27,18 @@ interface CartItem {
 }
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: "Midnight Oud",
-      type: "Eau de Parfum",
-      price: 450,
-      quantity: 1,
-      image:
-        "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400",
-      notes: "Woody, Amber, Oud",
-      inStock: true,
-    },
-    {
-      id: 2,
-      name: "Desert Rose",
-      type: "Eau de Parfum",
-      price: 380,
-      quantity: 2,
-      image:
-        "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=400",
-      notes: "Rose, Saffron, Sandalwood",
-      inStock: true,
-    },
-    {
-      id: 3,
-      name: "Royal Amber",
-      type: "Extrait de Parfum",
-      price: 650,
-      quantity: 1,
-      image:
-        "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400",
-      notes: "Amber, Vanilla, Musk",
-      inStock: false,
-    },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('hadi_cart');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('hadi_cart', JSON.stringify(cartItems));
+  }, [cartItems]);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [cart, setCart] = useState<number[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -84,25 +62,44 @@ export default function Cart() {
     };
   }, []);
 
-  const updateQuantity = (id: number, qty: number) => {
+  const updateQuantity = (id: string, qty: number) => {
     if (qty < 1) return;
     setCartItems((items) =>
       items.map((i) => (i.id === id ? { ...i, quantity: qty } : i)),
     );
   };
 
-  const removeItem = (id: number) => {
+  const removeItem = (id: string) => {
     setCartItems((items) => items.filter((i) => i.id !== id));
   };
 
   const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const shipping = subtotal > 500 ? 0 : 25;
 
-  const recommendedProducts = [
-    { id: 4, name: "Golden Saffron", price: 520, type: "Extrait de Parfum" },
-    { id: 5, name: "White Musk", price: 420, type: "Eau de Parfum" },
-    { id: 6, name: "Velvet Oud", price: 590, type: "Extrait de Parfum" },
-  ];
+  const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getListings({ limit: 3 })
+      .then((result) => {
+        if (!cancelled) {
+          setRecommendedProducts(
+            result.data.map((listing) => ({
+              id: listing.id,
+              name: listing.title,
+              price: parseFloat(listing.price),
+              type: listing.category?.name ?? 'Parfum',
+            }))
+          );
+        }
+      })
+      .catch(() => {
+        // Silently fail
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const generateIdempotencyKey = (): string => {
     const c = globalThis.crypto;

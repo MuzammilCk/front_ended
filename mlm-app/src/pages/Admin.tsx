@@ -7,7 +7,7 @@ import AddProductTab from "../components/admin-components/AddProductTab";
 import OrdersTab from "../components/admin-components/OrdersTab";
 import DeleteModal from "../components/admin-components/DeleteModal";
 import SuccessToast from "../components/admin-components/SuccessToast";
-import { initialProducts, emptyForm } from "../data/adminStore";
+import { emptyForm } from "../data/adminStore";
 import type { TabType } from "../data/adminStore";
 import { getListings } from "../api/listings";
 import { adminListOrders } from "../api/admin";
@@ -17,7 +17,7 @@ import type { ProductType } from "../data/adminStore";
 export default function Admin() {
   const [tab, setTab] = useState<TabType>("dashboard");
   const [chartMode, setChartMode] = useState<"weekly" | "monthly">("weekly");
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState<ProductType[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState("");
   const [addSuccess, setAddSuccess] = useState(false);
@@ -112,6 +112,8 @@ export default function Admin() {
           {tab === "dashboard" && (
             <DashboardTab
               products={products}
+              orders={adminOrders}
+              ordersTotal={ordersTotal}
               chartMode={chartMode}
               setChartMode={setChartMode}
               setTab={setTab}
@@ -140,7 +142,7 @@ export default function Admin() {
             />
           )}
 
-          {tab === "orders" && <OrdersTab />}
+          {tab === "orders" && <OrdersTab orders={adminOrders} />}
         </div>
       </main>
 

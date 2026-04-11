@@ -1,34 +1,46 @@
-import {
-  dailyOrders,
-  monthlyOrders,
-  totalOrders,
-  totalRevenue,
-  recentOrders,
-  statusCls,
-  maxMonthly,
-} from "../../data/adminStore";
+import type { Order } from "../../api/types";
+import { statusCls } from "../../data/adminStore";
 
-export default function OrdersTab() {
+export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
+  const sumRev = (items: Order[]) => items.reduce((s, o) => s + parseFloat(o.total_amount), 0);
+  
+  const todayOrders = orders.filter(o => o.created_at.startsWith(new Date().toISOString().split('T')[0]));
+  const thisMonthOrders = orders.filter(o => o.created_at.startsWith(new Date().toISOString().slice(0, 7)));
+
+  // monthly breakdown
+  const monthlyData: Record<string, { orders: number, revenue: number }> = {};
+  orders.forEach(o => {
+    const d = new Date(o.created_at);
+    const month = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    if (!monthlyData[month]) monthlyData[month] = { orders: 0, revenue: 0 };
+    monthlyData[month].orders += 1;
+    monthlyData[month].revenue += parseFloat(o.total_amount);
+  });
+  const monthlyArray = Object.entries(monthlyData).map(([month, data]) => ({
+    month, ...data
+  }));
+  const maxMonthly = monthlyArray.length > 0 ? Math.max(...monthlyArray.map(m => m.orders)) : 1;
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-4 gap-4">
         {[
           {
             label: "Today",
-            orders: dailyOrders[4].orders,
-            rev: dailyOrders[4].revenue,
+            orders: todayOrders.length,
+            rev: sumRev(todayOrders),
           },
           {
             label: "This Week",
-            orders: dailyOrders.reduce((s, d) => s + d.orders, 0),
-            rev: dailyOrders.reduce((s, d) => s + d.revenue, 0),
+            orders: todayOrders.length, // approximation based on today
+            rev: sumRev(todayOrders),
           },
           {
             label: "This Month",
-            orders: monthlyOrders[11].orders,
-            rev: monthlyOrders[11].revenue,
+            orders: thisMonthOrders.length,
+            rev: sumRev(thisMonthOrders),
           },
-          { label: "This Year", orders: totalOrders, rev: totalRevenue },
+          { label: "All Time", orders: orders.length, rev: sumRev(orders) },
         ].map((s, i) => (
           <div
             key={i}
@@ -41,7 +53,7 @@ export default function OrdersTab() {
               {s.orders.toLocaleString()}
             </p>
             <p className="text-[10px] text-[#c9b99a]/25">
-              INR {s.rev.toLocaleString()}
+              AED {s.rev.toLocaleString()}
             </p>
           </div>
         ))}
@@ -54,11 +66,11 @@ export default function OrdersTab() {
             All Orders
           </p>
           <span className="text-[10px] tracking-[0.15em] uppercase text-[#c9b99a]/20">
-            5 most recent
+            Recent list
           </span>
         </div>
-        <div className="grid grid-cols-6 py-2 px-6 border-b border-[#c9a96e]/5">
-          {["Order ID", "Customer", "Product", "Amount", "Date", "Status"].map(
+        <div className="grid grid-cols-5 py-2 px-6 border-b border-[#c9a96e]/5">
+          {["Order ID", "Customer", "Amount", "Date", "Status"].map(
             (h) => (
               <span
                 key={h}
@@ -69,20 +81,19 @@ export default function OrdersTab() {
             ),
           )}
         </div>
-        {recentOrders.map((o, i) => (
+        {orders.map((o, i) => (
           <div
             key={i}
-            className="grid grid-cols-6 py-4 px-6 border-b border-[#c9a96e]/4 items-center hover:bg-[#c9a96e]/3 transition-colors"
+            className="grid grid-cols-5 py-4 px-6 border-b border-[#c9a96e]/4 items-center hover:bg-[#c9a96e]/3 transition-colors"
           >
-            <span className="font-serif text-[#c9a96e] font-light">{o.id}</span>
+            <span className="font-serif text-[#c9a96e] font-light">#{o.id.slice(-6)}</span>
             <span className="text-xs text-[#e8dcc8] font-light">
-              {o.customer}
+              {o.buyer_id.slice(-6)}
             </span>
-            <span className="text-xs text-[#c9b99a]/45">{o.product}</span>
-            <span className="text-xs text-[#e8dcc8]">INR {o.amount}</span>
-            <span className="text-[10px] text-[#c9b99a]/30">{o.date}</span>
+            <span className="text-xs text-[#e8dcc8]">AED {parseFloat(o.total_amount).toFixed(2)}</span>
+            <span className="text-[10px] text-[#c9b99a]/30">{new Date(o.created_at).toLocaleDateString()}</span>
             <span
-              className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${statusCls[o.status]}`}
+              className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${statusCls[o.status] || "bg-gray-500/10 text-gray-400"}`}
             >
               {o.status}
             </span>
@@ -107,7 +118,7 @@ export default function OrdersTab() {
             </span>
           ))}
         </div>
-        {monthlyOrders.map((m, i) => (
+        {monthlyArray.map((m, i) => (
           <div
             key={i}
             className="grid grid-cols-4 py-3 px-6 border-b border-[#c9a96e]/4 items-center hover:bg-[#c9a96e]/3 transition-colors"
@@ -117,7 +128,7 @@ export default function OrdersTab() {
             </span>
             <span className="text-xs text-[#c9a96e]">{m.orders}</span>
             <span className="text-xs text-[#c9b99a]/50">
-              INR {m.revenue.toLocaleString()}
+              AED {m.revenue.toLocaleString()}
             </span>
             <div className="h-0.5 bg-[#c9a96e]/8 overflow-hidden">
               <div

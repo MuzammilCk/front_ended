@@ -9,6 +9,7 @@ import type {
   SignupResponse,
   AuthTokens,
   OnboardingStatus,
+  MeProfile,
 } from './types';
 
 // ─── OTP Send ───────────────────────────────────────────────────────────────
@@ -110,5 +111,18 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 export async function getOnboardingStatus(): Promise<OnboardingStatus> {
   return apiRequest<OnboardingStatus>('/me/onboarding-status', {
     method: 'GET',
+  });
+}
+
+export async function getMe(): Promise<MeProfile> {
+  return apiRequest<MeProfile>('/me', {
+    method: 'GET',
+  });
+}
+
+export async function updateMe(payload: { full_name?: string; email?: string }): Promise<MeProfile> {
+  return apiRequest<MeProfile>('/me', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
   });
 }

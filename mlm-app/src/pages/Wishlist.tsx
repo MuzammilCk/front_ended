@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import WishlistItemCard from "../components/wishlist-components/WishlistItemCard";
@@ -9,74 +9,69 @@ import WishlistRecommended from "../components/wishlist-components/WishlistRecom
 import { Heart, ArrowLeft, ChevronRight } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 
+interface WishlistItem {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  image: string;
+  notes: string;
+  inStock: boolean;
+}
+
 export default function Wishlist() {
-  const [wishlistItems, setWishlistItems] = useState([
-    {
-      id: 1,
-      name: "Midnight Oud",
-      type: "Eau de Parfum",
-      price: 450,
-      image:
-        "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400",
-      notes: "Woody, Amber, Oud",
-      rating: 4.8,
-      reviews: 124,
-      inStock: true,
-      isNew: true,
-    },
-    {
-      id: 2,
-      name: "Desert Rose",
-      type: "Eau de Parfum",
-      price: 380,
-      image:
-        "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=400",
-      notes: "Rose, Saffron, Sandalwood",
-      rating: 4.9,
-      reviews: 89,
-      inStock: true,
-    },
-    {
-      id: 3,
-      name: "Royal Amber",
-      type: "Extrait de Parfum",
-      price: 650,
-      originalPrice: 780,
-      image:
-        "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400",
-      notes: "Amber, Vanilla, Musk",
-      rating: 4.7,
-      reviews: 56,
-      inStock: true,
-      isSale: true,
-    },
-    {
-      id: 4,
-      name: "Golden Saffron",
-      type: "Extrait de Parfum",
-      price: 520,
-      image:
-        "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400",
-      notes: "Saffron, Leather, Cedar",
-      rating: 4.9,
-      reviews: 203,
-      inStock: false,
-    },
-  ]); // SAME DATA
-  const [addedToCart, setAddedToCart] = useState<number | null>(null);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('hadi_wishlist');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('hadi_wishlist', JSON.stringify(wishlistItems));
+  }, [wishlistItems]);
+  const [addedToCart, setAddedToCart] = useState<string | null>(null);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [cart, setCart] = useState<number[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const removeFromWishlist = (id: number) => {
-    setWishlistItems((items) => items.filter((item) => item.id !== id));
+  const removeFromWishlist = (id: string | number) => {
+    setWishlistItems((items) => items.filter((item) => item.id !== String(id)));
   };
 
-  const addToCart = (id: number) => {
-    setAddedToCart(id);
+  const addToCart = (id: string | number) => {
+    setAddedToCart(String(id));
     setTimeout(() => setAddedToCart(null), 2000);
   };
 
-  const moveAllToCart = () => {};
+  const moveAllToCart = () => {
+    try {
+      const stored = localStorage.getItem('hadi_cart');
+      const cartItems = stored ? JSON.parse(stored) : [];
+      let updatedCart = [...cartItems];
+
+      wishlistItems.forEach(item => {
+        const exists = updatedCart.find((ci: any) => ci.id === item.id);
+        if (!exists) {
+          updatedCart.push({
+            id: item.id,
+            name: item.name,
+            type: item.type,
+            price: item.price,
+            quantity: 1,
+            image: item.image,
+            notes: item.notes,
+            inStock: item.inStock
+          });
+        }
+      });
+      localStorage.setItem('hadi_cart', JSON.stringify(updatedCart));
+      setWishlistItems([]);
+    } catch {
+      // silently fail
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif">
