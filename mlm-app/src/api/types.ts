@@ -24,6 +24,7 @@ export interface MeProfile {
   kyc_status: string;
   sponsor_id: string | null;
   onboarding_completed_at: string | null;
+  created_at: string;
 }
 
 export interface SignupResponse extends AuthTokens {
