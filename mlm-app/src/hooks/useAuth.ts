@@ -16,7 +16,7 @@ export function useAuth(): UseAuthReturn {
   const [userName] = useState<string | null>(() => getUserFirstName());
 
   const logout = useCallback(async (): Promise<void> => {
-    const refreshToken = localStorage.getItem('refresh_token');
+    const refreshToken = localStorage.getItem('hadi_refresh_token');
     if (refreshToken) {
       try {
         await apiLogout(refreshToken);

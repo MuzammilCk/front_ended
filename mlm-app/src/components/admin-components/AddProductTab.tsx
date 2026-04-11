@@ -1,16 +1,36 @@
-import React from "react";
-import { perfTypes, families, emptyForm } from "../../data/adminStore";
-import type { ProductType, TabType } from "../../data/adminStore";
+import React, { useState } from "react";
+import type { AdminProductType, AdminTabType } from "../../api/types";
+import { adminCreateListing } from "../../api/admin";
+import { getSignedUploadUrl, confirmUpload } from "../../api/media";
+
+const PERF_TYPES = [
+  "Eau de Parfum",
+  "Extrait de Parfum",
+  "Eau de Toilette",
+  "Eau de Cologne",
+];
+const FAMILIES = ["Woody", "Floral", "Fresh", "Oriental"];
+
+const EMPTY_FORM = {
+  name: "",
+  type: "Eau de Parfum",
+  family: "Woody",
+  price: "",
+  ml: "50",
+  notes: "",
+  badge: "",
+  intensity: "70",
+};
 
 interface AddProductTabProps {
-  form: typeof emptyForm;
-  setForm: React.Dispatch<React.SetStateAction<typeof emptyForm>>;
+  form: typeof EMPTY_FORM;
+  setForm: React.Dispatch<React.SetStateAction<typeof EMPTY_FORM>>;
   formError: string;
   setFormError: (error: string) => void;
-  products: ProductType[];
-  setProducts: React.Dispatch<React.SetStateAction<ProductType[]>>;
+  products: AdminProductType[];
+  setProducts: React.Dispatch<React.SetStateAction<AdminProductType[]>>;
   setAddSuccess: (success: boolean) => void;
-  setTab: (tab: TabType) => void;
+  setTab: (tab: AdminTabType) => void;
 }
 
 export default function AddProductTab({
@@ -22,30 +42,89 @@ export default function AddProductTab({
   setAddSuccess,
   setTab,
 }: AddProductTabProps) {
+  const [mediaIds, setMediaIds] = useState<string[]>([]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
-  const handleAdd = () => {
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    setUploadError("");
+    try {
+      // Step 1: get signed URL from backend
+      const { upload_url, storage_key } = await getSignedUploadUrl(file.name, file.type);
+
+      // Step 2: PUT file directly to storage (NOT through your backend)
+      await fetch(upload_url, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type },
+      });
+
+      // Step 3: confirm with backend
+      const asset = await confirmUpload(storage_key, { alt_text: file.name });
+
+      // Step 4: store media_id in form state, not the file itself
+      setMediaIds(prev => [...prev, asset.id]);
+      setPreviewUrl(asset.cdn_url);
+    } catch {
+      setUploadError('Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      void handleImageUpload(file);
+    }
+  };
+
+  const handleAdd = async () => {
     if (!form.name.trim() || !form.price) {
       setFormError("Name and price are required.");
       return;
     }
     setFormError("");
-    setProducts((p) => [
-      {
-        id: Date.now(),
-        name: form.name,
-        type: form.type,
-        family: form.family,
+    setSubmitting(true);
+
+    try {
+      await adminCreateListing({
+        title: form.name,
+        sku: form.name.toLowerCase().replace(/\s+/g, '-'),
+        description: form.notes,
         price: Number(form.price),
-        stock: 50,
-        active: true,
-      },
-      ...p,
-    ]);
-    setForm(emptyForm);
-    setAddSuccess(true);
-    setTimeout(() => setAddSuccess(false), 3000);
-    setTab("products");
+        quantity: 50,
+        media_ids: mediaIds,
+      });
+
+      setProducts((p) => [
+        {
+          id: Date.now(),
+          name: form.name,
+          type: form.type,
+          family: form.family,
+          price: Number(form.price),
+          stock: 50,
+          active: true,
+        },
+        ...p,
+      ]);
+      setForm(EMPTY_FORM);
+      setMediaIds([]);
+      setPreviewUrl(null);
+      setAddSuccess(true);
+      setTimeout(() => setAddSuccess(false), 3000);
+      setTab("products");
+    } catch {
+      setFormError("Failed to create product. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const inputCls =
@@ -80,7 +159,7 @@ export default function AddProductTab({
               value={form.type}
               onChange={(e) => set("type", e.target.value)}
             >
-              {perfTypes.map((t) => (
+              {PERF_TYPES.map((t) => (
                 <option key={t} className="bg-[#130e08]">
                   {t}
                 </option>
@@ -94,7 +173,7 @@ export default function AddProductTab({
               value={form.family}
               onChange={(e) => set("family", e.target.value)}
             >
-              {families.map((f) => (
+              {FAMILIES.map((f) => (
                 <option key={f} className="bg-[#130e08]">
                   {f}
                 </option>
@@ -162,6 +241,40 @@ export default function AddProductTab({
               onChange={(e) => set("intensity", e.target.value)}
             />
           </div>
+
+          {/* Image Upload */}
+          <div className="col-span-2">
+            <label className={labelCls}>Product Image</label>
+            <div className="flex items-center gap-4">
+              <label className="cursor-pointer border border-dashed border-[#c9a96e]/25 px-4 py-3 text-[10px] tracking-[0.15em] uppercase text-[#c9a96e]/60 hover:border-[#c9a96e]/50 hover:text-[#c9a96e] transition-colors">
+                {uploading ? "Uploading…" : "Choose file"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                />
+              </label>
+              {previewUrl && (
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-12 h-16 object-cover border border-[#c9a96e]/15"
+                />
+              )}
+              {mediaIds.length > 0 && (
+                <span className="text-[10px] text-emerald-400/60">
+                  {mediaIds.length} image(s) attached
+                </span>
+              )}
+            </div>
+            {uploadError && (
+              <p className="text-rose-400 text-[10px] tracking-[0.1em] mt-2">
+                ⚠ {uploadError}
+              </p>
+            )}
+          </div>
         </div>
 
         {formError && (
@@ -172,13 +285,14 @@ export default function AddProductTab({
 
         <div className="flex gap-3 mt-6">
           <button
-            onClick={handleAdd}
-            className="bg-[#c9a96e] text-[#080604] text-[10px] tracking-[0.25em] uppercase px-6 py-3 hover:bg-[#e8c87a] transition-colors duration-300 font-light"
+            onClick={() => void handleAdd()}
+            disabled={submitting}
+            className="bg-[#c9a96e] text-[#080604] text-[10px] tracking-[0.25em] uppercase px-6 py-3 hover:bg-[#e8c87a] transition-colors duration-300 font-light disabled:opacity-50"
           >
-            Add to Catalogue
+            {submitting ? "Creating…" : "Add to Catalogue"}
           </button>
           <button
-            onClick={() => setForm(emptyForm)}
+            onClick={() => { setForm(EMPTY_FORM); setMediaIds([]); setPreviewUrl(null); }}
             className="border border-[#c9a96e]/25 text-[#c9a96e] text-[10px] tracking-[0.2em] uppercase px-5 py-3 hover:bg-[#c9a96e]/8 hover:border-[#c9a96e]/50 transition-all duration-300 font-light"
           >
             Reset
@@ -192,8 +306,12 @@ export default function AddProductTab({
           Live Preview
         </p>
         <div className="flex items-center gap-5">
-          <div className="w-16 h-24 border border-[#c9a96e]/15 bg-gradient-to-br from-[#1a0f0a] to-[#2d1810] flex items-center justify-center shrink-0">
-            <div className="w-6 h-14 border border-[#c9a96e]/25 bg-gradient-to-b from-[#c9a96e]/10 to-transparent" />
+          <div className="w-16 h-24 border border-[#c9a96e]/15 bg-gradient-to-br from-[#1a0f0a] to-[#2d1810] flex items-center justify-center shrink-0 overflow-hidden">
+            {previewUrl ? (
+              <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-6 h-14 border border-[#c9a96e]/25 bg-gradient-to-b from-[#c9a96e]/10 to-transparent" />
+            )}
           </div>
           <div>
             <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/25">

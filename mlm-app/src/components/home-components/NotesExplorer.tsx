@@ -2,15 +2,55 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { scentFamilies } from "../../data/HomeData";
+import { useHomepage } from "../../hooks/useHomepage";
+import type { HomepageScentFamily } from "../../api/types";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Fallback data used while API loads or if API fails
+const FALLBACK_SCENT_FAMILIES: HomepageScentFamily[] = [
+  {
+    family: "Woody & Resinous",
+    count: "14 fragrances",
+    description:
+      "Grounded, smoldering woods—cedar, vetiver, and resin that linger like embers.",
+    key_notes: ["Cedar", "Vetiver", "Sandalwood"],
+    accent: "#6b5344",
+  },
+  {
+    family: "Floral & Romantic",
+    count: "9 fragrances",
+    description:
+      "Velvet petals and honeyed blooms—rose, jasmine, and soft powder on the skin.",
+    key_notes: ["Rose", "Jasmine", "Iris"],
+    accent: "#9a6b78",
+  },
+  {
+    family: "Fresh & Aquatic",
+    count: "7 fragrances",
+    description:
+      "Crisp air and clean water—citrus zest, sea spray, and green stems.",
+    key_notes: ["Bergamot", "Marine", "Green tea"],
+    accent: "#6a8f8c",
+  },
+  {
+    family: "Oriental & Spicy",
+    count: "11 fragrances",
+    description:
+      "Warm, resinous depths anchored by oud, amber, and spice.",
+    key_notes: ["Oud", "Amber", "Cardamom"],
+    accent: "#8b5e3c",
+  },
+];
+
 export default function NotesExplorer() {
+  const { data, loading } = useHomepage();
   const [activeFamily, setActiveFamily] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
+
+  const scentFamilies = data?.scent_families ?? FALLBACK_SCENT_FAMILIES;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = imageRef.current;
@@ -62,6 +102,19 @@ export default function NotesExplorer() {
     return () => ctx.revert();
   }, []);
 
+  if (loading) {
+    return (
+      <section className="ne-section">
+        <div className="ne-inner">
+          <div className="animate-pulse flex flex-col gap-4 py-12">
+            <div className="h-8 w-48 bg-[#c9a96e]/10 rounded" />
+            <div className="h-4 w-64 bg-[#c9a96e]/10 rounded" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section ref={sectionRef} className="ne-section">
       <div className="ne-inner">
@@ -92,7 +145,7 @@ export default function NotesExplorer() {
                   <div className="ne-family-expand-inner">
                     <p className="ne-family-desc">{s.description}</p>
                     <div className="ne-family-notes">
-                      {s.keyNotes.map((note, j) => (
+                      {s.key_notes.map((note, j) => (
                         <span key={j} className="ne-note-chip">
                           {note}
                         </span>

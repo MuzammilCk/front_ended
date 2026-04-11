@@ -1,9 +1,9 @@
-import type { TabType, ProductType } from "../../data/adminStore";
+import type { AdminTabType, AdminProductType } from "../../api/types";
 
 interface ProductsTabProps {
-  products: ProductType[];
-  setProducts: React.Dispatch<React.SetStateAction<ProductType[]>>;
-  setTab: (tab: TabType) => void;
+  products: AdminProductType[];
+  setProducts: React.Dispatch<React.SetStateAction<AdminProductType[]>>;
+  setTab: (tab: AdminTabType) => void;
   setDeleteId: (id: number) => void;
 }
 

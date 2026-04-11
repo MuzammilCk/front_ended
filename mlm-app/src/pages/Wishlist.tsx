@@ -6,7 +6,9 @@ import WishlistSummary from "../components/wishlist-components/WishlistSummary";
 import WishlistBenefits from "../components/wishlist-components/WishlistBenefits";
 import WishlistRecommended from "../components/wishlist-components/WishlistRecommended";
 
-import { Heart, ArrowLeft, ChevronRight } from "lucide-react";
+import { addToCart as apiAddToCart } from "../api/cart";
+
+import { Heart, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 
 interface WishlistItem {
@@ -40,36 +42,23 @@ export default function Wishlist() {
     setWishlistItems((items) => items.filter((item) => item.id !== String(id)));
   };
 
-  const addToCart = (id: string | number) => {
+  const addToCartHandler = (id: string | number) => {
     setAddedToCart(String(id));
     setTimeout(() => setAddedToCart(null), 2000);
   };
 
-  const moveAllToCart = () => {
-    try {
-      const stored = localStorage.getItem('hadi_cart');
-      const cartItems = stored ? JSON.parse(stored) : [];
-      let updatedCart = [...cartItems];
-
-      wishlistItems.forEach(item => {
-        const exists = updatedCart.find((ci: any) => ci.id === item.id);
-        if (!exists) {
-          updatedCart.push({
-            id: item.id,
-            name: item.name,
-            type: item.type,
-            price: item.price,
-            quantity: 1,
-            image: item.image,
-            notes: item.notes,
-            inStock: item.inStock
-          });
-        }
-      });
-      localStorage.setItem('hadi_cart', JSON.stringify(updatedCart));
+  const moveAllToCart = async () => {
+    let successCount = 0;
+    for (const item of wishlistItems) {
+      try {
+        await apiAddToCart(item.id, 1);
+        successCount++;
+      } catch {
+        // Skip items that fail (e.g. out of stock)
+      }
+    }
+    if (successCount > 0) {
       setWishlistItems([]);
-    } catch {
-      // silently fail
     }
   };
 
@@ -141,7 +130,7 @@ export default function Wishlist() {
                 <WishlistItemCard
                   key={item.id}
                   item={item}
-                  addToCart={addToCart}
+                  addToCart={addToCartHandler}
                   removeFromWishlist={removeFromWishlist}
                   addedToCart={addedToCart}
                 />

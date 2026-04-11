@@ -1,12 +1,11 @@
-import type { TabType } from "../../data/adminStore";
-import { useNavigate } from "react-router-dom";
+import type { AdminTabType } from "../../api/types";
+import { useAuth } from "../../hooks/useAuth";
 
-export default function Topbar({ tab }: { tab: TabType }) {
-  const navigate = useNavigate();
+export default function Topbar({ tab }: { tab: AdminTabType }) {
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    sessionStorage.removeItem('admin_token');
-    navigate('/admin-login', { replace: true });
+    void logout();
   };
 
   return (
@@ -19,7 +18,9 @@ export default function Topbar({ tab }: { tab: TabType }) {
               ? "Product Catalogue"
               : tab === "add"
                 ? "Add New Perfume"
-                : "Order History"}
+                : tab === "audit"
+                  ? "Audit Log"
+                  : "Order History"}
         </h1>
         <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/20">
           HADI perfumes · Admin

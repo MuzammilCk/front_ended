@@ -1,24 +1,33 @@
 import { useEffect, useState } from "react";
-import Sidebar from "../components/admin-components/Sidebar";
+import AdminSidebar from "../components/admin-components/Sidebar";
 import Topbar from "../components/admin-components/Topbar";
 import DashboardTab from "../components/admin-components/DashboardTab";
 import ProductsTab from "../components/admin-components/ProductsTab";
 import AddProductTab from "../components/admin-components/AddProductTab";
 import OrdersTab from "../components/admin-components/OrdersTab";
+import AuditLogTab from "../components/admin-components/AuditLogTab";
 import DeleteModal from "../components/admin-components/DeleteModal";
 import SuccessToast from "../components/admin-components/SuccessToast";
-import { emptyForm } from "../data/adminStore";
-import type { TabType } from "../data/adminStore";
 import { getListings } from "../api/listings";
 import { adminListOrders } from "../api/admin";
-import type { Order } from "../api/types";
-import type { ProductType } from "../data/adminStore";
+import type { Order, AdminProductType, AdminTabType } from "../api/types";
+
+const EMPTY_FORM = {
+  name: "",
+  type: "Eau de Parfum",
+  family: "Woody",
+  price: "",
+  ml: "50",
+  notes: "",
+  badge: "",
+  intensity: "70",
+};
 
 export default function Admin() {
-  const [tab, setTab] = useState<TabType>("dashboard");
+  const [tab, setTab] = useState<AdminTabType>("dashboard");
   const [chartMode, setChartMode] = useState<"weekly" | "monthly">("weekly");
-  const [products, setProducts] = useState<ProductType[]>([]);
-  const [form, setForm] = useState(emptyForm);
+  const [products, setProducts] = useState<AdminProductType[]>([]);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [addSuccess, setAddSuccess] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -39,10 +48,10 @@ export default function Admin() {
         .then((result) => {
           if (cancelled) return;
           if (result.data.length > 0) {
-            // Map backend Listing → ProductType shape
-            const mapped: ProductType[] = result.data.map(
+            // Map backend Listing → AdminProductType shape
+            const mapped: AdminProductType[] = result.data.map(
               (listing, index) => ({
-                id: index + 1, // ProductType requires number id
+                id: index + 1, // AdminProductType requires number id
                 name: listing.title,
                 type: listing.category?.name ?? "Parfum",
                 family: listing.category?.name ?? "General",
@@ -63,7 +72,7 @@ export default function Admin() {
     };
     void loadListings();
 
-    // Load admin orders (requires VITE_ADMIN_TOKEN in .env)
+    // Load admin orders
     adminListOrders({ limit: 10 })
       .then((result) => {
         if (!cancelled) {
@@ -72,7 +81,7 @@ export default function Admin() {
         }
       })
       .catch(() => {
-        // Silently fail if admin token not configured
+        // Silently fail if not authorized
       });
 
     return () => {
@@ -89,7 +98,7 @@ export default function Admin() {
       />
       
       {/* ── SIDEBAR ── */}
-      <Sidebar tab={tab} setTab={setTab} />
+      <AdminSidebar tab={tab} setTab={setTab} />
 
       {/* ── MAIN ── */}
       <main className="flex-1 overflow-y-auto relative z-10 block">
@@ -143,6 +152,8 @@ export default function Admin() {
           )}
 
           {tab === "orders" && <OrdersTab orders={adminOrders} />}
+
+          {tab === "audit" && <AuditLogTab />}
         </div>
       </main>
 

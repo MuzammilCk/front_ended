@@ -1,14 +1,14 @@
-import type { TabType, ProductType } from "../../data/adminStore";
+import type { AdminTabType, AdminProductType } from "../../api/types";
+import { ORDER_STATUS_CLS } from "../../api/types";
 import type { Order } from "../../api/types";
-import { statusCls } from "../../data/adminStore";
 
 interface DashboardTabProps {
-  products: ProductType[];
+  products: AdminProductType[];
   orders: Order[];
   ordersTotal: number;
   chartMode: "weekly" | "monthly";
   setChartMode: (mode: "weekly" | "monthly") => void;
-  setTab: (tab: TabType) => void;
+  setTab: (tab: AdminTabType) => void;
 }
 
 export default function DashboardTab({
@@ -234,7 +234,7 @@ export default function DashboardTab({
               </span>
               <span className="text-xs text-[#e8dcc8]">AED {parseFloat(o.total_amount).toFixed(2)}</span>
               <span
-                className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${statusCls[o.status] || "bg-gray-500/10 text-gray-400"}`}
+                className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${ORDER_STATUS_CLS[o.status] || "bg-gray-500/10 text-gray-400"}`}
               >
                 {o.status}
               </span>

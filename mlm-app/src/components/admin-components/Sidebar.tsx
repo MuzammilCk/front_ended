@@ -1,13 +1,20 @@
 import { Link } from "react-router-dom";
-import { navItems } from "../../data/adminStore";
-import type { TabType } from "../../data/adminStore";
+import type { AdminTabType } from "../../api/types";
+
+const NAV_ITEMS = [
+  { key: "dashboard" as const, icon: "◈", label: "Dashboard" },
+  { key: "products" as const, icon: "◇", label: "Products" },
+  { key: "add" as const, icon: "+", label: "Add Perfume" },
+  { key: "orders" as const, icon: "≡", label: "Orders" },
+  { key: "audit" as const, icon: "⊙", label: "Audit Log" },
+];
 
 export default function Sidebar({
   tab,
   setTab,
 }: {
-  tab: TabType;
-  setTab: (t: TabType) => void;
+  tab: AdminTabType;
+  setTab: (t: AdminTabType) => void;
 }) {
   return (
     <aside className="w-56 shrink-0 min-h-screen flex flex-col border-r border-[#c9a96e]/10 bg-[#0d0a07]">
@@ -24,7 +31,7 @@ export default function Sidebar({
       </div>
 
       <nav className="flex flex-col flex-1 gap-1 py-6">
-        {navItems.map((item) => (
+        {NAV_ITEMS.map((item) => (
           <button
             key={item.key}
             onClick={() => setTab(item.key)}

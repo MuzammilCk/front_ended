@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AuthGuard } from "./components/AuthGuard";
-import { AdminGuard } from "./components/AdminGuard";
 import Home from "./pages/Home";
 import Product from "./pages/Product";
 import ProductDetail from "./pages/ProductDetail";
@@ -11,7 +10,6 @@ import Profile from "./pages/Profile";
 import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import Admin from "./pages/Admin";
-import AdminLogin from "./pages/AdminLogin";
 
 function App() {
   return (
@@ -56,13 +54,12 @@ function App() {
             path="/admin"
             element={
               <ErrorBoundary>
-                <AdminGuard>
+                <AuthGuard requiredRole={['admin', 'content_manager']}>
                   <Admin />
-                </AdminGuard>
+                </AuthGuard>
               </ErrorBoundary>
             }
           />
-          <Route path="/admin-login" element={<ErrorBoundary><AdminLogin /></ErrorBoundary>} />
         </Routes>
       </div>
     </ErrorBoundary>

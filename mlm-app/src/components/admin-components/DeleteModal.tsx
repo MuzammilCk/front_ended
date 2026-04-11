@@ -1,10 +1,10 @@
 import React from "react";
-import type { ProductType } from "../../data/adminStore";
+import type { AdminProductType } from "../../api/types";
 
 interface DeleteModalProps {
   deleteId: number;
   setDeleteId: (id: number | null) => void;
-  setProducts: React.Dispatch<React.SetStateAction<ProductType[]>>;
+  setProducts: React.Dispatch<React.SetStateAction<AdminProductType[]>>;
 }
 
 export default function DeleteModal({

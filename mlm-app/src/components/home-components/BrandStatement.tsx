@@ -1,10 +1,11 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect, useRef } from "react";
+import { useHomepage } from "../../hooks/useHomepage";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const STATS = [
+const FALLBACK_STATS = [
   { value: "12+", label: "Years of craft" },
   { value: "47", label: "Rare ingredients" },
   { value: "3", label: "Continents sourced" },
@@ -12,6 +13,7 @@ const STATS = [
 ];
 
 export default function BrandStatement() {
+  const { data, loading } = useHomepage();
   const sectionRef = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const eyebrowRef = useRef<HTMLDivElement>(null);
@@ -19,6 +21,13 @@ export default function BrandStatement() {
   const bodyRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLButtonElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
+
+  const bs = data?.brand_statement;
+  const stats = bs?.stats ?? FALLBACK_STATS;
+  const headline = bs?.headline ?? "Every bottle holds\na world unto itself";
+  const body = bs?.body ??
+    "We source the rarest raw ingredients from across the globe — Cambodian oud, Bulgarian rose, Madagascan vanilla — blended by master perfumers with decades of craft.";
+  const imageUrl = bs?.image_url ?? "/brand-bg.png";
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -81,6 +90,26 @@ export default function BrandStatement() {
     return () => ctx.revert();
   }, []);
 
+  if (loading) {
+    return (
+      <section className="bs-section">
+        <div className="bs-image-panel" aria-hidden>
+          <div className="bs-image-inner" style={{ background: '#1a1410' }} />
+        </div>
+        <div className="bs-content-panel">
+          <div className="animate-pulse flex flex-col gap-4 py-12">
+            <div className="h-3 w-32 bg-[#c9a96e]/10 rounded" />
+            <div className="h-10 w-72 bg-[#c9a96e]/10 rounded" />
+            <div className="h-16 w-full bg-[#c9a96e]/10 rounded" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Split headline into two lines for <br /> rendering
+  const headlineParts = headline.split('\n');
+
   return (
     <section ref={sectionRef} className="bs-section">
       {/* Left — image panel */}
@@ -88,7 +117,7 @@ export default function BrandStatement() {
         <div
           ref={imageRef}
           className="bs-image-inner"
-          style={{ backgroundImage: "url('/brand-bg.png')" }}
+          style={{ backgroundImage: `url('${imageUrl}')` }}
         />
         <div className="bs-image-veil" />
         <span className="bs-vert-label" aria-hidden>
@@ -104,19 +133,21 @@ export default function BrandStatement() {
         </div>
 
         <h2 ref={headlineRef} className="bs-headline">
-          Every bottle holds
-          <br />
-          <em>a world unto itself</em>
+          {headlineParts[0]}
+          {headlineParts.length > 1 && (
+            <>
+              <br />
+              <em>{headlineParts[1]}</em>
+            </>
+          )}
         </h2>
 
         <p ref={bodyRef} className="bs-body">
-          We source the rarest raw ingredients from across the globe —
-          Cambodian oud, Bulgarian rose, Madagascan vanilla — blended by
-          master perfumers with decades of craft.
+          {body}
         </p>
 
         <div ref={statsRef} className="bs-stats">
-          {STATS.map((s, i) => (
+          {stats.map((s, i) => (
             <div key={i} className="bs-stat">
               <span className="bs-stat-value">{s.value}</span>
               <span className="bs-stat-label">{s.label}</span>

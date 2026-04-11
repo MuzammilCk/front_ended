@@ -8,6 +8,7 @@ import {
 } from "../../lib/motion";
 import { useEffect, useMemo, useRef } from "react";
 import { useAuth } from "../../hooks/useAuth";
+import { useHomepage } from "../../hooks/useHomepage";
 import { Link, useNavigate } from "react-router-dom";
 import "../../styles/HeroSection.css";
 
@@ -19,17 +20,26 @@ const VOID_BG =
 const VIGNETTE_BG =
   "radial-gradient(ellipse 100% 80% at 50% 0%, transparent 0%, rgba(10,7,5,0.4) 60%, #0a0705 100%)";
 
-/** Served from `mlm-app/public/` — swap paths to your assets */
-const LAYER1_IMAGE_URL = "/layer1.png";
-const LAYER2_IMAGE_URL = "/layer2_1.png";
+/** Fallback paths served from mlm-app/public/ */
+const LAYER1_FALLBACK = "/layer1.png";
+const LAYER2_FALLBACK = "/layer2_1.png";
 
 export default function HeroSection() {
   const { isLoggedIn } = useAuth();
+  const { data, loading } = useHomepage();
   const navigate = useNavigate();
   const heroRef = useRef<HTMLElement>(null);
   const layer1Ref = useRef<HTMLDivElement>(null);
   const layer2Ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+
+  const hero = data?.hero;
+  const eyebrow = hero?.eyebrow ?? "New Collection 2025";
+  const headlineLine1 = hero?.headline?.split('\n')[0] ?? "The Art";
+  const headlineLine2 = hero?.headline?.split('\n')[1] ?? "of Scent.";
+  const notes = hero?.notes ?? "Dark woods · Amber · Smoke — 50 ml";
+  const ctaText = hero?.cta_text ?? (isLoggedIn ? "Shop Now" : "Explore Now");
+  const layer1Image = hero?.image_url ?? LAYER1_FALLBACK;
 
   const prefersReducedMotion = useMemo(
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -124,12 +134,29 @@ export default function HeroSection() {
     btnY.set(0);
   };
 
+  if (loading) {
+    return (
+      <section className="hs2-section" aria-label="Hero">
+        <div className="hs2-content-grid">
+          <div className="hs2-left">
+            <div className="animate-pulse flex flex-col gap-4">
+              <div className="h-4 w-40 bg-[#c9a96e]/10 rounded" />
+              <div className="h-16 w-72 bg-[#c9a96e]/10 rounded" />
+              <div className="h-4 w-56 bg-[#c9a96e]/10 rounded" />
+              <div className="h-12 w-40 bg-[#c9a96e]/10 rounded mt-4" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section ref={heroRef} className="hs2-section" aria-label="Hero">
       <div ref={layer1Ref} className="hs2-bg-layer1" aria-hidden>
         <div
           className="hs2-bg-img"
-          style={{ backgroundImage: `url(${LAYER1_IMAGE_URL})` }}
+          style={{ backgroundImage: `url(${layer1Image})` }}
         />
         <div className="hs2-bg-overlay" style={{ background: VOID_BG }} />
       </div>
@@ -137,7 +164,7 @@ export default function HeroSection() {
       <div ref={layer2Ref} className="hs2-bg-layer2" aria-hidden>
         <div
           className="hs2-bg-texture"
-          style={{ backgroundImage: `url(${LAYER2_IMAGE_URL})` }}
+          style={{ backgroundImage: `url(${LAYER2_FALLBACK})` }}
         />
         <div className="hs2-bg-overlay" style={{ background: VIGNETTE_BG }} />
       </div>
@@ -156,10 +183,10 @@ export default function HeroSection() {
             }}
           >
             <span className="hs2-eyebrow-dot" aria-hidden />
-            <span>New Collection 2025</span>
+            <span>{eyebrow}</span>
           </motion.div>
 
-          <h1 className="hs2-headline" aria-label="The Art of Scent">
+          <h1 className="hs2-headline" aria-label={`${headlineLine1} ${headlineLine2}`}>
             <motion.span
               className="hs2-hl-line1"
               initial={
@@ -170,7 +197,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)" }}
               transition={revealTransition(0)}
             >
-              The Art
+              {headlineLine1}
             </motion.span>
             <br />
             <motion.em
@@ -183,7 +210,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)" }}
               transition={revealTransition(0.1)}
             >
-              of Scent.
+              {headlineLine2}
             </motion.em>
           </h1>
 
@@ -193,7 +220,7 @@ export default function HeroSection() {
             animate={{ opacity: 1 }}
             transition={{ duration: prefersReducedMotion ? 0 : 1, delay: prefersReducedMotion ? 0 : 0.6 }}
           >
-            Dark woods · Amber · Smoke — 50 ml
+            {notes}
           </motion.p>
 
           <motion.div
@@ -219,9 +246,9 @@ export default function HeroSection() {
                 style={{ x: springX, y: springY }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 whileTap={{ scale: prefersReducedMotion ? 1 : 0.97 }}
-                onClick={() => navigate("/product")}
+                onClick={() => navigate(hero?.cta_link ?? "/product")}
               >
-                <span>{isLoggedIn ? "Shop Now" : "Explore Now"}</span>
+                <span>{ctaText}</span>
                 <span className="hs2-cta-arrow" aria-hidden>
                   →
                 </span>

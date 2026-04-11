@@ -11,12 +11,15 @@ const BASE_URL: string =
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
 
+const ACCESS_TOKEN_KEY = 'hadi_access_token';
+const REFRESH_TOKEN_KEY = 'hadi_refresh_token';
+
 export function getAccessToken(): string | null {
-  return localStorage.getItem('access_token');
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
 export function getUserFirstName(): string | null {
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
   if (!token) return null;
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -27,14 +30,25 @@ export function getUserFirstName(): string | null {
   }
 }
 
+export function getUserRole(): string | null {
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function setTokens(accessToken: string, refreshToken: string): void {
-  localStorage.setItem('access_token', accessToken);
-  localStorage.setItem('refresh_token', refreshToken);
+  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 }
 
 export function clearTokens(): void {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 // ─── Token refresh ───────────────────────────────────────────────────────────
@@ -45,7 +59,7 @@ interface RefreshResponse {
 }
 
 async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = localStorage.getItem('refresh_token');
+  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
   if (!refreshToken) return null;
 
   try {
@@ -109,6 +123,12 @@ export async function apiRequest<T>(
     if (newToken) {
       headers['Authorization'] = `Bearer ${newToken}`;
       res = await fetch(url, { ...options, headers });
+    } else {
+      // Refresh failed — clear and redirect to login
+      clearTokens();
+      localStorage.removeItem('auth_user');
+      window.location.href = '/login';
+      throw new ApiError(401, 'Session expired');
     }
   }
 
@@ -121,4 +141,3 @@ export async function apiRequest<T>(
   const text = await res.text();
   return (text.length > 0 ? (JSON.parse(text) as T) : null) as T;
 }
-

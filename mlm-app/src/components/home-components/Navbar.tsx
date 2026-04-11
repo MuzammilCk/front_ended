@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "../../lib/motion";
 import { Heart, Menu, Search, ShoppingBag, X, ArrowRight, User, LogOut, Package, Wallet } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import { products } from "../../data/products";
+import { getListings } from "../../api/listings";
+import type { Listing } from "../../api/types";
 import "../../styles/Navbar.css";
 
 const SCROLL_THRESHOLD = 60;
@@ -210,17 +211,22 @@ export default function Navbar() {
     [clearMegaMenuTimer],
   );
 
-  const filteredProducts = useMemo(() => {
-    if (!query.trim()) return [];
-    const normalizedQuery = query.trim().toLowerCase();
-    return products
-      .filter(
-        (product) =>
-          product.name.toLowerCase().includes(normalizedQuery) ||
-          product.family.toLowerCase().includes(normalizedQuery),
-      )
-      .slice(0, 6);
+  const [searchResults, setSearchResults] = useState<Listing[]>([]);
+
+  useEffect(() => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      getListings({ q: query.trim(), limit: 6 })
+        .then((result) => setSearchResults(result.data))
+        .catch(() => setSearchResults([]));
+    }, 300);
+    return () => clearTimeout(timer);
   }, [query]);
+
+  const filteredProducts = searchResults;
 
   const quickLinks = useMemo(
     () => [
@@ -427,16 +433,9 @@ export default function Navbar() {
               </div>
               <div className="nb2-megamenu-right">
                 <p className="nb2-mm-eyebrow">Featured</p>
-                {products[0].image ? (
-                  <img
-                    src={products[0].image}
-                    alt="Oud featured fragrance"
-                    className="nb2-mm-product-img"
-                  />
-                ) : null}
-                <h4 className="nb2-mm-product-name">{products[0].name}</h4>
-                <p className="nb2-mm-product-price">${products[0].price}</p>
-                <Link to={`/product/${products[0].id}`} className="nb2-mm-cta">
+                <h4 className="nb2-mm-product-name">Explore Collection</h4>
+                <p className="nb2-mm-product-price">Discover our fragrances</p>
+                <Link to="/product" className="nb2-mm-cta">
                   Shop Now <span aria-hidden>→</span>
                 </Link>
               </div>
@@ -574,16 +573,12 @@ export default function Navbar() {
                         closePalette();
                       }}
                     >
-                      {product.image ? (
-                        <img src={product.image} alt="" className="nb2-palette-thumb" />
-                      ) : (
-                        <span className="nb2-palette-thumb-fallback" aria-hidden />
-                      )}
+                      <span className="nb2-palette-thumb-fallback" aria-hidden />
                       <span className="nb2-palette-result-copy">
-                        <span className="nb2-palette-result-name">{product.name}</span>
-                        <span className="nb2-palette-result-family">{product.family}</span>
+                        <span className="nb2-palette-result-name">{product.title}</span>
+                        <span className="nb2-palette-result-family">{product.category?.name ?? 'Fragrance'}</span>
                       </span>
-                      <span className="nb2-palette-price">${product.price}</span>
+                      <span className="nb2-palette-price">INR {product.price}</span>
                     </button>
                   ))
                 ) : (

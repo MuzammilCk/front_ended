@@ -1,5 +1,5 @@
 import type { Order } from "../../api/types";
-import { statusCls } from "../../data/adminStore";
+import { ORDER_STATUS_CLS } from "../../api/types";
 
 export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
   const sumRev = (items: Order[]) => items.reduce((s, o) => s + parseFloat(o.total_amount), 0);
@@ -93,7 +93,7 @@ export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
             <span className="text-xs text-[#e8dcc8]">AED {parseFloat(o.total_amount).toFixed(2)}</span>
             <span className="text-[10px] text-[#c9b99a]/30">{new Date(o.created_at).toLocaleDateString()}</span>
             <span
-              className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${statusCls[o.status] || "bg-gray-500/10 text-gray-400"}`}
+              className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${ORDER_STATUS_CLS[o.status] || "bg-gray-500/10 text-gray-400"}`}
             >
               {o.status}
             </span>

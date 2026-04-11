@@ -7,8 +7,9 @@ import RecommendedProducts from "../components/Cart-components/RecommendedProduc
 
 import { createOrder, listOrders } from "../api/orders";
 import { getListings } from "../api/listings";
+import { getCart, updateCartItemQty, removeCartItem } from "../api/cart";
 import { ApiError } from "../api/client";
-import type { Order } from "../api/types";
+import type { Order, CartApiItem } from "../api/types";
 
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/Sidebar";
@@ -24,21 +25,27 @@ interface CartItem {
   image: string;
   notes: string;
   inStock: boolean;
+  expiresAt?: string | null;
+}
+
+function mapApiCartItem(item: CartApiItem): CartItem {
+  return {
+    id: item.id,
+    name: item.title,
+    type: "Eau de Parfum",
+    price: parseFloat(item.price),
+    quantity: item.qty,
+    image: item.image_url,
+    notes: item.notes,
+    inStock: item.in_stock,
+    expiresAt: item.expires_at,
+  };
 }
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    try {
-      const stored = localStorage.getItem('hadi_cart');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem('hadi_cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartLoading, setCartLoading] = useState(true);
+  const [cartError, setCartError] = useState("");
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [cart, setCart] = useState<number[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -48,6 +55,28 @@ export default function Cart() {
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [pastOrders, setPastOrders] = useState<Order[]>([]);
 
+  // Fetch cart from API on mount
+  useEffect(() => {
+    let cancelled = false;
+    setCartLoading(true);
+    getCart()
+      .then((result) => {
+        if (!cancelled) {
+          setCartItems(result.items.map(mapApiCartItem));
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setCartError(err instanceof Error ? err.message : "Failed to load cart");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCartLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Fetch past orders
   useEffect(() => {
     let cancelled = false;
     listOrders({ limit: 5 })
@@ -62,15 +91,32 @@ export default function Cart() {
     };
   }, []);
 
-  const updateQuantity = (id: string, qty: number) => {
+  const updateQuantity = async (id: string, qty: number) => {
     if (qty < 1) return;
+    // Optimistic update
     setCartItems((items) =>
       items.map((i) => (i.id === id ? { ...i, quantity: qty } : i)),
     );
+    try {
+      await updateCartItemQty(id, qty);
+    } catch {
+      // Revert on failure — re-fetch cart
+      getCart()
+        .then((result) => setCartItems(result.items.map(mapApiCartItem)))
+        .catch(() => {});
+    }
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = async (id: string) => {
     setCartItems((items) => items.filter((i) => i.id !== id));
+    try {
+      await removeCartItem(id);
+    } catch {
+      // Revert on failure
+      getCart()
+        .then((result) => setCartItems(result.items.map(mapApiCartItem)))
+        .catch(() => {});
+    }
   };
 
   const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
@@ -141,9 +187,14 @@ export default function Cart() {
       );
       setLastOrder(order);
       setCheckoutError("");
+      setCartItems([]); // Clear cart after successful order
     } catch (err) {
       if (err instanceof ApiError) {
-        setCheckoutError(err.body || "Checkout failed. Please try again.");
+        if (err.status === 409) {
+          setCheckoutError("Some items are out of stock. Please refresh your cart.");
+        } else {
+          setCheckoutError(err.body || "Checkout failed. Please try again.");
+        }
       } else {
         setCheckoutError("Network error during checkout.");
       }
@@ -206,7 +257,18 @@ export default function Cart() {
           Shopping <span className="text-[#c9a96e]">Cart</span>
         </h1>
 
-        {cartItems.length === 0 ? (
+        {cartLoading ? (
+          <div className="py-20 text-center">
+            <div className="animate-pulse flex flex-col items-center gap-4">
+              <div className="h-20 w-20 bg-[#c9a96e]/10 rounded-full" />
+              <div className="h-4 w-32 bg-[#c9a96e]/10 rounded" />
+            </div>
+          </div>
+        ) : cartError ? (
+          <div className="py-20 text-center">
+            <Alert variant="error">{cartError}</Alert>
+          </div>
+        ) : cartItems.length === 0 ? (
           <div className="py-20 text-center">
             <ShoppingBag className="w-20 h-20 mx-auto text-[#c9a96e]/30 mb-6" />
               <h2 className="mb-2 text-2xl">Your cart is empty</h2>

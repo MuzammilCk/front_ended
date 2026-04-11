@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "../../lib/motion";
 import { ShoppingBag, Expand, X } from "lucide-react";
-import { products, families } from "../../data/products";
+import { useHomepage } from "../../hooks/useHomepage";
 import "../../styles/FeaturedCollection.css";
 
 type FeaturedLevel = "primary" | "secondary";
@@ -126,6 +126,7 @@ function BentoCard({
 export default function FeaturedCollection({
   onAddToCart = () => {},
 }: FeaturedCollectionProps) {
+  const { data, loading, error } = useHomepage();
   const [activeTab, setActiveTab] = useState<string>("All");
   const [drawerProduct, setDrawerProduct] = useState<Perfume | null>(null);
   const [isMobile, setIsMobile] = useState<boolean>(() => {
@@ -145,9 +146,20 @@ export default function FeaturedCollection({
     };
   }, []);
 
+  const families = useMemo<string[]>(() => {
+    if (data?.families && data.families.length > 0) return data.families;
+    // Derive from featured_collection if available
+    if (data?.featured_collection) {
+      const unique = Array.from(new Set(data.featured_collection.map(p => p.family)));
+      return ["All", ...unique];
+    }
+    return ["All"];
+  }, [data]);
+
   const perfumes = useMemo<Perfume[]>(
-    () =>
-      products.map((item) => ({
+    () => {
+      if (!data?.featured_collection) return [];
+      return data.featured_collection.map((item) => ({
         id: String(item.id),
         name: item.name,
         family: item.family,
@@ -156,11 +168,12 @@ export default function FeaturedCollection({
         price: `INR ${item.price}`,
         ml: item.ml,
         badge: item.badge,
-        image: item.image,
+        image: item.image_url,
         intensity: item.intensity,
-        featuredLevel: "secondary",
-      })),
-    [],
+        featuredLevel: "secondary" as FeaturedLevel,
+      }));
+    },
+    [data],
   );
 
   const filteredProducts = useMemo<Perfume[]>(() => {
@@ -182,6 +195,53 @@ export default function FeaturedCollection({
   }, [activeTab, perfumes]);
 
   const handleCloseDrawer = () => setDrawerProduct(null);
+
+  if (loading) {
+    return (
+      <section className="fc2-section" aria-label="Featured collection">
+        <div className="fc2-inner">
+          <div className="fc2-header">
+            <div className="animate-pulse flex flex-col gap-3">
+              <div className="h-3 w-24 bg-[#c9a96e]/10 rounded" />
+              <div className="h-8 w-56 bg-[#c9a96e]/10 rounded" />
+            </div>
+          </div>
+          <div className="fc2-bento-grid">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-64 bg-[#c9a96e]/5 rounded mb-3" />
+                <div className="h-4 w-32 bg-[#c9a96e]/10 rounded mb-2" />
+                <div className="h-3 w-20 bg-[#c9a96e]/10 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error || perfumes.length === 0) {
+    return (
+      <section className="fc2-section" aria-label="Featured collection">
+        <div className="fc2-inner">
+          <div className="fc2-header">
+            <div className="fc2-eyebrow-row">
+              <span className="fc2-eyebrow-line" aria-hidden />
+              <span className="fc2-eyebrow-text">Our Signature</span>
+            </div>
+            <h2 className="fc2-headline">
+              Featured <em>Collection</em>
+            </h2>
+          </div>
+          <div className="py-12 text-center">
+            <p className="text-[#c9b99a]/40 text-sm">
+              Our collection is being updated. Please check back soon.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="fc2-section" aria-label="Featured collection">

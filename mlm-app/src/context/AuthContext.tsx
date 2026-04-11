@@ -19,11 +19,13 @@ interface AuthUser {
   id: string;
   phone: string;
   status: string;
+  role: string | null;
 }
 
 export interface UseAuthReturn {
   user: AuthUser | null;
   isLoggedIn: boolean;
+  role: string | null;
   login: (payload: LoginPayload) => Promise<void>;
   signup: (payload: SignupPayload, sessionToken: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -31,6 +33,16 @@ export interface UseAuthReturn {
 }
 
 export const AuthContext = createContext<UseAuthReturn | null>(null);
+
+/** Decode JWT payload segment (no library needed). */
+function decodeJwtPayload(token: string): Record<string, unknown> {
+  try {
+    const base64 = token.split('.')[1];
+    return JSON.parse(atob(base64));
+  } catch {
+    return {};
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -46,12 +58,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Keep isLoggedIn in sync: true only when both token and user are present
   const isLoggedIn = user !== null && getAccessToken() !== null;
+  const role = user?.role ?? null;
 
   const handleAuthSuccess = useCallback(
-    (data: { user: AuthUser; access_token: string; refresh_token: string }) => {
+    (data: { user: { id: string; phone: string; status: string }; access_token: string; refresh_token: string }) => {
       setTokens(data.access_token, data.refresh_token);
-      localStorage.setItem('auth_user', JSON.stringify(data.user));
-      setUser(data.user);
+
+      // Decode JWT to extract role
+      const payload = decodeJwtPayload(data.access_token);
+      const authUser: AuthUser = {
+        ...data.user,
+        role: (payload.role as string) ?? null,
+      };
+
+      localStorage.setItem('auth_user', JSON.stringify(authUser));
+      setUser(authUser);
     },
     [],
   );
@@ -73,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    const refreshToken = localStorage.getItem('refresh_token');
+    const refreshToken = localStorage.getItem('hadi_refresh_token');
     if (refreshToken) {
       try {
         await apiLogout(refreshToken);
@@ -89,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [navigate]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn, role, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

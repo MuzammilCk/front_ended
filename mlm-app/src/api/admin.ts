@@ -1,10 +1,7 @@
 // src/api/admin.ts
 // Admin API surface — listings, inventory, orders, network, compensation.
-// All endpoints under /admin/* require admin authentication.
-// The AdminGuard checks x-admin-token header. This module sends it via
-// the standard Authorization Bearer mechanism — backend must be configured
-// to accept JwtAuthGuard for admin routes in production.
-// For the current backend setup using x-admin-token, pass it as a custom header.
+// All endpoints under /admin/* require JWT authentication with admin role.
+// Authorization is handled centrally by client.ts Bearer token.
 
 import { apiRequest } from './client';
 import type {
@@ -13,18 +10,9 @@ import type {
   Order,
   PaginatedOrders,
   GraphCorrectionLog,
+  PaginatedAuditLogs,
+  AdminDashboardStats,
 } from './types';
-
-// ─── Admin helper: attach admin token header ──────────────────────────────────
-// The backend AdminGuard checks process.env.ADMIN_TOKEN via x-admin-token header.
-// In production this will be replaced with proper RBAC JWT roles.
-// Token is read from env — never hardcoded.
-
-function adminHeaders(): Record<string, string> {
-  const token = sessionStorage.getItem('admin_token') ?? '';
-  if (!token) return {};
-  return { 'x-admin-token': token };
-}
 
 // ─── Admin Listings ──────────────────────────────────────────────────────────
 
@@ -38,6 +26,7 @@ export interface CreateListingPayload {
   condition?: string;
   authenticity_status?: string;
   status?: string;
+  media_ids?: string[];
 }
 
 export interface UpdateListingPayload {
@@ -48,6 +37,7 @@ export interface UpdateListingPayload {
   condition?: string;
   authenticity_status?: string;
   status?: string;
+  media_ids?: string[];
 }
 
 export interface AddImagePayload {
@@ -68,7 +58,6 @@ export interface ModerationActionPayload {
 export async function adminCreateListing(payload: CreateListingPayload): Promise<Listing> {
   return apiRequest<Listing>('/admin/listings', {
     method: 'POST',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -79,7 +68,6 @@ export async function adminUpdateListing(
 ): Promise<Listing> {
   return apiRequest<Listing>(`/admin/listings/${id}`, {
     method: 'PATCH',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -90,7 +78,6 @@ export async function adminAddImage(
 ): Promise<void> {
   return apiRequest<void>(`/admin/listings/${listingId}/images`, {
     method: 'POST',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -101,7 +88,6 @@ export async function adminRemoveImage(
 ): Promise<void> {
   return apiRequest<void>(`/admin/listings/${listingId}/images/${imageId}`, {
     method: 'DELETE',
-    headers: adminHeaders(),
   });
 }
 
@@ -111,7 +97,6 @@ export async function adminReorderImages(
 ): Promise<void> {
   return apiRequest<void>(`/admin/listings/${listingId}/images/reorder`, {
     method: 'PATCH',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -124,7 +109,6 @@ export async function adminModerateListing(
   const actionPath = payload.action.toLowerCase();
   return apiRequest<Listing>(`/admin/listings/${id}/${actionPath}`, {
     method: 'POST',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -150,7 +134,6 @@ export async function adminCreateCategory(
 ): Promise<ProductCategory> {
   return apiRequest<ProductCategory>('/admin/categories', {
     method: 'POST',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -161,7 +144,6 @@ export async function adminUpdateCategory(
 ): Promise<ProductCategory> {
   return apiRequest<ProductCategory>(`/admin/categories/${id}`, {
     method: 'PATCH',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -169,7 +151,6 @@ export async function adminUpdateCategory(
 export async function adminDeactivateCategory(id: string): Promise<ProductCategory> {
   return apiRequest<ProductCategory>(`/admin/categories/${id}`, {
     method: 'DELETE',
-    headers: adminHeaders(),
   });
 }
 
@@ -190,7 +171,6 @@ export async function adminAddStock(
 ): Promise<void> {
   return apiRequest<void>(`/admin/inventory/${listingId}/stock`, {
     method: 'POST',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -201,7 +181,6 @@ export async function adminAdjustStock(
 ): Promise<void> {
   return apiRequest<void>(`/admin/inventory/${listingId}/stock`, {
     method: 'PATCH',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -233,14 +212,12 @@ export async function adminListOrders(
   const qs = query.toString();
   return apiRequest<PaginatedOrders>(`/admin/orders${qs ? `?${qs}` : ''}`, {
     method: 'GET',
-    headers: adminHeaders(),
   });
 }
 
 export async function adminGetOrder(orderId: string): Promise<Order> {
   return apiRequest<Order>(`/admin/orders/${orderId}`, {
     method: 'GET',
-    headers: adminHeaders(),
   });
 }
 
@@ -250,7 +227,6 @@ export async function adminUpdateOrderStatus(
 ): Promise<Order> {
   return apiRequest<Order>(`/admin/orders/${orderId}/status`, {
     method: 'PATCH',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -268,7 +244,6 @@ export async function adminApplyGraphCorrection(
 ): Promise<GraphCorrectionLog> {
   return apiRequest<GraphCorrectionLog>('/admin/network/corrections', {
     method: 'POST',
-    headers: adminHeaders(),
     body: JSON.stringify(payload),
   });
 }
@@ -285,7 +260,34 @@ export async function adminListGraphCorrections(params: {
   const qs = query.toString();
   return apiRequest<GraphCorrectionLog[]>(`/admin/network/corrections${qs ? `?${qs}` : ''}`, {
     method: 'GET',
-    headers: adminHeaders(),
   });
 }
 
+// ─── Admin Dashboard ─────────────────────────────────────────────────────────
+
+export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
+  return apiRequest<AdminDashboardStats>('/admin/dashboard/stats', {
+    method: 'GET',
+  });
+}
+
+// ─── Admin Audit Logs ────────────────────────────────────────────────────────
+
+export interface AuditLogParams {
+  entity_type?: string;
+  page?: number;
+  limit?: number;
+}
+
+export async function getAuditLogs(
+  params: AuditLogParams = {},
+): Promise<PaginatedAuditLogs> {
+  const query = new URLSearchParams();
+  if (params.entity_type) query.set('entity_type', params.entity_type);
+  if (params.page !== undefined) query.set('page', String(params.page));
+  if (params.limit !== undefined) query.set('limit', String(params.limit));
+  const qs = query.toString();
+  return apiRequest<PaginatedAuditLogs>(`/admin/audit-logs${qs ? `?${qs}` : ''}`, {
+    method: 'GET',
+  });
+}

@@ -193,3 +193,146 @@ export interface GraphCorrectionLog {
   created_at: string;
 }
 
+// ─── Admin UI Types (migrated from src/data/adminStore.ts) ───────────────────
+
+export interface AdminProductType {
+  id: number;
+  name: string;
+  type: string;
+  family: string;
+  price: number;
+  stock: number;
+  active: boolean;
+}
+
+export type AdminTabType = 'dashboard' | 'products' | 'add' | 'orders' | 'audit';
+
+export const ORDER_STATUS_CLS: Record<string, string> = {
+  Delivered: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+  Shipped: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+  Processing: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
+  Cancelled: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+};
+
+// ─── Homepage API ────────────────────────────────────────────────────────────
+
+export interface HomepageHero {
+  headline: string;
+  subheadline: string;
+  eyebrow: string;
+  cta_text: string;
+  cta_link: string;
+  image_url: string;
+  notes: string;
+}
+
+export interface HomepageFeaturedItem {
+  id: string;
+  name: string;
+  family: string;
+  type: string;
+  notes: string;
+  price: number;
+  ml: string;
+  badge: string | null;
+  image_url: string;
+  intensity: number;
+}
+
+export interface HomepageScentFamily {
+  family: string;
+  count: string;
+  description: string;
+  key_notes: string[];
+  accent: string;
+}
+
+export interface HomepageTestimonial {
+  text: string;
+  author: string;
+  location: string;
+  fragrance: string;
+  rating: number;
+}
+
+export interface HomepageBrandStatement {
+  headline: string;
+  body: string;
+  stats: { value: string; label: string }[];
+  image_url: string;
+}
+
+export interface HomepageContent {
+  hero: HomepageHero;
+  featured_collection: HomepageFeaturedItem[];
+  brand_statement: HomepageBrandStatement;
+  testimonials: HomepageTestimonial[];
+  scent_families: HomepageScentFamily[];
+  families: string[];
+}
+
+// ─── Media API ───────────────────────────────────────────────────────────────
+
+export interface SignedUploadResponse {
+  upload_url: string;
+  storage_key: string;
+  media_id: string;
+}
+
+export interface MediaAsset {
+  id: string;
+  cdn_url: string;
+  storage_key: string;
+  alt_text: string | null;
+  width: number | null;
+  height: number | null;
+}
+
+// ─── Cart API ────────────────────────────────────────────────────────────────
+
+export interface CartApiItem {
+  id: string;
+  sku_id: string;
+  listing_id: string;
+  title: string;
+  price: string;
+  qty: number;
+  image_url: string;
+  notes: string;
+  in_stock: boolean;
+  expires_at: string | null;
+}
+
+export interface CartResponse {
+  items: CartApiItem[];
+}
+
+// ─── Audit Logs ──────────────────────────────────────────────────────────────
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  actor: string;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  changes: Record<string, { before: unknown; after: unknown }>;
+}
+
+export interface PaginatedAuditLogs {
+  data: AuditLogEntry[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// ─── Admin Dashboard ─────────────────────────────────────────────────────────
+
+export interface AdminDashboardStats {
+  total_revenue: number;
+  total_orders: number;
+  active_products: number;
+  total_products: number;
+  avg_order_value: number;
+}
+
