@@ -112,6 +112,7 @@ export default function Register() {
           {
             full_name: formData.name,
             password: formData.password,
+            ...(formData.email.trim() ? { email: formData.email.trim() } : {}),
             ...(formData.referralCode.trim() ? { referral_code: formData.referralCode.trim() } : {}),
             attempt_id: "",
           },

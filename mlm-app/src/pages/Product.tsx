@@ -68,16 +68,16 @@ export default function Product() {
   const displayProducts =
     apiListings.length > 0
       ? apiListings.map((listing) => ({
-          id: listing.id,
-          name: listing.title,
-          type: listing.category?.name ?? 'Parfum',
-          family: listing.category?.name ?? 'All',
-          notes: listing.description ?? '',
-          price: parseFloat(listing.price),
-          badge: listing.status === 'active' ? null : listing.status,
-          image:
-            listing.images.length > 0 ? listing.images[0].storage_key : '',
-        }))
+        id: listing.id,
+        name: listing.title,
+        type: listing.category?.name ?? 'Parfum',
+        family: listing.category?.name ?? 'All',
+        notes: listing.description ?? '',
+        price: parseFloat(listing.price),
+        badge: listing.status === 'active' ? null : listing.status,
+        image:
+          listing.images.length > 0 ? listing.images[0].storage_key : '',
+      }))
       : []; // show empty while loading — loading state shown below
 
   const filtered = displayProducts.filter((p) => {
@@ -166,11 +166,10 @@ export default function Product() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setActiveFamily("All")}
-                className={`px-4 py-1.5 text-xs rounded-full border transition-all ${
-                  activeFamily === "All"
+                className={`px-4 py-1.5 text-xs rounded-full border transition-all ${activeFamily === "All"
                     ? "bg-[#c9a96e] text-black border-[#c9a96e]"
                     : "border-[#2a2a2a] text-white/60 hover:border-[#c9a96e] hover:text-white"
-                }`}
+                  }`}
               >
                 All
               </button>
@@ -178,11 +177,10 @@ export default function Product() {
                 <button
                   key={cat.id}
                   onClick={() => setActiveFamily(cat.name)}
-                  className={`px-4 py-1.5 text-xs rounded-full border transition-all ${
-                    activeFamily === cat.name
+                  className={`px-4 py-1.5 text-xs rounded-full border transition-all ${activeFamily === cat.name
                       ? "bg-[#c9a96e] text-black border-[#c9a96e]"
                       : "border-[#2a2a2a] text-white/60 hover:border-[#c9a96e] hover:text-white"
-                  }`}
+                    }`}
                 >
                   {cat.name}
                 </button>
@@ -242,11 +240,10 @@ export default function Product() {
                           ? "Remove from wishlist"
                           : "Add to wishlist"
                       }
-                      className={`absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${
-                        wishlist.includes(item.id)
+                      className={`absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${wishlist.includes(item.id)
                           ? "bg-red-500 text-white"
                           : "bg-black/60 text-white/80 hover:bg-black/80"
-                      }`}
+                        }`}
                     >
                       <svg
                         className="w-4 h-4"

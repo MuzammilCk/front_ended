@@ -43,6 +43,7 @@ export async function verifyOtp(payload: VerifyOtpPayload): Promise<OtpVerifyRes
 export interface SignupPayload {
   full_name: string;
   password: string;
+  email?: string;
   referral_code?: string;
   attempt_id?: string;
 }
