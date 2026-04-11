@@ -1,9 +1,112 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getListingById } from "../api/listings";
 import type { Listing } from "../api/types";
 import { Alert } from "../components/ui/Alert";
 import Sidebar from "../components/Sidebar";
+
+import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+
+const TOTAL_FRAMES = 20;
+const frames = Array.from({ length: TOTAL_FRAMES }, (_, i) => {
+  const n = String(i + 1).padStart(3, '0');
+  return `/frames/frame_${n}.jpg`;
+});
+
+const ProductSequence = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const frameObj = useRef({ current: 0 });
+
+  useEffect(() => {
+    // Preload all frames
+    imagesRef.current = frames.map(src => {
+      const img = new Image();
+      img.src = src;
+      return img;
+    });
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const renderFrame = (index: number) => {
+      const img = imagesRef.current[index];
+      if (img && img.complete) {
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Compute to draw image covered / contained to the canvas nicely
+        const hRatio = canvas.width / img.width;
+        const vRatio = canvas.height / img.height;
+        const ratio  = Math.min(hRatio, vRatio);
+        const centerShift_x = (canvas.width - img.width*ratio) / 2;
+        const centerShift_y = (canvas.height - img.height*ratio) / 2;  
+
+        ctx.drawImage(img, 0,0, img.width, img.height,
+                      centerShift_x, centerShift_y, img.width*ratio, img.height*ratio);  
+      }
+    };
+
+    const firstImg = imagesRef.current[0];
+    if (firstImg) {
+      firstImg.onload = () => renderFrame(0);
+      if (firstImg.complete) renderFrame(0);
+    }
+
+    const ctxSt = gsap.context(() => {
+      gsap.to(frameObj.current, {
+        current: TOTAL_FRAMES - 1,
+        snap: 'current',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#sequence-container',
+          start: 'top top',
+          end: '+=2000',   // 2000px of scroll for full rotation
+          scrub: 0.5,
+          pin: true,       // Pins the section while scrolling through frames
+        },
+        onUpdate: () => renderFrame(Math.round(frameObj.current.current)),
+      });
+      
+      gsap.to('.hero-titles', {
+        opacity: 0,
+        y: -50,
+        scrollTrigger: {
+          trigger: '#sequence-container',
+          start: 'top top',
+          end: '+=500',
+          scrub: true,
+        }
+      });
+    }, canvasRef);
+
+    return () => ctxSt.revert();
+  }, []);
+
+  return (
+    <div id="sequence-container" className="relative w-full h-screen bg-black overflow-hidden border-b border-[#2a2a2a]">
+      <div className="absolute inset-x-0 top-[15%] hero-titles flex flex-col items-center justify-center z-10 pointer-events-none">
+        <h2 className="text-[#e8dcc8] text-5xl md:text-7xl font-display uppercase tracking-widest text-center mt-12 drop-shadow-2xl">
+          360° Vision
+        </h2>
+        <p className="text-[#c9a96e] tracking-[0.4em] mt-6 text-xs font-serif uppercase">
+          Scroll to explore
+        </p>
+      </div>
+      <canvas 
+        ref={canvasRef} 
+        width={1920} 
+        height={1080} 
+        className="w-full h-full object-contain filter drop-shadow-[0_20px_50px_rgba(201,169,110,0.15)]" 
+      />
+    </div>
+  );
+};
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -74,7 +177,9 @@ export default function ProductDetail() {
         </Link>
       </div>
 
-      <div className="px-4 py-10 sm:px-6 md:px-12 max-w-6xl mx-auto">
+      <ProductSequence />
+
+      <div className="px-4 py-20 sm:px-6 md:px-12 max-w-7xl mx-auto">
 
         {/* Loading */}
         {isLoading && (

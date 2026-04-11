@@ -1,6 +1,6 @@
 export default function ActivityList({ activities }) {
   return (
-    <div className="overflow-hidden border rounded-lg border-[#c9a96e]/10 bg-gradient-to-br from-[#c9a96e]/5 to-transparent">
+    <div className="overflow-hidden backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl">
       <div className="p-6 border-b border-[#c9a96e]/10">
         <h2 className="text-xl font-light text-[#e8dcc8]">Recent Activity</h2>
       </div>

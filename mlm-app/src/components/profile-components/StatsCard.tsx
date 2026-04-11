@@ -1,6 +1,6 @@
 export default function StatsCard({ icon: Icon, value, label }) {
   return (
-    <div className="relative overflow-hidden transition-all duration-300 border rounded-lg border-[#c9a96e]/10 bg-gradient-to-br from-[#c9a96e]/5 to-transparent hover:border-[#c9a96e]/30 hover:scale-[1.02]">
+    <div className="relative overflow-hidden transition-all duration-300 border backdrop-blur-xl bg-white/5 border-white/10 rounded-2xl hover:border-white/20 hover:scale-[1.02]">
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
           <Icon className="w-8 h-8 text-[#c9a96e]" />

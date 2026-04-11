@@ -24,6 +24,29 @@ export default function Product() {
     setCart((prev) => (prev.includes(id) ? prev : [...prev, id]));
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const bottle = card.querySelector('.bottle-tilt-container') as HTMLDivElement;
+    if (!bottle) return;
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;   // -0.5 to 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5;   // -0.5 to 0.5
+    bottle.style.transform = `perspective(800px) rotateY(${x * 15}deg) rotateX(${-y * 15}deg)`;
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const bottle = e.currentTarget.querySelector('.bottle-tilt-container') as HTMLDivElement;
+    if (!bottle) return;
+    bottle.style.transform = `perspective(800px) rotateY(0deg) rotateX(0deg)`;
+    bottle.style.transition = 'transform 0.5s ease';
+  };
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    const bottle = e.currentTarget.querySelector('.bottle-tilt-container') as HTMLDivElement;
+    if (!bottle) return;
+    bottle.style.transition = 'none';
+  };
+
   const [apiListings, setApiListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
@@ -208,24 +231,36 @@ export default function Product() {
           {!isLoading && (
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3">
               {filtered.map((item) => (
-                <div key={item.id} className="relative overflow-hidden group">
+                <div 
+                  key={item.id} 
+                  className="relative overflow-hidden group border border-[#2a2a2a]/30 hover:border-[#c9a96e]/40 transition-colors bg-[#050505]"
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                  onMouseEnter={handleMouseEnter}
+                >
                   {/* IMAGE */}
-                  <div className="relative h-[360px] sm:h-[420px] lg:h-[480px] overflow-hidden">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      loading="lazy"
-                      decoding="async"
-                      className="object-cover w-full h-full transition duration-700 group-hover:scale-105"
-                    />
+                  <div className="relative h-[360px] sm:h-[420px] lg:h-[480px]">
+                    {/* The ambient glow — stays flat, doesn't tilt */}
+                    <div className="absolute inset-0 top-1/4 bottom-1/4 m-auto w-2/3 h-1/2 rounded-full bg-[#c9a96e] blur-[80px] opacity-10 group-hover:opacity-30 transition-opacity duration-700 pointer-events-none" />
+
+                    {/* The bottle container — floats transparently over the glow */}
+                    <div className="bottle-tilt-container absolute inset-0 z-10 flex items-center justify-center p-8 pb-32">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        loading="lazy"
+                        decoding="async"
+                        className="object-contain w-full h-full drop-shadow-2xl transition-transform duration-700 group-hover:scale-110"
+                      />
+                    </div>
 
                     {/* OVERLAY */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none z-20" />
 
                     {/* BADGE */}
                     {item.badge && (
-                      <div className="absolute top-4 left-4">
-                        <span className="px-3 py-1 text-[10px] tracking-widest text-[#c9a96e] border border-[#c9a96e44]">
+                      <div className="absolute top-4 left-4 z-30">
+                        <span className="px-3 py-1 text-[10px] tracking-widest text-[#c9a96e] bg-black/50 backdrop-blur-sm border border-[#c9a96e44]">
                           {item.badge}
                         </span>
                       </div>
@@ -240,9 +275,9 @@ export default function Product() {
                           ? "Remove from wishlist"
                           : "Add to wishlist"
                       }
-                      className={`absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${wishlist.includes(item.id)
+                      className={`absolute top-4 right-4 z-30 w-8 h-8 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${wishlist.includes(item.id)
                           ? "bg-red-500 text-white"
-                          : "bg-black/60 text-white/80 hover:bg-black/80"
+                          : "bg-black/60 text-white/80 hover:bg-[#c9a96e] hover:text-black"
                         }`}
                     >
                       <svg
@@ -261,35 +296,32 @@ export default function Product() {
                     </button>
 
                     {/* CONTENT */}
-                    <div className="absolute left-0 w-full px-6 text-center bottom-6">
-                      <p className="text-[10px] tracking-[0.3em] text-[#c9a96e66] mb-2">
+                    <div className="absolute left-0 w-full px-6 text-center bottom-6 z-30 pointer-events-none">
+                      <p className="text-[10px] tracking-[0.3em] text-[#c9a96e66] mb-2 drop-shadow-md">
                         {item.type}
                       </p>
 
-                      <h2 className="text-2xl font-display text-[#e8dcc8] mb-2">
-                        {item.name}
+                      <h2 className="text-2xl font-display text-[#e8dcc8] mb-2 drop-shadow-md pointer-events-auto">
+                        <Link to={`/product/${item.id}`} className="hover:text-white transition-colors">{item.name}</Link>
                       </h2>
 
-                      <p className="text-xs text-[#c9b99a99] mb-4">
+                      <p className="text-xs text-[#c9b99a99] mb-4 line-clamp-2 max-w-[80%] mx-auto drop-shadow-md">
                         {item.notes}
                       </p>
 
-                      <div className="flex items-center justify-center gap-4 text-sm">
-                        <span className="text-[#c9a96e]">
+                      <div className="flex items-center justify-center gap-4 text-sm pointer-events-auto">
+                        <span className="text-[#c9a96e] font-serif">
                           INR {item.price}
                         </span>
 
                         <button
                           onClick={() => addToCart(item.id)}
-                          className="tracking-widest text-[#c9b99a66] group-hover:text-[#c9a96e] transition"
+                          className="tracking-widest text-[#c9b99a66] hover:text-[#c9a96e] transition-colors"
                         >
-                          {cart.includes(item.id) ? "ADDED ✓" : "ADD →"}
+                          {cart.includes(item.id) ? "ADDED ✓" : "ADD TO CART"}
                         </button>
                       </div>
                     </div>
-
-                    {/* GLOW */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-700 bg-[radial-gradient(circle_at_center,#c9a96e22,transparent_70%)]" />
                   </div>
                 </div>
               ))}

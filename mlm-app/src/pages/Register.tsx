@@ -138,8 +138,22 @@ export default function Register() {
   }, [step, sessionToken]);
 
   return (
-    <div className="min-h-screen p-6 text-white">
-      <RegisterHeader />
+    <div className="relative min-h-screen overflow-hidden">
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ filter: "brightness(0.4)" }}
+      >
+        <source src="/assets/auth-bg.webm" type="video/webm" />
+        <source src="/assets/auth-bg.mp4" type="video/mp4" />
+      </video>
+
+      {/* Floating content */}
+      <div className="relative z-10 min-h-screen p-6 text-white">
+        <RegisterHeader />
 
       <div className="max-w-md mx-auto">
         <RegisterHero />
@@ -201,6 +215,7 @@ export default function Register() {
       </div>
 
       <RegisterFooter />
+      </div>
     </div>
   );
 }

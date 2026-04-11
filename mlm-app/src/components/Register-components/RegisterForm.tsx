@@ -26,7 +26,7 @@ export default function RegisterForm({
     agreeToTerms;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
       {/* Full Name */}
       <div>
         <label className="block mb-2 text-sm font-medium text-white/80">

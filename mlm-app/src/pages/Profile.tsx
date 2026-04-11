@@ -156,10 +156,11 @@ export default function Profile() {
 
         <span className="text-sm text-[#c9a96e]">Profile</span>
       </div>
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none opacity-5">
-        <div className="absolute inset-0 bg-noise" />
-      </div>
+      {/* Background Layer 1: The subtle texture image (barely visible) */}
+      <div
+        className="fixed inset-0 bg-cover bg-center opacity-20 pointer-events-none"
+        style={{ backgroundImage: 'url(/assets/profile-bg.png)' }}
+      />
 
       <div className="relative max-w-6xl px-4 py-8 mx-auto md:px-8 md:py-12">
         {/* Back */}
@@ -217,7 +218,7 @@ export default function Profile() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Personal Info */}
           <div className="lg:col-span-2">
-            <div className="border border-[#c9a96e]/10 rounded-lg bg-gradient-to-br from-[#c9a96e]/5 to-transparent">
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl">
               <div className="p-6 border-b border-[#c9a96e]/10">
                 <h2 className="text-xl">Personal Information</h2>
               </div>
@@ -267,7 +268,7 @@ export default function Profile() {
             />
 
             {/* Security */}
-            <div className="border border-[#c9a96e]/10 rounded-lg bg-gradient-to-br from-[#c9a96e]/5 to-transparent p-6">
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Shield className="w-5 h-5 text-[#c9a96e]" />
                 <h3 className="text-sm">Account Security</h3>

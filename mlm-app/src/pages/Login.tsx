@@ -56,23 +56,38 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen p-6 text-white">
-      <LoginHeader />
-      <div className="max-w-md mx-auto">
-        <LoginHero />
-        <LoginMethodToggle loginMethod={loginMethod} setLoginMethod={setLoginMethod} />
-        {apiError && <Alert variant="error" className="mb-4">{apiError}</Alert>}
-        {isLoading && <Alert variant="info" className="mb-4 text-center">Signing in…</Alert>}
-        <LoginForm
-          loginMethod={loginMethod}
-          setLoginMethod={setLoginMethod}
-          formData={formData}
-          setFormData={setFormData}
-          handleChange={handleChange}
-          handleSubmit={handleSubmit}
-        />
+    <div className="relative min-h-screen overflow-hidden">
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ filter: "brightness(0.4)" }}
+      >
+        <source src="/assets/auth-bg.webm" type="video/webm" />
+        <source src="/assets/auth-bg.mp4" type="video/mp4" />
+      </video>
+
+      {/* Floating content */}
+      <div className="relative z-10 min-h-screen p-6 text-white">
+        <LoginHeader />
+        <div className="max-w-md mx-auto">
+          <LoginHero />
+          <LoginMethodToggle loginMethod={loginMethod} setLoginMethod={setLoginMethod} />
+          {apiError && <Alert variant="error" className="mb-4">{apiError}</Alert>}
+          {isLoading && <Alert variant="info" className="mb-4 text-center">Signing in…</Alert>}
+          <LoginForm
+            loginMethod={loginMethod}
+            setLoginMethod={setLoginMethod}
+            formData={formData}
+            setFormData={setFormData}
+            handleChange={handleChange}
+            handleSubmit={handleSubmit}
+          />
+        </div>
+        <LoginFooter />
       </div>
-      <LoginFooter />
     </div>
   );
 }

@@ -81,12 +81,18 @@ export default function Admin() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#080604] text-[#e8dcc8] flex overflow-hidden">
+    <div className="min-h-screen bg-[#080604] text-[#e8dcc8] flex overflow-hidden relative">
+      {/* Background Layer 1: The subtle texture image (barely visible) */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center opacity-20 pointer-events-none z-0"
+        style={{ backgroundImage: 'url(/assets/profile-bg.jpg)' }}
+      />
+      
       {/* ── SIDEBAR ── */}
       <Sidebar tab={tab} setTab={setTab} />
 
       {/* ── MAIN ── */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto relative z-10 block">
         {/* Topbar */}
         <Topbar tab={tab} />
 
