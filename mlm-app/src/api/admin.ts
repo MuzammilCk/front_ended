@@ -55,6 +55,17 @@ export interface ModerationActionPayload {
   evidence?: string;
 }
 
+export async function adminGetListings(params: { limit?: number; page?: number; status?: string } = {}): Promise<{ data: Listing[]; total: number }> {
+  const query = new URLSearchParams();
+  if (params.status) query.set('status', params.status);
+  if (params.limit !== undefined) query.set('limit', String(params.limit));
+  if (params.page !== undefined) query.set('page', String(params.page));
+  const qs = query.toString();
+  return apiRequest<{ data: Listing[]; total: number }>(`/admin/listings${qs ? `?${qs}` : ''}`, {
+    method: 'GET',
+  });
+}
+
 export async function adminCreateListing(payload: CreateListingPayload): Promise<Listing> {
   const { media_ids, ...rest } = payload;
   const dto = { ...rest, currency: 'INR' };
@@ -292,7 +303,26 @@ export async function getAuditLogs(
   if (params.page !== undefined) query.set('page', String(params.page));
   if (params.limit !== undefined) query.set('limit', String(params.limit));
   const qs = query.toString();
-  return apiRequest<PaginatedAuditLogs>(`/admin/audit-logs${qs ? `?${qs}` : ''}`, {
+  const res = await apiRequest<any>(`/admin/audit-logs${qs ? `?${qs}` : ''}`, {
     method: 'GET',
   });
+  
+  // Map backend AuditLog entity to frontend PaginatedAuditLogs shape
+  return {
+    ...res,
+    data: (res.data || []).map((log: any) => ({
+      id: log.id,
+      timestamp: log.created_at,
+      actor: log.actor_id || "System",
+      action: log.action,
+      entity_type: log.entity_type,
+      entity_id: log.entity_id,
+      changes: {
+        Data: { 
+          before: log.before_snapshot ? JSON.stringify(log.before_snapshot) : "none", 
+          after: log.after_snapshot ? JSON.stringify(log.after_snapshot) : "none" 
+        }
+      }
+    }))
+  };
 }

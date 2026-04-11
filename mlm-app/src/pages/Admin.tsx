@@ -8,8 +8,7 @@ import OrdersTab from "../components/admin-components/OrdersTab";
 import AuditLogTab from "../components/admin-components/AuditLogTab";
 import DeleteModal from "../components/admin-components/DeleteModal";
 import SuccessToast from "../components/admin-components/SuccessToast";
-import { getListings } from "../api/listings";
-import { adminListOrders } from "../api/admin";
+import { adminListOrders, adminGetListings } from "../api/admin";
 import type { Order, AdminProductType, AdminTabType } from "../api/types";
 
 const EMPTY_FORM = {
@@ -44,7 +43,7 @@ export default function Admin() {
       // Defer state updates to avoid react-hooks/set-state-in-effect lint.
       await Promise.resolve();
       setApiLoading(true);
-      getListings({ limit: 100 })
+      adminGetListings({ limit: 100 })
         .then((result) => {
           if (cancelled) return;
           if (result.data.length > 0) {

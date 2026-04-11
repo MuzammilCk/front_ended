@@ -99,6 +99,7 @@ export default function AddProductTab({
         description: form.notes,
         price: Number(form.price),
         quantity: 50,
+        status: 'active',
         media_ids: mediaIds,
       });
 
