@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import Wishlist from "./pages/Wishlist";
 import Admin from "./pages/Admin";
 
@@ -45,6 +46,16 @@ function App() {
               <ErrorBoundary>
                 <AuthGuard>
                   <Cart />
+                </AuthGuard>
+              </ErrorBoundary>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <ErrorBoundary>
+                <AuthGuard>
+                  <Checkout />
                 </AuthGuard>
               </ErrorBoundary>
             }
