@@ -1,6 +1,25 @@
 import { Button } from "../ui/Button";
+import { Alert } from "../ui/Alert";
 
-export default function OrderSummary({ subtotal, shipping }) {
+interface OrderSummaryProps {
+  subtotal: number;
+  shipping: number;
+  onCheckout: () => void;
+  loading: boolean;
+  disabled: boolean;
+  error: string;
+  lastOrderId: string | null;
+}
+
+export default function OrderSummary({
+  subtotal,
+  shipping,
+  onCheckout,
+  loading,
+  disabled,
+  error,
+  lastOrderId,
+}: OrderSummaryProps) {
   const total = subtotal + shipping;
 
   return (
@@ -24,8 +43,20 @@ export default function OrderSummary({ subtotal, shipping }) {
         </div>
       </div>
 
-      <Button variant="solidGold" className="w-full mt-6 py-3 rounded-lg">
-        Checkout
+      {error && <Alert variant="error">{error}</Alert>}
+      {lastOrderId && (
+        <Alert variant="success">
+          Order placed! Reference: {lastOrderId.slice(0, 8)}…
+        </Alert>
+      )}
+
+      <Button
+        variant="solidGold"
+        className="w-full mt-6 py-3 rounded-lg"
+        onClick={onCheckout}
+        disabled={disabled || loading}
+      >
+        {loading ? "Processing…" : "Place Order"}
       </Button>
     </div>
   );

@@ -14,7 +14,6 @@ import type { Order, CartApiItem } from "../api/types";
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import { Alert } from "../components/ui/Alert";
-import { Button } from "../components/ui/Button";
 
 interface CartItem {
   id: string;
@@ -310,29 +309,15 @@ export default function Cart() {
             </div>
 
             {/* RIGHT SIDE */}
-            <OrderSummary subtotal={subtotal} shipping={shipping} />
-
-            {/* Checkout section — added below OrderSummary */}
-            <div className="mt-4 space-y-3">
-              {checkoutError && (
-                <Alert variant="error">{checkoutError}</Alert>
-              )}
-
-              {lastOrder && (
-                <Alert variant="success">
-                  Order placed. Reference: {lastOrder.id.slice(0, 8)}…
-                </Alert>
-              )}
-
-              <Button
-                onClick={handleCheckout}
-                disabled={checkoutLoading || cartItems.length === 0}
-                variant="outlineGold"
-                className="w-full py-3 text-sm tracking-widest"
-              >
-                {checkoutLoading ? "Processing…" : "Place order"}
-              </Button>
-            </div>
+            <OrderSummary
+              subtotal={subtotal}
+              shipping={shipping}
+              onCheckout={handleCheckout}
+              loading={checkoutLoading}
+              disabled={cartItems.length === 0 || checkoutLoading}
+              error={checkoutError}
+              lastOrderId={lastOrder ? lastOrder.id : null}
+            />
           </div>
         )}
 
