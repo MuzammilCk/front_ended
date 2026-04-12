@@ -295,7 +295,13 @@ export default function Profile() {
               {activities.length > 0 ? (
                 <ActivityList activities={activities} />
               ) : (
-                <div className="text-muted/60 italic">No recent activity yet.</div>
+                <div className="py-16 text-center border border-[#c9a96e]/10 rounded-2xl bg-white/5 backdrop-blur-sm">
+                  <ShoppingBag className="w-12 h-12 mx-auto text-[#c9a96e]/30 mb-4" />
+                  <p className="text-[#e8dcc8] mb-6">Your story with Hadi hasn't begun yet.</p>
+                  <Link to="/product" className="inline-block px-6 py-3 bg-[#c9a96e] text-[#0a0705] rounded-lg tracking-widest text-xs uppercase font-medium hover:bg-[#c9a96e]/90 transition">
+                    Explore the Collection →
+                  </Link>
+                </div>
               )}
             </div>
           </>

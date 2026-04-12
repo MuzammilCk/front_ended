@@ -65,28 +65,45 @@ export default function Wishlist() {
   };
 
   const moveAllToCart = async () => {
-    let successCount = 0;
-    for (const item of wishlistItems) {
-      try {
-        addItem({
-          id: crypto.randomUUID?.() ?? `cart-${Date.now()}`,
-          sku_id: item.id,
-          listing_id: item.id,
-          title: item.name,
-          price: String(item.price),
-          qty: 1,
-          image_url: item.image,
-          notes: item.notes,
-          in_stock: true,
-          expires_at: null,
-        });
-        successCount++;
-      } catch {
-        // Skip items that fail
-      }
+    // 1. Safe Bulk Action
+    const results = await Promise.allSettled(
+      wishlistItems.map((item) =>
+        new Promise<void>((resolve, reject) => {
+          try {
+            addItem({
+              id: crypto.randomUUID?.() ?? `cart-${Date.now()}`,
+              sku_id: item.id,
+              listing_id: item.id,
+              title: item.name,
+              price: String(item.price),
+              qty: 1,
+              image_url: item.image,
+              notes: item.notes,
+              in_stock: true,
+              expires_at: null,
+            });
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        })
+      )
+    );
+
+    // Filter fulfilled -> remove from wishlist safely
+    const fulfilledIndexes = results
+      .map((res, i) => (res.status === 'fulfilled' ? i : -1))
+      .filter((i) => i !== -1);
+      
+    if (fulfilledIndexes.length > 0) {
+      setWishlistItems((prev) => prev.filter((_, i) => !fulfilledIndexes.includes(i)));
     }
-    if (successCount > 0) {
-      setWishlistItems([]);
+
+    // Rejected check
+    const rejectedCount = results.filter((res) => res.status === 'rejected').length;
+    if (rejectedCount > 0) {
+       // Assuming we have a toast, otherwise standard alert/log per your design
+       alert(`${rejectedCount} items couldn't be added. Try again.`);
     }
   };
 
@@ -144,11 +161,38 @@ export default function Wishlist() {
 
         {wishlistItems.length === 0 ? (
           <div className="py-20 text-center">
-            <Heart className="w-20 h-20 mx-auto text-[#c9a96e]/30 mb-6" />
-            <h2>Your wishlist is empty. Save fragrances to buy later.</h2>
-            <Link to="/product" className="bg-[#c9a96e] px-6 py-3 rounded-lg">
-              Explore Collection
-            </Link>
+            {/* Soft breathing animated icon */}
+            <div className="w-20 h-20 mx-auto bg-[#c9a96e]/10 rounded-full flex items-center justify-center mb-8 animate-[pulse_2s_ease-in-out_infinite]">
+              <Heart className="w-8 h-8 text-[#c9a96e]" strokeWidth={1} />
+            </div>
+            
+            {/* Emotional Empty States */}
+            <h2 className="text-3xl md:text-4xl font-display text-[#e8dcc8] mb-4">
+              Your signature scent is waiting to be discovered.
+            </h2>
+            <p className="text-white/50 max-w-md mx-auto mb-16">
+              Our master perfumers have curated these for you.
+            </p>
+
+            {/* Perfumer's Picks Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-4xl mx-auto text-left">
+              {[
+                { id: "pick-1", name: "Oud Royale", price: 250, image: "/images/product-1.jpg" },
+                { id: "pick-2", name: "Amber D'Or", price: 180, image: "/images/product-2.jpg" },
+                { id: "pick-3", name: "Midnight Musk", price: 210, image: "/images/product-3.jpg" },
+              ].map(pick => (
+                <div key={pick.id} className="border border-[#c9a96e]/10 rounded-lg p-4 bg-white/5 group hover:border-[#c9a96e]/40 transition">
+                  <div className="w-full aspect-[4/5] overflow-hidden rounded-md mb-4 bg-black/50">
+                     <img src={pick.image} alt={pick.name} className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition duration-700" />
+                  </div>
+                  <h3 className="text-[#e8dcc8] mb-1">{pick.name}</h3>
+                  <p className="text-sm text-[#c9a96e] mb-4">INR {pick.price}</p>
+                  <Link to="/product" className="block w-full py-2 text-center text-xs tracking-widest uppercase border border-[#c9a96e]/20 text-[#e8dcc8] hover:bg-[#c9a96e] hover:text-black transition">
+                    Explore Collection
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-3">
