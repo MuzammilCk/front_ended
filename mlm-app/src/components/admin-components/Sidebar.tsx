@@ -1,32 +1,49 @@
-import { LayoutDashboard, Package, PlusCircle, Tag, ShoppingBag, Archive, Globe, Network, ScrollText } from 'lucide-react';
-import { Link as RouterLink } from 'react-router-dom';
+import {
+  LayoutDashboard, Package, PlusCircle, Tag, ShoppingBag,
+  Archive, Globe, Network, ScrollText, ShieldAlert, PackageX, Banknote,
+} from 'lucide-react';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { getUserFirstName, getUserRole } from '../../api/client';
-import type { AdminTabType } from '../../api/types';
 
-const NAV_GROUPS = [
-  { label: 'Overview',    items: [{ key: 'dashboard'  as AdminTabType, icon: LayoutDashboard, label: 'Dashboard'    }] },
-  { label: 'Catalogue',  items: [
-    { key: 'products'   as AdminTabType, icon: Package,       label: 'Products'     },
-    { key: 'add'        as AdminTabType, icon: PlusCircle,    label: 'Add Product'  },
-    { key: 'categories' as AdminTabType, icon: Tag,           label: 'Categories'   },
-  ]},
-  { label: 'Operations', items: [
-    { key: 'orders'     as AdminTabType, icon: ShoppingBag,   label: 'Orders'       },
-    { key: 'inventory'  as AdminTabType, icon: Archive,       label: 'Inventory'    },
-  ]},
-  { label: 'Content',    items: [{ key: 'homepage'  as AdminTabType, icon: Globe,         label: 'Homepage CMS' }] },
-  { label: 'Network',    items: [
-    { key: 'network'    as AdminTabType, icon: Network,       label: 'MLM Network'  },
-    { key: 'audit'      as AdminTabType, icon: ScrollText,    label: 'Audit Log'    },
-  ]},
-] as const;
-
-interface SidebarProps {
-  tab: AdminTabType;
-  setTab: (tab: AdminTabType) => void;
+interface NavItem {
+  path: string;
+  icon: typeof LayoutDashboard;
+  label: string;
 }
 
-export default function Sidebar({ tab, setTab }: SidebarProps) {
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  { label: 'Overview',    items: [{ path: 'dashboard',  icon: LayoutDashboard, label: 'Dashboard'    }] },
+  { label: 'Catalogue',   items: [
+    { path: 'products',   icon: Package,       label: 'Products'     },
+    { path: 'products/new', icon: PlusCircle,  label: 'Add Product'  },
+    { path: 'categories', icon: Tag,           label: 'Categories'   },
+  ]},
+  { label: 'Operations',  items: [
+    { path: 'orders',     icon: ShoppingBag,   label: 'Orders'       },
+    { path: 'inventory',  icon: Archive,       label: 'Inventory'    },
+  ]},
+  { label: 'Content',     items: [{ path: 'homepage', icon: Globe, label: 'Homepage CMS' }] },
+  { label: 'Network',     items: [
+    { path: 'network',    icon: Network,       label: 'MLM Network'  },
+    { path: 'audit',      icon: ScrollText,    label: 'Audit Log'    },
+  ]},
+  { label: 'Trust & Safety', items: [
+    { path: 'trust/disputes', icon: ShieldAlert, label: 'Disputes'   },
+    { path: 'trust/returns',  icon: PackageX,    label: 'Returns'    },
+  ]},
+  { label: 'Finance',     items: [
+    { path: 'finance/payouts', icon: Banknote,  label: 'Payouts'    },
+  ]},
+];
+
+export default function Sidebar() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const name = getUserFirstName() ?? 'Admin';
   const role = getUserRole() ?? 'admin';
 
@@ -49,12 +66,13 @@ export default function Sidebar({ tab, setTab }: SidebarProps) {
             </p>
             <div className="flex flex-col gap-1">
               {group.items.map(item => {
-                const isActive = tab === item.key;
+                const fullPath = `/admin/${item.path}`;
+                const isActive = pathname === fullPath || pathname.startsWith(fullPath + '/');
                 const Icon = item.icon;
                 return (
                   <button
-                    key={item.key}
-                    onClick={() => setTab(item.key)}
+                    key={item.path}
+                    onClick={() => navigate(fullPath)}
                     className={`flex items-center gap-4 px-4 py-3 border-l-2 transition-all duration-300 w-full text-left
                       ${isActive 
                         ? "border-[#c9a96e] bg-[#c9a96e]/5 text-[#e8dcc8]" 

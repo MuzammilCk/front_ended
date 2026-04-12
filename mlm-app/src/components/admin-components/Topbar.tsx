@@ -1,29 +1,40 @@
 import { getUserFirstName } from '../../api/client';
 import { Bell, Search } from 'lucide-react';
-import type { AdminTabType } from '../../api/types';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 interface TopbarProps {
-  tab: AdminTabType;
   pendingOrderCount?: number;
   onSearch?: (query: string) => void;
 }
 
-const TAB_TITLES: Record<AdminTabType, string> = {
+/** Maps the first segment after /admin/ to a human-readable title. */
+const PATH_TITLES: Record<string, string> = {
   dashboard:  'Dashboard',
   products:   'Product Catalogue',
-  add:        'Add New Perfume',
+  'products/new': 'Add New Perfume',
   orders:     'Order History',
   audit:      'Audit Log',
   categories: 'Categories',
   inventory:  'Inventory',
   homepage:   'Homepage CMS',
   network:    'MLM Network',
+  'trust/disputes': 'Disputes',
+  'trust/returns':  'Returns',
+  'finance/payouts': 'Payouts',
 };
 
-export default function Topbar({ tab, pendingOrderCount = 0, onSearch }: TopbarProps) {
+function getTitleFromPath(pathname: string): string {
+  // Strip /admin/ prefix to get the sub-path
+  const sub = pathname.replace(/^\/admin\/?/, '');
+  // Try exact match first (e.g. "products/new"), then first segment
+  return PATH_TITLES[sub] ?? PATH_TITLES[sub.split('/')[0]] ?? 'Admin';
+}
+
+export default function Topbar({ pendingOrderCount = 0, onSearch }: TopbarProps) {
   const { logout } = useAuth();
-  const title = TAB_TITLES[tab] || 'Admin';
+  const { pathname } = useLocation();
+  const title = getTitleFromPath(pathname);
   const name = getUserFirstName() ?? 'Admin';
 
   const handleLogout = () => {

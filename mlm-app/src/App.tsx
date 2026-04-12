@@ -10,7 +10,22 @@ import Profile from "./pages/Profile";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Wishlist from "./pages/Wishlist";
-import Admin from "./pages/Admin";
+
+// Admin layout + tab components
+import AdminLayout from "./components/admin-components/AdminLayout";
+import DashboardTab from "./components/admin-components/DashboardTab";
+import ProductsTab from "./components/admin-components/ProductsTab";
+import AddProductTab from "./components/admin-components/AddProductTab";
+import OrdersTab from "./components/admin-components/OrdersTab";
+import InventoryTab from "./components/admin-components/InventoryTab";
+import CategoriesTab from "./components/admin-components/CategoriesTab";
+import AuditLogTab from "./components/admin-components/AuditLogTab";
+import HomepageCmsTab from "./components/admin-components/HomepageCmsTab";
+import NetworkTab from "./components/admin-components/NetworkTab";
+import DisputesTab from "./components/admin-components/DisputesTab";
+import ReturnsTab from "./components/admin-components/ReturnsTab";
+import PayoutsTab from "./components/admin-components/PayoutsTab";
+import { AdminDataProvider } from "./context/AdminContext";
 
 function App() {
   return (
@@ -61,16 +76,36 @@ function App() {
             }
           />
           <Route path="/wishlist" element={<ErrorBoundary><Wishlist /></ErrorBoundary>} />
+
+          {/* ── Admin nested routes ── */}
           <Route
             path="/admin"
             element={
               <ErrorBoundary>
                 <AuthGuard requiredRole={['admin', 'content_manager']}>
-                  <Admin />
+                  <AdminDataProvider>
+                    <AdminLayout />
+                  </AdminDataProvider>
                 </AuthGuard>
               </ErrorBoundary>
             }
-          />
+          >
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardTab />} />
+            <Route path="products" element={<ProductsTab />} />
+            <Route path="products/new" element={<AddProductTab />} />
+            <Route path="orders" element={<OrdersTab />} />
+            <Route path="inventory" element={<InventoryTab />} />
+            <Route path="categories" element={<CategoriesTab />} />
+            <Route path="audit" element={<AuditLogTab />} />
+            <Route path="homepage" element={<HomepageCmsTab />} />
+            <Route path="network" element={<NetworkTab />} />
+            {/* Trust & Safety routes */}
+            <Route path="trust/disputes" element={<DisputesTab />} />
+            <Route path="trust/returns" element={<ReturnsTab />} />
+            {/* Finance routes */}
+            <Route path="finance/payouts" element={<PayoutsTab />} />
+          </Route>
         </Routes>
       </div>
     </ErrorBoundary>

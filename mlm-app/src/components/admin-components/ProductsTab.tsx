@@ -1,30 +1,19 @@
 import { useState, useMemo, useEffect } from "react";
 import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { adminUpdateListing } from "../../api/admin";
-import type { AdminTabType, AdminProductType, Listing } from "../../api/types";
+import type { AdminProductType, Listing } from "../../api/types";
 import EditProductModal from "./EditProductModal";
-
-interface ProductsTabProps {
-  products: AdminProductType[];
-  rawListings: Listing[];
-  setProducts: React.Dispatch<React.SetStateAction<AdminProductType[]>>;
-  setTab: (tab: AdminTabType) => void;
-  setDeleteId: (id: string | null) => void;
-  setDeleteName: (name: string) => void;
-  refreshListings: () => Promise<void>;
-}
+import DeleteModal from "./DeleteModal";
+import { useAdminData } from "../../context/AdminContext";
 
 const PAGE_SIZE = 20;
 
-export default function ProductsTab({
-  products,
-  rawListings,
-  setProducts,
-  setTab,
-  setDeleteId,
-  setDeleteName,
-  refreshListings,
-}: ProductsTabProps) {
+export default function ProductsTab() {
+  const navigate = useNavigate();
+  const { products, rawListings, setProducts, refreshListings } = useAdminData();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteName, setDeleteName] = useState("");
   const [search, setSearch] = useState("");
   const [familyFilter, setFamilyFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -87,7 +76,7 @@ export default function ProductsTab({
           {products.length} fragrances · {products.filter((p) => p.active).length} active
         </p>
         <button
-          onClick={() => setTab("add")}
+          onClick={() => navigate("/admin/products/new")}
           className="bg-[#c9a96e] text-[#080604] text-[10px] tracking-[0.25em] uppercase px-5 py-2.5 hover:bg-[#e8c87a] transition-colors duration-300 font-light"
         >
           + Add Perfume
@@ -213,6 +202,15 @@ export default function ProductsTab({
            listing={editingListing}
            onClose={() => setEditingListing(null)}
            onSave={() => void refreshListings()}
+        />
+      )}
+
+      {deleteId !== null && (
+        <DeleteModal
+          deleteId={deleteId}
+          deleteName={deleteName}
+          setDeleteId={setDeleteId}
+          setProducts={setProducts}
         />
       )}
     </div>

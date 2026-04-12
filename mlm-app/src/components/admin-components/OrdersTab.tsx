@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
-import type { Order } from "../../api/types";
 import { ORDER_STATUS_CLS } from "../../api/types";
 import { adminUpdateOrderStatus, adminGetOrder } from "../../api/admin";
+import { useAdminData } from "../../context/AdminContext";
 
-interface OrdersTabProps {
-  orders?: Order[];
-}
-
-export default function OrdersTab({ orders: initialOrders = [] }: OrdersTabProps) {
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+export default function OrdersTab() {
+  const { orders: initialOrders } = useAdminData();
+  const [orders, setOrders] = useState(initialOrders);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 

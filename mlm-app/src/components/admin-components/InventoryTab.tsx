@@ -1,13 +1,9 @@
-import { useState, useEffect } from 'react';
-import type { AdminProductType } from '../../api/types';
+import { useState } from 'react';
 import { adminAddStock, adminAdjustStock } from '../../api/admin';
+import { useAdminData } from '../../context/AdminContext';
 
-interface InventoryTabProps {
-  products: AdminProductType[];
-  onRefresh: () => Promise<void>;
-}
-
-export default function InventoryTab({ products, onRefresh }: InventoryTabProps) {
+export default function InventoryTab() {
+  const { products, refreshListings: onRefresh } = useAdminData();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [addQty, setAddQty] = useState<number>(1);
   const [setQty, setSetQty] = useState<number>(0);

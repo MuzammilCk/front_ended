@@ -1,24 +1,12 @@
-import type { AdminTabType, AdminProductType } from "../../api/types";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ORDER_STATUS_CLS } from "../../api/types";
-import type { Order } from "../../api/types";
+import { useAdminData } from "../../context/AdminContext";
 
-interface DashboardTabProps {
-  products: AdminProductType[];
-  orders: Order[];
-  ordersTotal: number;
-  chartMode: "weekly" | "monthly";
-  setChartMode: (mode: "weekly" | "monthly") => void;
-  setTab: (tab: AdminTabType) => void;
-}
-
-export default function DashboardTab({
-  products,
-  orders,
-  ordersTotal,
-  chartMode,
-  setChartMode,
-  setTab,
-}: DashboardTabProps) {
+export default function DashboardTab() {
+  const navigate = useNavigate();
+  const { products, orders, ordersTotal, loading: apiLoading } = useAdminData();
+  const [chartMode, setChartMode] = useState<"weekly" | "monthly">("weekly");
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
   const thisWeekOrders = orders.filter(o => new Date(o.created_at) >= weekAgo);
@@ -64,6 +52,20 @@ export default function DashboardTab({
 
   return (
     <div className="space-y-8">
+      {(apiLoading || ordersTotal > 0) && (
+        <div className="flex flex-col gap-2 -mt-2">
+          {apiLoading && (
+            <div className="px-4 py-2 bg-gradient-to-r from-[#0d0a07] to-transparent border-l border-[#c9a96e]/20 text-xs text-muted/50">
+              Syncing with backend…
+            </div>
+          )}
+          {ordersTotal > 0 && (
+            <div className="px-4 py-2 bg-gradient-to-r from-[#0d0a07] to-transparent border-l border-[#c9a96e]/20 text-xs text-muted/50">
+              Live: {ordersTotal} total orders in system
+            </div>
+          )}
+        </div>
+      )}
       {/* KPI */}
       <div className="grid grid-cols-4 gap-4">
         {[
@@ -114,17 +116,17 @@ export default function DashboardTab({
           <span className="text-amber-400 text-sm">⚠</span>
           <span className="text-xs text-amber-400">
             {lowStockProducts.length} product{lowStockProducts.length > 1 ? 's' : ''} below 15 units —{' '}
-            <button onClick={() => setTab('inventory')} className="underline">Manage stock →</button>
+            <button onClick={() => navigate('/admin/inventory')} className="underline">Manage stock →</button>
           </span>
         </div>
       )}
 
       <div className="grid grid-cols-4 gap-3">
         {[
-          { icon: '⊕', label: 'Add Product', action: () => setTab('add') },
-          { icon: '⊟', label: 'Manage Stock', action: () => setTab('inventory') },
-          { icon: '≡', label: `Pending Orders${pendingCount > 0 ? ` (${pendingCount})` : ''}`, action: () => setTab('orders') },
-          { icon: '⊞', label: 'Categories', action: () => setTab('categories') },
+          { icon: '⊕', label: 'Add Product', action: () => navigate('/admin/products/new') },
+          { icon: '⊟', label: 'Manage Stock', action: () => navigate('/admin/inventory') },
+          { icon: '≡', label: `Pending Orders${pendingCount > 0 ? ` (${pendingCount})` : ''}`, action: () => navigate('/admin/orders') },
+          { icon: '⊞', label: 'Categories', action: () => navigate('/admin/categories') },
         ].map(({ icon, label, action }) => (
           <button
             key={label}
@@ -241,7 +243,7 @@ export default function DashboardTab({
             Recent Orders
           </p>
           <button
-            onClick={() => setTab("orders")}
+            onClick={() => navigate("/admin/orders")}
             className="text-[10px] tracking-[0.2em] uppercase text-[#c9a96e] border border-[#c9a96e]/25 px-4 py-2 hover:bg-[#c9a96e]/8 transition-colors duration-300"
           >
             View All

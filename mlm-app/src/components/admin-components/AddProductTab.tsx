@@ -1,34 +1,24 @@
 import React, { useState, useEffect } from "react";
-import type { AdminProductType, AdminTabType, ProductCategory } from "../../api/types";
+import { useNavigate } from "react-router-dom";
 import { adminCreateListing } from "../../api/admin";
 import { getSignedUploadUrl, confirmUpload } from "../../api/media";
 import LuxuryImage from "../ui/LuxuryImage";
+import { useAdminData } from "../../context/AdminContext";
 
 const PERF_TYPES = ["Eau de Parfum", "Extrait de Parfum", "Eau de Toilette", "Eau de Cologne"];
 const FAMILIES = ["Woody", "Floral", "Fresh", "Oriental"];
 
-interface AddProductTabProps {
-  form: any;
-  setForm: React.Dispatch<React.SetStateAction<any>>;
-  formError: string;
-  setFormError: (error: string) => void;
-  products: AdminProductType[];
-  setProducts: React.Dispatch<React.SetStateAction<AdminProductType[]>>;
-  setAddSuccess: (success: boolean) => void;
-  setTab: (tab: AdminTabType) => void;
-  categories: ProductCategory[];
-}
+const EMPTY_FORM = {
+  name: "", sku: "", skuManuallyEdited: false, type: "Eau de Parfum", family: "Woody",
+  price: "", quantity: "50", ml: "50", notes: "", badge: "", intensity: "70",
+  categoryId: "", condition: "new", description: ""
+};
 
-export default function AddProductTab({
-  form,
-  setForm,
-  formError,
-  setFormError,
-  setProducts,
-  setAddSuccess,
-  setTab,
-  categories,
-}: AddProductTabProps) {
+export default function AddProductTab() {
+  const navigate = useNavigate();
+  const { setProducts, categories } = useAdminData();
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [formError, setFormError] = useState("");
   const [uploadedAssets, setUploadedAssets] = useState<{ storage_key: string; cdn_url: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -136,15 +126,9 @@ export default function AddProductTab({
         ...p,
       ]);
       
-      setForm({
-        name: "", sku: "", skuManuallyEdited: false, type: "Eau de Parfum", family: "Woody",
-        price: "", quantity: "50", ml: "50", notes: "", badge: "", intensity: "70",
-        categoryId: "", condition: "new", description: ""
-      });
+      setForm(EMPTY_FORM);
       setUploadedAssets([]);
-      setAddSuccess(true);
-      setTimeout(() => setAddSuccess(false), 3000);
-      setTab("products");
+      navigate("/admin/products");
     } catch {
       setFormError("Failed to create product. Please try again.");
     } finally {
