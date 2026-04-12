@@ -225,7 +225,7 @@ export default function ProductDetail() {
 
             {/* Image */}
             <div className="relative aspect-[3/4] overflow-hidden bg-[#0c0c0c]">
-              {listing.images.length > 0 ? (
+              {listing.images.length > 0 && getImageUrl(listing.images[0].storage_key) ? (
                 <img
                   src={getImageUrl(listing.images[0].storage_key)}
                   alt={listing.title}
@@ -298,19 +298,22 @@ export default function ProductDetail() {
               {/* Additional images */}
               {listing.images.length > 1 && (
                 <div className="flex gap-3 pt-2">
-                  {listing.images.slice(1, 5).map((img) => (
-                    <div
-                      key={img.id}
-                      className="w-16 h-16 overflow-hidden border border-[#2a2a2a] hover:border-[#c9a96e]/40 transition cursor-pointer"
-                    >
-                      <img
-                        src={getImageUrl(img.storage_key)}
-                        alt={listing.title}
-                        className="object-cover w-full h-full"
-                        loading="lazy"
-                      />
-                    </div>
-                  ))}
+                  {listing.images.slice(1, 5).map((img) => {
+                    const url = getImageUrl(img.storage_key);
+                    return url ? (
+                      <div
+                        key={img.id}
+                        className="w-16 h-16 overflow-hidden border border-[#2a2a2a] hover:border-[#c9a96e]/40 transition cursor-pointer"
+                      >
+                        <img
+                          src={url}
+                          alt={listing.title}
+                          className="object-cover w-full h-full"
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : null;
+                  })}
                 </div>
               )}
             </div>

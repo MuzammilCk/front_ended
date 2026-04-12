@@ -111,7 +111,7 @@ export default function Product() {
         price: parseFloat(listing.price),
         badge: listing.status === 'active' ? null : listing.status,
         image:
-          listing.images.length > 0 ? getImageUrl(listing.images[0].storage_key) : '',
+          listing.images.length > 0 ? (getImageUrl(listing.images[0].storage_key) || null) : null,
       }))
       : []; // show empty while loading — loading state shown below
 
@@ -257,13 +257,17 @@ export default function Product() {
 
                     {/* The bottle container — floats transparently over the glow */}
                     <div className="bottle-tilt-container absolute inset-0 z-10 flex items-center justify-center p-8 pb-32">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="object-contain w-full h-full drop-shadow-2xl transition-transform duration-700 group-hover:scale-110"
-                      />
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          loading="lazy"
+                          decoding="async"
+                          className="object-contain w-full h-full drop-shadow-2xl transition-transform duration-700 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="w-20 h-40 border border-[#c9a96e]/25 bg-gradient-to-b from-[#c9a96e]/10 to-transparent flex items-center justify-center text-[10px] text-[#c9a96e]/50">NO IMAGE</div>
+                      )}
                     </div>
 
                     {/* OVERLAY */}
