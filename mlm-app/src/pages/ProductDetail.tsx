@@ -14,11 +14,7 @@ import ScrollTrigger from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const TOTAL_FRAMES = 20;
-const frames = Array.from({ length: TOTAL_FRAMES }, (_, i) => {
-  const n = String(i + 1).padStart(3, '0');
-  return `/frames/frame_${n}.jpg`;
-});
+import CartDrawer from "../components/Cart-components/CartDrawer";
 
 const ProductSequence = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -27,13 +23,52 @@ const ProductSequence = () => {
   const frameObj = useRef({ frame: 0 });
   const [loadedFrame, setLoadedFrame] = useState(0);
 
+  const [frames, setFrames] = useState<string[]>([]);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [isReady, setIsReady] = useState(false);
+
   useEffect(() => {
-    // Preload all frames
-    imagesRef.current = frames.map(src => {
+    const isSafari = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const count = isSafari ? 10 : 20;
+    
+    const paths = Array.from({ length: count }, (_, i) => {
+      const idx = isSafari ? i * 2 + 1 : i + 1;
+      const n = String(idx).padStart(3, '0');
+      return `/frames/frame_${n}.webp`;
+    });
+    setFrames(paths);
+
+    document.body.style.overflow = 'hidden';
+
+    let loaded = 0;
+    const imgObjs = paths.map(src => {
       const img = new Image();
       img.src = src;
-      return img;
+      return new Promise<HTMLImageElement>((resolve, reject) => {
+        img.onload = () => {
+          loaded++;
+          setLoadProgress((loaded / count) * 100);
+          resolve(img);
+        };
+        img.onerror = () => {
+          // ignore error to keep promise.all resolving, or just reject
+          loaded++;
+          setLoadProgress((loaded / count) * 100);
+          resolve(img);
+        };
+      });
     });
+
+    Promise.all(imgObjs).then(imgs => {
+      imagesRef.current = imgs;
+      setIsReady(true);
+      document.body.style.overflow = '';
+      if ((window as any).lenis) (window as any).lenis.start();
+    });
+
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, []);
 
   useEffect(() => {
@@ -62,7 +97,7 @@ const ProductSequence = () => {
     if (!containerRef.current) return;
 
     gsap.to(frameObj.current, {
-      frame: Math.max(0, TOTAL_FRAMES - 1),
+      frame: Math.max(0, frames.length - 1),
       snap: "frame",
       ease: "none",
       scrollTrigger: {
@@ -114,10 +149,24 @@ const ProductSequence = () => {
           Scroll to explore
         </p>
       </div>
+
+      {!isReady && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black">
+          <p className="text-white/40 tracking-widest text-xs uppercase mb-4">Loading Experience...</p>
+          <div className="w-64 h-px bg-white/10 relative overflow-hidden">
+            <div 
+              className="absolute left-0 top-0 bottom-0 bg-[#c9a96e] transition-all duration-200" 
+              style={{ width: `${loadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <canvas 
         ref={canvasRef} 
         width={1920} 
         height={1080} 
+        style={{ willChange: 'transform' }} 
         className="w-full h-full object-contain filter drop-shadow-[0_20px_50px_rgba(201,169,110,0.15)]" 
       />
     </div>
@@ -130,8 +179,11 @@ export default function ProductDetail() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
-  const [addedToCart, setAddedToCart] = useState(false);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  
+  const mainCtaRef = useRef<HTMLButtonElement>(null);
 
   const { addItem } = useCart();
 
@@ -158,12 +210,31 @@ export default function ProductDetail() {
     };
 
     void run();
+
+    const ctaEl = mainCtaRef.current;
+    if (ctaEl) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          // Show sticky bar when main CTA is out of view (scrolled above it)
+          if (entry.boundingClientRect.top < 0 && !entry.isIntersecting) {
+            setShowStickyBar(true);
+          } else {
+            setShowStickyBar(false);
+          }
+        });
+      }, { threshold: 0 });
+      observer.observe(ctaEl);
+      return () => {
+        cancelled = true;
+        observer.disconnect();
+      };
+    }
+
     return () => { cancelled = true; };
   }, [id]);
 
   const handleAddToCart = () => {
     if (!listing) return;
-    setAddedToCart(true);
     addItem({
       id: crypto.randomUUID?.() ?? `cart-${Date.now()}`,
       sku_id: listing.id,
@@ -176,11 +247,12 @@ export default function ProductDetail() {
       in_stock: true,
       expires_at: null,
     });
-    setTimeout(() => setAddedToCart(false), 2000);
+    setCartDrawerOpen(true);
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white relative pb-16 md:pb-0">
+      <CartDrawer isOpen={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />
       {/* Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}
@@ -306,11 +378,12 @@ export default function ProductDetail() {
 
               {/* Add to Cart */}
               <button
+                ref={mainCtaRef}
                 type="button"
                 onClick={handleAddToCart}
                 className="w-full py-4 text-xs tracking-widest border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0a0705] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
               >
-                {addedToCart ? 'ADDED TO CART ✓' : 'ADD TO CART →'}
+                ADD TO CART →
               </button>
 
               {/* Additional images */}
@@ -337,6 +410,28 @@ export default function ProductDetail() {
           </div>
         )}
       </div>
+
+      {/* Sticky Bottom Bar (Mobile) */}
+      {!isLoading && listing && (
+        <div 
+          className={`fixed bottom-0 left-0 right-0 h-16 bg-[#0a0705]/90 backdrop-blur border-t border-[#2a2a2a] z-50 flex items-center px-4 gap-4 transition-transform duration-300 md:hidden ${
+            showStickyBar ? 'translate-y-0' : 'translate-y-full'
+          }`}
+        >
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-medium text-[#e8dcc8] truncate">{listing.title}</h3>
+            <p className="text-xs text-[#c9a96e]">
+              INR {parseFloat(listing.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            className="flex-1 max-w-[140px] h-10 bg-[#c9a96e] text-black text-xs font-medium tracking-widest uppercase hover:bg-[#b0935d] transition-colors"
+          >
+            Add to Cart
+          </button>
+        </div>
+      )}
     </div>
   );
 }
