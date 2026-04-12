@@ -57,9 +57,27 @@ export interface OrderItemPayload {
 
 export interface CreateOrderPayload {
   items: OrderItemPayload[];
-  shipping_address: string;
-  billing_address?: string;
-  contact: string;
+  shipping_address: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+  };
+  billing_address?: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+  };
+  contact: {
+    name: string;
+    phone: string;
+    email?: string;
+  };
   notes?: string;
   shipping_fee?: number;
   tax_amount?: number;

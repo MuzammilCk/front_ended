@@ -43,7 +43,12 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      await login({ identifier, password: formData.password });
+      let submitIdentifier = identifier;
+      if (loginMethod === "phone" && !submitIdentifier.startsWith('+')) {
+        submitIdentifier = submitIdentifier.length === 10 ? `+91${submitIdentifier}` : `+${submitIdentifier}`;
+      }
+
+      await login({ identifier: submitIdentifier, password: formData.password });
       
       const role = getUserRole();
       if (role === "admin" || role === "content_manager") {

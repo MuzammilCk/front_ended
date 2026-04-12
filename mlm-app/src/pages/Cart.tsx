@@ -18,6 +18,7 @@ import { Button } from "../components/ui/Button";
 
 interface CartItem {
   id: string;
+  listingId: string;
   name: string;
   type: string;
   price: number;
@@ -31,6 +32,7 @@ interface CartItem {
 function mapApiCartItem(item: CartApiItem): CartItem {
   return {
     id: item.id,
+    listingId: item.listing_id,
     name: item.title,
     type: "Eau de Parfum",
     price: parseFloat(item.price),
@@ -173,11 +175,20 @@ export default function Cart() {
       const order = await createOrder(
         {
           items: cartItems.map((item) => ({
-            listing_id: String(item.id),
+            listing_id: item.listingId,
             qty: item.quantity,
           })),
-          shipping_address: "Pending — update in profile",
-          contact: "Pending",
+          shipping_address: {
+            line1: "123 Horizon Avenue",
+            city: "Mumbai",
+            state: "MH",
+            postal_code: "400001",
+            country: "India",
+          },
+          contact: {
+            name: "Hadi Customer",
+            phone: "+919876543210",
+          },
           shipping_fee: shipping,
           discount_amount: 0,
         },

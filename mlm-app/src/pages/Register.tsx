@@ -56,7 +56,15 @@ export default function Register() {
       }
       setIsLoading(true);
       try {
-        await sendOtp({ phone: formData.phone });
+        let phoneStr = formData.phone.trim();
+        // Auto-prepend +91 if user entered a 10 digit number without country code
+        if (!phoneStr.startsWith('+')) {
+          phoneStr = phoneStr.length === 10 ? `+91${phoneStr}` : `+${phoneStr}`;
+        }
+
+        await sendOtp({ phone: phoneStr });
+        // Store the correctly formatted phone back in state so verification uses it
+        setFormData((prev) => ({ ...prev, phone: phoneStr }));
         setStep("otp");
       } catch (err) {
         if (err instanceof ApiError) {
