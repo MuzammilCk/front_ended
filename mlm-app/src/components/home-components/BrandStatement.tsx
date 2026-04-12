@@ -2,6 +2,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect, useRef } from "react";
 import { useHomepage } from "../../hooks/useHomepage";
+import { useGsapContext } from "../../hooks/useGsapContext";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -29,15 +30,13 @@ export default function BrandStatement() {
     "We source the rarest raw ingredients from across the globe — Cambodian oud, Bulgarian rose, Madagascan vanilla — blended by master perfumers with decades of craft.";
   const imageUrl = bs?.image_url ?? "/brand-bg.png";
 
-  useEffect(() => {
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  useGsapContext(() => {
     const section = sectionRef.current;
     if (!section) return;
-
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    const ctx = gsap.context(() => {
       if (prefersReducedMotion) {
         gsap.set(
           [
@@ -84,11 +83,8 @@ export default function BrandStatement() {
           trigger: section,
           start: "top 75%",
         },
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
+    });
+  }, sectionRef, [prefersReducedMotion]);
 
   if (loading) {
     return (

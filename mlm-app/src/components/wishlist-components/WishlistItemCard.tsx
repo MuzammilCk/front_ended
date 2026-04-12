@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Trash2, ShoppingBag } from "lucide-react";
+import LuxuryImage from "../ui/LuxuryImage";
 
 export default function WishlistItemCard({
   item,
@@ -15,11 +16,9 @@ export default function WishlistItemCard({
         {/* IMAGE */}
         <Link to={`/product/${item.id}`} className="relative">
           <div className="w-24 h-24 md:w-28 md:h-28 overflow-hidden rounded-lg bg-[#c9a96e]/10">
-            <img
+            <LuxuryImage
               src={item.image}
               alt={item.name}
-              loading="lazy"
-              decoding="async"
               className="object-cover w-full h-full transition group-hover:scale-110"
             />
           </div>
@@ -28,8 +27,8 @@ export default function WishlistItemCard({
         {/* INFO */}
         <div className="flex-1">
           <h3 className="text-lg">{item.name}</h3>
-          <p className="text-xs text-[#c9b99a]/60">{item.type}</p>
-          <p className="text-xs text-[#c9b99a]/40">{item.notes}</p>
+          <p className="text-xs text-muted/60">{item.type}</p>
+          <p className="text-xs text-muted/40">{item.notes}</p>
 
           <div className="flex gap-3 mt-3">
             <span className="text-[#c9a96e]">INR {item.price}</span>

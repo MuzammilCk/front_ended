@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "../../lib/motion";
 import { ShoppingBag, Expand, X } from "lucide-react";
 import { useHomepage } from "../../hooks/useHomepage";
+import LuxuryImage from "../ui/LuxuryImage";
 import "../../styles/FeaturedCollection.css";
 
 type FeaturedLevel = "primary" | "secondary";
@@ -62,11 +63,10 @@ function BentoCard({
       }}
     >
       <div className="fc2-card-img-wrap">
-        <img
+        <LuxuryImage
           src={perfume.image || FALLBACK_IMAGE}
           alt={perfume.name}
           className="fc2-card-img"
-          loading="lazy"
           onError={handleImageError}
         />
 
@@ -234,7 +234,7 @@ export default function FeaturedCollection({
             </h2>
           </div>
           <div className="py-12 text-center">
-            <p className="text-[#c9b99a]/40 text-sm">
+            <p className="text-muted/40 text-sm">
               Our collection is being updated. Please check back soon.
             </p>
           </div>
@@ -283,6 +283,23 @@ export default function FeaturedCollection({
             key={activeTab}
             className="fc2-bento-grid"
             aria-label={`${activeTab} fragrances`}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={(e, info) => {
+              const idx = families.indexOf(activeTab);
+              if (info.offset.x < -50) {
+                // Next tab (swipe left)
+                if (idx < families.length - 1) setActiveTab(families[idx + 1]);
+              } else if (info.offset.x > 50) {
+                // Prev tab (swipe right)
+                if (idx > 0) setActiveTab(families[idx - 1]);
+              }
+            }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
             {filteredProducts.slice(0, 6).map((perfume, index) => (
               <BentoCard
@@ -326,11 +343,11 @@ export default function FeaturedCollection({
               </button>
 
               <div className="fc2-drawer-img-wrap">
-                <img
+                <LuxuryImage
                   src={drawerProduct.image || FALLBACK_IMAGE}
                   alt={drawerProduct.name}
                   className="fc2-drawer-img"
-                  onError={(event) => {
+                  onError={(event: React.SyntheticEvent<HTMLImageElement>) => {
                     const img = event.currentTarget;
                     if (img.dataset.fallbackApplied) return;
                     img.dataset.fallbackApplied = "1";

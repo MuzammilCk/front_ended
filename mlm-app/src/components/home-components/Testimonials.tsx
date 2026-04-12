@@ -3,6 +3,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect, useRef } from "react";
 import { useHomepage } from "../../hooks/useHomepage";
 import type { HomepageTestimonial } from "../../api/types";
+import { useGsapContext } from "../../hooks/useGsapContext";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -72,44 +73,44 @@ export default function Testimonials() {
   const testimonialsData = data?.testimonials ?? FALLBACK_TESTIMONIALS;
   const allTestimonials = [...testimonialsData, ...testimonialsData];
 
+  useGsapContext(() => {
+    if (headerRef.current && sectionRef.current) {
+      gsap.from(headerRef.current, {
+        y: 24,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 78%",
+        },
+      });
+    }
+
+    const inner = marqueeInnerRef.current;
+    if (!inner) return;
+
+    const startMarquee = () => {
+      const totalWidth = inner.scrollWidth / 2;
+      if (totalWidth <= 0) return;
+      gsap.to(inner, {
+        x: -totalWidth,
+        duration: 35,
+        ease: "none",
+        repeat: -1,
+      });
+    };
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(startMarquee);
+    });
+  }, sectionRef, [testimonialsData]);
+
   useEffect(() => {
     const marqueeEl = marqueeRef.current;
 
     const pauseMarquee = () => gsap.globalTimeline.pause();
     const resumeMarquee = () => gsap.globalTimeline.resume();
-
-    const ctx = gsap.context(() => {
-      if (headerRef.current && sectionRef.current) {
-        gsap.from(headerRef.current, {
-          y: 24,
-          opacity: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 78%",
-          },
-        });
-      }
-
-      const inner = marqueeInnerRef.current;
-      if (!inner) return;
-
-      const startMarquee = () => {
-        const totalWidth = inner.scrollWidth / 2;
-        if (totalWidth <= 0) return;
-        gsap.to(inner, {
-          x: -totalWidth,
-          duration: 35,
-          ease: "none",
-          repeat: -1,
-        });
-      };
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(startMarquee);
-      });
-    }, sectionRef);
 
     if (marqueeEl) {
       marqueeEl.addEventListener("mouseenter", pauseMarquee);
@@ -121,9 +122,8 @@ export default function Testimonials() {
         marqueeEl.removeEventListener("mouseenter", pauseMarquee);
         marqueeEl.removeEventListener("mouseleave", resumeMarquee);
       }
-      ctx.revert();
     };
-  }, [testimonialsData]);
+  }, []);
 
   if (loading) {
     return (

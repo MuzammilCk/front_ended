@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getListingById } from "../api/listings";
-import { addToCart as apiAddToCart } from "../api/cart";
 import type { Listing } from "../api/types";
+import { useCart } from "../context/CartContext";
+import { useGsapContext } from "../hooks/useGsapContext";
+import LuxuryImage from "../components/ui/LuxuryImage";
 import { getImageUrl } from "../utils/imageUrl";
 import { Alert } from "../components/ui/Alert";
 import Sidebar from "../components/Sidebar";
@@ -22,7 +24,8 @@ const ProductSequence = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
-  const frameObj = useRef({ current: 0 });
+  const frameObj = useRef({ frame: 0 });
+  const [loadedFrame, setLoadedFrame] = useState(0);
 
   useEffect(() => {
     // Preload all frames
@@ -31,65 +34,75 @@ const ProductSequence = () => {
       img.src = src;
       return img;
     });
+  }, []);
 
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const renderFrame = (index: number) => {
-      const img = imagesRef.current[index];
-      if (img && img.complete) {
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Compute to draw image covered / contained to the canvas nicely
-        const hRatio = canvas.width / img.width;
-        const vRatio = canvas.height / img.height;
-        const ratio  = Math.min(hRatio, vRatio);
-        const centerShift_x = (canvas.width - img.width*ratio) / 2;
-        const centerShift_y = (canvas.height - img.height*ratio) / 2;  
-
-        ctx.drawImage(img, 0,0, img.width, img.height,
-                      centerShift_x, centerShift_y, img.width*ratio, img.height*ratio);  
-      }
-    };
-
-    const firstImg = imagesRef.current[0];
-    if (firstImg) {
-      firstImg.onload = () => renderFrame(0);
-      if (firstImg.complete) renderFrame(0);
-    }
-
-    const ctxSt = gsap.context(() => {
-      gsap.to(frameObj.current, {
-        current: TOTAL_FRAMES - 1,
-        snap: 'current',
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '#sequence-container',
-          start: 'top top',
-          end: '+=2000',   // 2000px of scroll for full rotation
-          scrub: 0.5,
-          pin: true,       // Pins the section while scrolling through frames
-        },
-        onUpdate: () => renderFrame(Math.round(frameObj.current.current)),
-      });
+    const img = imagesRef.current[loadedFrame];
+    if (img && img.complete) {
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      gsap.to('.hero-titles', {
-        opacity: 0,
-        y: -50,
-        scrollTrigger: {
-          trigger: '#sequence-container',
-          start: 'top top',
-          end: '+=500',
-          scrub: true,
-        }
-      });
-    }, containerRef);
+      const hRatio = canvas.width / img.width;
+      const vRatio = canvas.height / img.height;
+      const ratio  = Math.min(hRatio, vRatio);
+      const centerShift_x = (canvas.width - img.width*ratio) / 2;
+      const centerShift_y = (canvas.height - img.height*ratio) / 2;  
 
-    return () => ctxSt.revert();
-  }, []);
+      ctx.drawImage(img, 0,0, img.width, img.height,
+                    centerShift_x, centerShift_y, img.width*ratio, img.height*ratio);  
+    }
+  }, [loadedFrame]);
+
+  useGsapContext(() => {
+    if (!containerRef.current) return;
+
+    gsap.to(frameObj.current, {
+      frame: Math.max(0, TOTAL_FRAMES - 1),
+      snap: "frame",
+      ease: "none",
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top top",
+        end: "+=200%",
+        scrub: 1.5,
+      },
+      onUpdate: () => {
+        const f = Math.round(frameObj.current.frame);
+        setLoadedFrame(f);
+      },
+    });
+
+    gsap.to(".hero-titles", {
+      opacity: 0,
+      y: -50,
+      duration: 1,
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top top",
+        end: "+=50%",
+        scrub: true,
+      },
+    });
+
+    gsap.set(".reveal-feature", { opacity: 0, y: 30 });
+    gsap.to(".reveal-feature", {
+      opacity: 1,
+      y: 0,
+      stagger: 0.2,
+      duration: 0.8,
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top left",
+        end: "+=150%",
+        scrub: true,
+      },
+    });
+  }, containerRef, []);
 
   return (
     <div ref={containerRef} id="sequence-container" className="relative w-full h-screen bg-black overflow-hidden border-b border-[#2a2a2a]">
@@ -120,6 +133,8 @@ export default function ProductDetail() {
   const [addedToCart, setAddedToCart] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const { addItem } = useCart();
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
@@ -146,19 +161,21 @@ export default function ProductDetail() {
     return () => { cancelled = true; };
   }, [id]);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
     if (!listing) return;
     setAddedToCart(true);
-    try {
-      await apiAddToCart(listing.id, 1, {
-        title: listing.title,
-        price: listing.price,
-        image_url: listing.images.length > 0 ? getImageUrl(listing.images[0].storage_key) : '',
-        notes: listing.description ?? '',
-      });
-    } catch {
-      // Optionally show error
-    }
+    addItem({
+      id: crypto.randomUUID?.() ?? `cart-${Date.now()}`,
+      sku_id: listing.id,
+      listing_id: listing.id,
+      title: listing.title,
+      price: listing.price,
+      qty: 1,
+      image_url: listing.images.length > 0 ? getImageUrl(listing.images[0].storage_key) ?? '' : '',
+      notes: listing.description ?? '',
+      in_stock: true,
+      expires_at: null,
+    });
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
@@ -226,10 +243,11 @@ export default function ProductDetail() {
             {/* Image */}
             <div className="relative aspect-[3/4] overflow-hidden bg-[#0c0c0c]">
               {listing.images.length > 0 && getImageUrl(listing.images[0].storage_key) ? (
-                <img
-                  src={getImageUrl(listing.images[0].storage_key)}
+                <LuxuryImage
+                  src={getImageUrl(listing.images[0].storage_key) as string}
                   alt={listing.title}
                   className="object-cover w-full h-full"
+                  priority
                 />
               ) : (
                 <div className="flex items-center justify-center w-full h-full">
@@ -271,7 +289,7 @@ export default function ProductDetail() {
 
               {/* Description */}
               {listing.description && (
-                <p className="text-sm text-[#c9b99a]/70 leading-relaxed max-w-md">
+                <p className="text-sm text-muted/70 leading-relaxed max-w-md">
                   {listing.description}
                 </p>
               )}
@@ -305,11 +323,10 @@ export default function ProductDetail() {
                         key={img.id}
                         className="w-16 h-16 overflow-hidden border border-[#2a2a2a] hover:border-[#c9a96e]/40 transition cursor-pointer"
                       >
-                        <img
+                        <LuxuryImage
                           src={url}
                           alt={listing.title}
                           className="object-cover w-full h-full"
-                          loading="lazy"
                         />
                       </div>
                     ) : null;

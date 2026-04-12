@@ -106,12 +106,12 @@ export default function Admin() {
 
         {/* Live API status bar — between Topbar and content */}
         {apiLoading && (
-          <div className="px-8 py-2 bg-[#0d0a07] border-b border-[#c9a96e]/10 text-xs text-[#c9b99a]/40">
+          <div className="px-8 py-2 bg-[#0d0a07] border-b border-[#c9a96e]/10 text-xs text-muted/40">
             Syncing with backend…
           </div>
         )}
         {ordersTotal > 0 && (
-          <div className="px-8 py-2 bg-[#0d0a07] border-b border-[#c9a96e]/10 text-xs text-[#c9b99a]/60">
+          <div className="px-8 py-2 bg-[#0d0a07] border-b border-[#c9a96e]/10 text-xs text-muted/60">
             Live: {ordersTotal} total orders in system
           </div>
         )}

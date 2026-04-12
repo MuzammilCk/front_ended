@@ -10,7 +10,7 @@ export default function InfoField({
     <div className="flex items-start gap-4">
       <Icon className="w-5 h-5 mt-1 text-[#c9a96e]" />
       <div className="flex-1">
-        <p className="text-sm text-[#c9b99a]/60">{label}</p>
+        <p className="text-sm text-muted/60">{label}</p>
 
         {isEditing ? (
           <input

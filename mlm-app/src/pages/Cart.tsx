@@ -7,9 +7,9 @@ import RecommendedProducts from "../components/Cart-components/RecommendedProduc
 
 import { createOrder, listOrders } from "../api/orders";
 import { getListings } from "../api/listings";
-import { getCart, updateCartItemQty, removeCartItem, clearCart } from "../api/cart";
 import { ApiError } from "../api/client";
 import type { Order, CartApiItem } from "../api/types";
+import { useCart } from "../context/CartContext";
 
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/Sidebar";
@@ -55,9 +55,10 @@ function generateUUID(): string {
 }
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [cartLoading, setCartLoading] = useState(true);
-  const [cartError, setCartError] = useState("");
+  const { items: ctxItems, updateQty: contextUpdateQty, removeItem: contextRemoveItem, clearCart } = useCart();
+  const cartItems = ctxItems.map(mapApiCartItem);
+  const cartLoading = false;
+  const cartError = "";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -97,25 +98,9 @@ export default function Cart() {
     return Object.keys(errors).length === 0;
   };
 
-  // Fetch cart from API on mount
+  // Fetch
   useEffect(() => {
-    let cancelled = false;
-    setCartLoading(true);
-    getCart()
-      .then((result) => {
-        if (!cancelled) {
-          setCartItems(result.items.map(mapApiCartItem));
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setCartError(err instanceof Error ? err.message : "Failed to load cart");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setCartLoading(false);
-      });
-    return () => { cancelled = true; };
+    // Hydration happens via CartContext
   }, []);
 
   // Fetch past orders
@@ -134,31 +119,11 @@ export default function Cart() {
   }, []);
 
   const updateQuantity = async (id: string, qty: number) => {
-    if (qty < 1) return;
-    // Optimistic update
-    setCartItems((items) =>
-      items.map((i) => (i.id === id ? { ...i, quantity: qty } : i)),
-    );
-    try {
-      await updateCartItemQty(id, qty);
-    } catch {
-      // Revert on failure — re-fetch cart
-      getCart()
-        .then((result) => setCartItems(result.items.map(mapApiCartItem)))
-        .catch(() => {});
-    }
+    contextUpdateQty(id, qty);
   };
 
   const removeItem = async (id: string) => {
-    setCartItems((items) => items.filter((i) => i.id !== id));
-    try {
-      await removeCartItem(id);
-    } catch {
-      // Revert on failure
-      getCart()
-        .then((result) => setCartItems(result.items.map(mapApiCartItem)))
-        .catch(() => {});
-    }
+    contextRemoveItem(id);
   };
 
   const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
@@ -227,7 +192,7 @@ export default function Cart() {
       setLastOrder(order);
       setCheckoutError("");
       setCheckoutStep('confirmed');
-      setCartItems([]);
+      setCheckoutStep('confirmed');
       clearCart();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -288,7 +253,7 @@ export default function Cart() {
 
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-[#c9a96e]" />
-            <span className="text-sm text-[#c9b99a]/80">
+            <span className="text-sm text-muted/80">
               {cartItems.reduce((s, i) => s + i.quantity, 0)} Items
             </span>
           </div>
@@ -316,7 +281,7 @@ export default function Cart() {
             </div>
             <h2 className="mb-2 text-3xl text-[#c9a96e]">Order Confirmed!</h2>
             <p className="mb-2 text-xl text-[#e8dcc8]">Order #{lastOrder.id.slice(0, 8)}</p>
-            <p className="mb-8 text-[#c9b99a]/80">Your order has been placed successfully.<br/>We will notify you once it ships.</p>
+            <p className="mb-8 text-muted/80">Your order has been placed successfully.<br/>We will notify you once it ships.</p>
             <div className="flex gap-4">
               <Link to="/product" className="px-6 py-3 bg-[#c9a96e]/10 text-[#c9a96e] border border-[#c9a96e]/20 rounded-lg hover:bg-[#c9a96e]/20 transition">Continue Shopping →</Link>
               <Link to="/profile" className="px-6 py-3 bg-[#c9a96e] text-[#0a0705] rounded-lg hover:bg-[#c9a96e]/90 transition">View All Orders →</Link>
@@ -351,7 +316,7 @@ export default function Cart() {
                 <div>
                   <label className="block text-sm text-[#e8dcc8] mb-1">Phone Number*</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-3 text-[#c9b99a]/50">+91</span>
+                    <span className="absolute left-3 top-3 text-muted/50">+91</span>
                     <input type="tel" value={shippingForm.phone} onChange={(e) => { let val = e.target.value; if (val && !val.startsWith('+')) val = '+' + val; setShippingForm({...shippingForm, phone: val}); setFormErrors({...formErrors, phone: ''}); }} className={`w-full bg-transparent border ${formErrors.phone ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 pl-10 text-[#e8dcc8] outline-none transition`} placeholder="9876543210" />
                   </div>
                   {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
@@ -438,7 +403,7 @@ export default function Cart() {
                   key={order.id}
                   className="flex items-center justify-between px-4 py-3 border border-[#c9a96e]/10 rounded-lg text-sm"
                 >
-                  <span className="text-[#c9b99a]/60 font-mono">
+                  <span className="text-muted/60 font-mono">
                     #{order.id.slice(0, 8)}
                   </span>
                   <span className="text-[#c9a96e]">{order.status}</span>

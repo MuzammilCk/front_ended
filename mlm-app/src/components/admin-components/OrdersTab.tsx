@@ -47,13 +47,13 @@ export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
             key={i}
             className="border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#130e08] p-5 hover:border-[#c9a96e]/25 transition-colors"
           >
-            <p className="text-[10px] tracking-[0.22em] uppercase text-[#c9b99a]/25">
+            <p className="text-[10px] tracking-[0.22em] uppercase text-muted/25">
               {s.label}
             </p>
             <p className="font-serif text-3xl font-light text-[#c9a96e] mt-1">
               {s.orders.toLocaleString()}
             </p>
-            <p className="text-[10px] text-[#c9b99a]/25">
+            <p className="text-[10px] text-muted/25">
               AED {s.rev.toLocaleString()}
             </p>
           </div>
@@ -66,7 +66,7 @@ export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
           <p className="font-serif text-xl font-light text-[#e8dcc8]">
             All Orders
           </p>
-          <span className="text-[10px] tracking-[0.15em] uppercase text-[#c9b99a]/20">
+          <span className="text-[10px] tracking-[0.15em] uppercase text-muted/20">
             Recent list
           </span>
         </div>
@@ -75,7 +75,7 @@ export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
             (h) => (
               <span
                 key={h}
-                className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/20"
+                className="text-[10px] tracking-[0.2em] uppercase text-muted/20"
               >
                 {h}
               </span>
@@ -92,7 +92,7 @@ export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
               {o.buyer_id.slice(-6)}
             </span>
             <span className="text-xs text-[#e8dcc8]">{o.currency} {parseFloat(o.total_amount).toFixed(2)}</span>
-            <span className="text-[10px] text-[#c9b99a]/30">{new Date(o.created_at).toLocaleDateString()}</span>
+            <span className="text-[10px] text-muted/30">{new Date(o.created_at).toLocaleDateString()}</span>
             <span
               className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit ${ORDER_STATUS_CLS[o.status] || "bg-gray-500/10 text-gray-400"}`}
             >
@@ -113,7 +113,7 @@ export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
           {["Month", "Orders", "Revenue", "Volume"].map((h) => (
             <span
               key={h}
-              className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/20"
+              className="text-[10px] tracking-[0.2em] uppercase text-muted/20"
             >
               {h}
             </span>
@@ -128,7 +128,7 @@ export default function OrdersTab({ orders = [] }: { orders?: Order[] }) {
               {m.month}
             </span>
             <span className="text-xs text-[#c9a96e]">{m.orders}</span>
-            <span className="text-xs text-[#c9b99a]/50">
+            <span className="text-xs text-muted/50">
               AED {m.revenue.toLocaleString()}
             </span>
             <div className="h-0.5 bg-[#c9a96e]/8 overflow-hidden">

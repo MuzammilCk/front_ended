@@ -6,7 +6,7 @@ import WishlistSummary from "../components/wishlist-components/WishlistSummary";
 import WishlistBenefits from "../components/wishlist-components/WishlistBenefits";
 import WishlistRecommended from "../components/wishlist-components/WishlistRecommended";
 
-import { addToCart as apiAddToCart } from "../api/cart";
+import { useCart } from "../context/CartContext";
 
 import { Heart, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/Sidebar";
@@ -42,8 +42,25 @@ export default function Wishlist() {
     setWishlistItems((items) => items.filter((item) => item.id !== String(id)));
   };
 
+  const { addItem } = useCart();
+
   const addToCartHandler = (id: string | number) => {
     setAddedToCart(String(id));
+    const itemToAdd = wishlistItems.find((w) => w.id === String(id));
+    if (itemToAdd) {
+      addItem({
+        id: crypto.randomUUID?.() ?? `cart-${Date.now()}`,
+        sku_id: itemToAdd.id,
+        listing_id: itemToAdd.id,
+        title: itemToAdd.name,
+        price: String(itemToAdd.price),
+        qty: 1,
+        image_url: itemToAdd.image,
+        notes: itemToAdd.notes,
+        in_stock: true,
+        expires_at: null,
+      });
+    }
     setTimeout(() => setAddedToCart(null), 2000);
   };
 
@@ -51,10 +68,21 @@ export default function Wishlist() {
     let successCount = 0;
     for (const item of wishlistItems) {
       try {
-        await apiAddToCart(item.id, 1);
+        addItem({
+          id: crypto.randomUUID?.() ?? `cart-${Date.now()}`,
+          sku_id: item.id,
+          listing_id: item.id,
+          title: item.name,
+          price: String(item.price),
+          qty: 1,
+          image_url: item.image,
+          notes: item.notes,
+          in_stock: true,
+          expires_at: null,
+        });
         successCount++;
       } catch {
-        // Skip items that fail (e.g. out of stock)
+        // Skip items that fail
       }
     }
     if (successCount > 0) {

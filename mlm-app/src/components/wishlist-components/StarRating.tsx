@@ -14,12 +14,12 @@ export default function StarRating({ rating, reviews }) {
               ? "fill-[#c9a96e] text-[#c9a96e]"
               : i === fullStars && hasHalfStar
               ? "text-[#c9a96e]"
-              : "text-[#c9b99a]/30"
+              : "text-muted/30"
           }`}
         />
       ))}
-      <span className="ml-1 text-xs text-[#c9b99a]/60">{rating}</span>
-      <span className="text-xs text-[#c9b99a]/40">({reviews})</span>
+      <span className="ml-1 text-xs text-muted/60">{rating}</span>
+      <span className="text-xs text-muted/40">({reviews})</span>
     </div>
   );
 }

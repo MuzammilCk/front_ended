@@ -1,4 +1,5 @@
 import { User, Camera, Edit2, Save, X } from "lucide-react";
+import LuxuryImage from "../ui/LuxuryImage";
 
 export default function ProfileHeader({
   userData,
@@ -18,7 +19,7 @@ export default function ProfileHeader({
           <div className="relative w-32 h-32 overflow-hidden border-2 rounded-full border-[#c9a96e]/30 bg-gradient-to-br from-[#c9a96e]/10 to-transparent">
             
             {userData.avatar ? (
-              <img
+              <LuxuryImage
                 src={userData.avatar}
                 alt={userData.name}
                 className="object-cover w-full h-full"
@@ -58,7 +59,7 @@ export default function ProfileHeader({
                 <h1 className="text-3xl font-light">{userData.name}</h1>
               )}
 
-              <p className="mt-1 text-sm text-[#c9b99a]/60">
+              <p className="mt-1 text-sm text-muted/60">
                 Premium Member since {userData.joinedDate}
               </p>
             </div>

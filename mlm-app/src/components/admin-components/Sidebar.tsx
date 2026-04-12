@@ -25,7 +25,7 @@ export default function Sidebar({
         >
           HADI
         </Link>
-        <p className="text-[#c9b99a]/20 mt-1 text-[10px] tracking-[0.25em] uppercase">
+        <p className="text-muted/20 mt-1 text-[10px] tracking-[0.25em] uppercase">
           Admin Console
         </p>
       </div>
@@ -39,7 +39,7 @@ export default function Sidebar({
               ${
                 tab === item.key
                   ? "border-[#c9a96e] text-[#c9a96e] bg-[#c9a96e]/5"
-                  : "border-transparent text-[#c9b99a]/30 hover:text-[#e8dcc8] hover:bg-[#c9a96e]/5"
+                  : "border-transparent text-muted/30 hover:text-[#e8dcc8] hover:bg-[#c9a96e]/5"
               }`}
           >
             <span className="font-mono text-sm">{item.icon}</span>
@@ -49,10 +49,10 @@ export default function Sidebar({
       </nav>
 
       <div className="px-5 py-5 border-t border-[#c9a96e]/10">
-        <p className="text-[10px] tracking-[0.15em] uppercase text-[#c9b99a]/20 leading-5">
+        <p className="text-[10px] tracking-[0.15em] uppercase text-muted/20 leading-5">
           Logged in as
           <br />
-          <span className="text-[#c9b99a]/40">admin@hadi-perfumes.com</span>
+          <span className="text-muted/40">admin@hadi-perfumes.com</span>
         </p>
       </div>
     </aside>

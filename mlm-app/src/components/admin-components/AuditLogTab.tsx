@@ -59,7 +59,7 @@ export default function AuditLogTab() {
       {/* Filters */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <label className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/25">
+          <label className="text-[10px] tracking-[0.2em] uppercase text-muted/25">
             Filter by entity:
           </label>
           <select
@@ -75,7 +75,7 @@ export default function AuditLogTab() {
             ))}
           </select>
         </div>
-        <span className="text-[10px] tracking-[0.15em] uppercase text-[#c9b99a]/20">
+        <span className="text-[10px] tracking-[0.15em] uppercase text-muted/20">
           {total} total entries
         </span>
       </div>
@@ -92,7 +92,7 @@ export default function AuditLogTab() {
           {["Timestamp", "Actor", "Action", "Entity", "Changes"].map((h) => (
             <span
               key={h}
-              className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/20"
+              className="text-[10px] tracking-[0.2em] uppercase text-muted/20"
             >
               {h}
             </span>
@@ -108,11 +108,11 @@ export default function AuditLogTab() {
             </div>
           </div>
         ) : error ? (
-          <div className="px-6 py-8 text-center text-[#c9b99a]/40 text-sm">
+          <div className="px-6 py-8 text-center text-muted/40 text-sm">
             {error}
           </div>
         ) : logs.length === 0 ? (
-          <div className="px-6 py-8 text-center text-[#c9b99a]/40 text-sm">
+          <div className="px-6 py-8 text-center text-muted/40 text-sm">
             No audit log entries found.
           </div>
         ) : (
@@ -121,17 +121,17 @@ export default function AuditLogTab() {
               key={log.id}
               className="grid grid-cols-5 py-3 px-6 border-b border-[#c9a96e]/4 items-center hover:bg-[#c9a96e]/3 transition-colors"
             >
-              <span className="text-[10px] text-[#c9b99a]/30">
+              <span className="text-[10px] text-muted/30">
                 {new Date(log.timestamp).toLocaleString()}
               </span>
               <span className="text-xs text-[#e8dcc8] font-light truncate">
                 {log.actor}
               </span>
               <span className="text-xs text-[#c9a96e]">{log.action}</span>
-              <span className="text-xs text-[#c9b99a]/50">
+              <span className="text-xs text-muted/50">
                 {log.entity_type}/{log.entity_id.slice(-6)}
               </span>
-              <span className="text-[10px] text-[#c9b99a]/30 truncate" title={formatChanges(log.changes)}>
+              <span className="text-[10px] text-muted/30 truncate" title={formatChanges(log.changes)}>
                 {formatChanges(log.changes)}
               </span>
             </div>
@@ -148,7 +148,7 @@ export default function AuditLogTab() {
         >
           ← Prev
         </button>
-        <span className="text-[10px] text-[#c9b99a]/40">
+        <span className="text-[10px] text-muted/40">
           Page {page} of {totalPages}
         </span>
         <button

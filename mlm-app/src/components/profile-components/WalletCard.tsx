@@ -9,7 +9,7 @@ export default function WalletCard({ balance }) {
       </div>
 
       <div className="p-6 text-center">
-        <p className="text-sm text-[#c9b99a]/60">Available Balance</p>
+        <p className="text-sm text-muted/60">Available Balance</p>
         <p className="mt-2 text-4xl font-light text-[#c9a96e]">
           INR {balance.toFixed(2)}
         </p>

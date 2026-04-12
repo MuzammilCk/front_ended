@@ -3,13 +3,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "../../lib/motion";
 import { Heart, Menu, Search, ShoppingBag, X, ArrowRight, User, LogOut, Package, Wallet } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
+import { useCart } from "../../context/CartContext";
 import { getListings } from "../../api/listings";
+import gsap from "gsap";
 import type { Listing } from "../../api/types";
 import "../../styles/Navbar.css";
 
 const SCROLL_THRESHOLD = 60;
 const MOBILE_BREAKPOINT = 900;
-const MEGA_MENU_CLOSE_DELAY = 150;
+const MEGA_MENU_CLOSE_DELAY = 300;
 
 const NAV_LINKS = [
   { label: "Home", to: "/" as const, mega: false },
@@ -35,6 +37,7 @@ function navItemIsActive(pathname: string, label: string, to: string) {
 
 export default function Navbar() {
   const { isLoggedIn, logout, userName } = useAuth();
+  const { count: cartCount } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -46,11 +49,28 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const logoRef = useRef<HTMLAnchorElement>(null);
-  const paletteInputRef = useRef<HTMLInputElement>(null);
   const searchTriggerRef = useRef<HTMLButtonElement>(null);
   const paletteRef = useRef<HTMLDivElement>(null);
   const megaMenuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const cartIconRef = useRef<HTMLAnchorElement>(null);
+  const paletteInputRef = useRef<HTMLInputElement>(null);
+
+  // GSAP animation on Cart Count change
+  useEffect(() => {
+    if (!cartIconRef.current || cartCount === 0) return;
+    
+    // Scale 1 -> 1.3 -> 1 with a gold pulse ring
+    const tl = gsap.timeline();
+    tl.to(cartIconRef.current, { scale: 1.3, duration: 0.15, ease: "power2.out" })
+      .to(cartIconRef.current, { scale: 1, duration: 0.25, ease: "bounce.out" });
+
+    // Assuming we want a ring effect, we can animate box-shadow via GSAP
+    gsap.fromTo(cartIconRef.current, 
+      { boxShadow: "0 0 0 0 rgba(201, 169, 110, 0.7)" }, 
+      { boxShadow: "0 0 0 10px rgba(201, 169, 110, 0)", duration: 0.6, ease: "power2.out" }
+    );
+  }, [cartCount]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -205,7 +225,7 @@ export default function Navbar() {
   const openMegaMenu = useCallback(
     (menu: Exclude<MegaMenuKind, null>) => {
       if (isMobileViewport()) return;
-      clearMegaMenuTimer();
+      if (megaMenuTimerRef.current) clearTimeout(megaMenuTimerRef.current);
       setMegaMenu(menu);
     },
     [clearMegaMenuTimer],
@@ -373,11 +393,16 @@ export default function Navbar() {
             </div>
           )}
 
-          <Link to="/wishlist" className="nb2-icon-btn" aria-label="Wishlist">
+          <Link to="/wishlist" className="nb2-icon-btn relative" aria-label="Wishlist">
             <Heart size={16} strokeWidth={1.5} />
           </Link>
-          <Link to="/cart" className="nb2-icon-btn" aria-label="Cart">
+          <Link ref={cartIconRef} to="/cart" className="nb2-icon-btn relative rounded-full" aria-label="Cart">
             <ShoppingBag size={16} strokeWidth={1.5} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-bold text-[#0a0705] bg-[#c9a96e] rounded-full">
+                {cartCount}
+              </span>
+            )}
           </Link>
 
           <button

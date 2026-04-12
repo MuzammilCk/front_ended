@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Check } from "lucide-react";
 
 interface RegisterFormProps {
   formData: any;
@@ -16,11 +17,19 @@ export default function RegisterForm({
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   const passwordsMatch = formData.password === formData.confirmPassword;
+  const pw = formData.password;
+  const meetsLength = pw.length >= 8;
+  const meetsUppercase = /[A-Z]/.test(pw);
+  const meetsNumber = /[0-9]/.test(pw);
+  const meetsSymbol = /[^A-Za-z0-9]/.test(pw);
+
+  const isPasswordValid = meetsLength && meetsUppercase && meetsNumber && meetsSymbol;
+
   const isFormValid =
     formData.name &&
     formData.email &&
     formData.phone &&
-    formData.password &&
+    isPasswordValid &&
     formData.referralCode &&
     passwordsMatch &&
     agreeToTerms;
@@ -260,13 +269,23 @@ export default function RegisterForm({
       </button>
 
       {/* Password Requirements */}
-      <div className="space-y-1 text-xs text-white/40">
-        <p>Password must contain:</p>
-        <ul className="list-disc list-inside space-y-0.5">
-          <li>At least 8 characters</li>
-          <li>At least one uppercase letter</li>
-          <li>At least one number</li>
-        </ul>
+      <div className="flex flex-wrap gap-2 mt-2">
+        {[
+          { met: meetsLength, label: "8+ chars" },
+          { met: meetsUppercase, label: "Uppercase" },
+          { met: meetsNumber, label: "Number" },
+          { met: meetsSymbol, label: "Symbol" },
+        ].map(({ met, label }, i) => (
+          <div
+            key={i}
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full transition-colors ${
+              met ? "bg-[#6db88a]/20 text-[#6db88a]" : "bg-white/10 text-white/40"
+            }`}
+          >
+            {met && <Check size={12} strokeWidth={2.5} />}
+            {label}
+          </div>
+        ))}
       </div>
     </form>
   );

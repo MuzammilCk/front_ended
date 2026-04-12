@@ -279,7 +279,7 @@ export default function Profile() {
                   </div>
 
                   <div className="flex justify-between">
-                    <div className="flex items-center gap-2 text-xs text-[#c9b99a]/60">
+                    <div className="flex items-center gap-2 text-xs text-muted/60">
                       <Clock className="w-4 h-4" />
                       2FA Available
                     </div>
@@ -295,12 +295,12 @@ export default function Profile() {
               {activities.length > 0 ? (
                 <ActivityList activities={activities} />
               ) : (
-                <div className="text-[#c9b99a]/60 italic">No recent activity yet.</div>
+                <div className="text-muted/60 italic">No recent activity yet.</div>
               )}
             </div>
           </>
         ) : (
-          <div className="py-20 text-center text-[#c9b99a]/60">Failed to load profile.</div>
+          <div className="py-20 text-center text-muted/60">Failed to load profile.</div>
         )}
       </div>
     </div>

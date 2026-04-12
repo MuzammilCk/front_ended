@@ -24,7 +24,7 @@ export default function DeleteModal({
         <p className="font-serif text-2xl font-light text-[#e8dcc8] mb-2">
           Remove Fragrance?
         </p>
-        <p className="text-[11px] text-[#c9b99a]/40 tracking-wide mb-6">
+        <p className="text-[11px] text-muted/40 tracking-wide mb-6">
           This will permanently remove the product from the catalogue.
         </p>
         <div className="flex gap-3">

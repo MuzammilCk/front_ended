@@ -6,7 +6,7 @@ export default function StatsCard({ icon: Icon, value, label }) {
           <Icon className="w-8 h-8 text-[#c9a96e]" />
           <span className="text-3xl font-light text-[#e8dcc8]">{value}</span>
         </div>
-        <p className="text-sm text-[#c9b99a]/60">{label}</p>
+        <p className="text-sm text-muted/60">{label}</p>
       </div>
       <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#c9a96e]/30 to-transparent" />
     </div>

@@ -80,6 +80,15 @@ h3 {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 .anim-route {
   animation: routeFade 320ms var(--ease-out-quart) both;
 }

@@ -19,7 +19,7 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
         <div className="min-h-screen bg-[#080604] flex items-center justify-center">
           <div className="text-center max-w-sm">
             <p className="font-serif text-3xl font-light text-[#e8dcc8] mb-2">Unauthorized</p>
-            <p className="text-[11px] text-[#c9b99a]/40 tracking-wide mb-6">
+            <p className="text-[11px] text-muted/40 tracking-wide mb-6">
               You don't have permission to access this page.
             </p>
             <a

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import type { AdminProductType, AdminTabType } from "../../api/types";
 import { adminCreateListing } from "../../api/admin";
 import { getSignedUploadUrl, confirmUpload } from "../../api/media";
+import LuxuryImage from "../ui/LuxuryImage";
 
 const PERF_TYPES = [
   "Eau de Parfum",
@@ -129,9 +130,9 @@ export default function AddProductTab({
   };
 
   const inputCls =
-    "w-full bg-[#080604] border border-[#c9a96e]/15 text-[#e8dcc8] text-xs font-light px-4 py-2.5 outline-none focus:border-[#c9a96e]/50 placeholder-[#c9b99a]/20 transition-colors duration-300";
+    "w-full bg-[#080604] border border-[#c9a96e]/15 text-[#e8dcc8] text-xs font-light px-4 py-2.5 outline-none focus:border-[#c9a96e]/50 placeholder-muted/20 transition-colors duration-300";
   const labelCls =
-    "block text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/35 mb-1.5";
+    "block text-[10px] tracking-[0.2em] uppercase text-muted/35 mb-1.5";
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -139,7 +140,7 @@ export default function AddProductTab({
         <p className="font-serif text-3xl font-light text-[#e8dcc8] mb-1">
           New Fragrance
         </p>
-        <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/25 mb-8">
+        <p className="text-[10px] tracking-[0.2em] uppercase text-muted/25 mb-8">
           Fill in the details below
         </p>
 
@@ -258,7 +259,7 @@ export default function AddProductTab({
                 />
               </label>
               {previewUrl && (
-                <img
+                <LuxuryImage
                   src={previewUrl}
                   alt="Preview"
                   className="w-12 h-16 object-cover border border-[#c9a96e]/15"
@@ -303,25 +304,25 @@ export default function AddProductTab({
 
       {/* Live Preview */}
       <div className="border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#100c08] p-6">
-        <p className="text-[10px] tracking-[0.22em] uppercase text-[#c9b99a]/20 mb-4">
+        <p className="text-[10px] tracking-[0.22em] uppercase text-muted/20 mb-4">
           Live Preview
         </p>
         <div className="flex items-center gap-5">
           <div className="w-16 h-24 border border-[#c9a96e]/15 bg-gradient-to-br from-[#1a0f0a] to-[#2d1810] flex items-center justify-center shrink-0 overflow-hidden">
             {previewUrl ? (
-              <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+              <LuxuryImage src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
             ) : (
               <div className="w-6 h-14 border border-[#c9a96e]/25 bg-gradient-to-b from-[#c9a96e]/10 to-transparent" />
             )}
           </div>
           <div>
-            <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/25">
+            <p className="text-[10px] tracking-[0.2em] uppercase text-muted/25">
               {form.type} · {form.ml}ml
             </p>
             <p className="font-serif text-2xl font-light text-[#e8dcc8]">
               {form.name || "Fragrance Name"}
             </p>
-            <p className="text-[11px] text-[#c9b99a]/30">
+            <p className="text-[11px] text-muted/30">
               {form.notes || "Scent notes will appear here"}
             </p>
             <p className="font-serif text-lg font-light text-[#c9a96e] mt-1">

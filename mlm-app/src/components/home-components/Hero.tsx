@@ -53,7 +53,7 @@ export default function Hero() {
         </div>
 
         <div className="text-right fade-up delay-3">
-          <p className="font-display italic text-[#c9b99a] text-lg font-light leading-relaxed mb-6">
+          <p className="font-display italic text-muted text-lg font-light leading-relaxed mb-6">
             "Crafted for those who wear their story on their skin."
           </p>
           <div className="ml-auto gold-line" />
@@ -61,7 +61,7 @@ export default function Hero() {
       </div>
 
       <div className="absolute flex flex-col items-center gap-2 -translate-x-1/2 bottom-8 left-1/2 opacity-40">
-        <span className="text-xs tracking-[0.2em] uppercase text-[#c9b99a]">
+        <span className="text-xs tracking-[0.2em] uppercase text-muted">
           Scroll
         </span>
         <div className="w-px h-12 bg-gradient-to-b from-[#c9a96e] to-transparent" />

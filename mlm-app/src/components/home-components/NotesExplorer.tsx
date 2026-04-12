@@ -1,9 +1,10 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { useHomepage } from "../../hooks/useHomepage";
 import type { HomepageScentFamily } from "../../api/types";
+import { useGsapContext } from "../../hooks/useGsapContext";
+import { Link } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -76,31 +77,62 @@ export default function NotesExplorer() {
     });
   };
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from(leftRef.current, {
-        x: -40,
-        opacity: 0,
-        duration: 1.2,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 72%",
-        },
+  useGsapContext(() => {
+    const handleDeviceOrientation = (e: DeviceOrientationEvent) => {
+      const el = imageRef.current;
+      if (!el || typeof e.beta !== 'number' || typeof e.gamma !== 'number') return;
+      
+      let beta = e.beta;
+      let gamma = e.gamma;
+
+      beta = Math.max(-30, Math.min(30, beta));
+      gamma = Math.max(-30, Math.min(30, gamma));
+
+      const rotX = (beta / 30) * 10;
+      const rotY = (gamma / 30) * 10;
+
+      gsap.to(el, {
+        rotateX: -rotX,
+        rotateY: rotY,
+        duration: 0.5,
+        ease: "power2.out",
+        transformPerspective: 800,
       });
-      gsap.from(imageRef.current, {
-        x: 40,
-        opacity: 0,
-        duration: 1.2,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 72%",
-        },
-      });
-    }, sectionRef);
-    return () => ctx.revert();
-  }, []);
+    };
+
+    if (typeof window !== "undefined" && 'DeviceOrientationEvent' in window) {
+      try {
+        window.addEventListener('deviceorientation', handleDeviceOrientation);
+      } catch (err) {}
+    }
+
+    gsap.from(leftRef.current, {
+      x: -40,
+      opacity: 0,
+      duration: 1.2,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: "top 72%",
+      },
+    });
+    gsap.from(imageRef.current, {
+      x: 40,
+      opacity: 0,
+      duration: 1.2,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: "top 72%",
+      },
+    });
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener('deviceorientation', handleDeviceOrientation);
+      }
+    };
+  }, sectionRef, []);
 
   if (loading) {
     return (

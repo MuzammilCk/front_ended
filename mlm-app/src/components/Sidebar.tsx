@@ -134,7 +134,7 @@ export default function Sidebar({
                 HADI
               </span>
             </div>
-            <p className="mt-2 text-xs tracking-wide text-[#c9b99a]/60">
+            <p className="mt-2 text-xs tracking-wide text-muted/60">
               LUXURY ESSENTIALS
             </p>
           </Link>
@@ -211,7 +211,7 @@ export default function Sidebar({
           </button>
 
           <div className="text-center">
-            <p className="text-xs tracking-wide text-[#c9b99a]/40">
+            <p className="text-xs tracking-wide text-muted/40">
               © 2025 HADI perfumes. All rights reserved.
             </p>
           </div>

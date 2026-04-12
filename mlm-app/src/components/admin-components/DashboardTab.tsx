@@ -84,7 +84,7 @@ export default function DashboardTab({
             key={i}
             className="border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#130e08] p-5 hover:border-[#c9a96e]/25 transition-colors duration-300"
           >
-            <p className="text-[10px] tracking-[0.22em] uppercase text-[#c9b99a]/25">
+            <p className="text-[10px] tracking-[0.22em] uppercase text-muted/25">
               {k.label}
             </p>
             <p
@@ -92,7 +92,7 @@ export default function DashboardTab({
             >
               {k.value}
             </p>
-            <p className="text-[10px] text-[#c9b99a]/25">{k.sub}</p>
+            <p className="text-[10px] text-muted/25">{k.sub}</p>
           </div>
         ))}
       </div>
@@ -106,7 +106,7 @@ export default function DashboardTab({
               <p className="font-serif text-xl font-light text-[#e8dcc8]">
                 Order Volume
               </p>
-              <p className="text-[10px] tracking-[0.15em] uppercase text-[#c9b99a]/25">
+              <p className="text-[10px] tracking-[0.15em] uppercase text-muted/25">
                 Last 7 days
               </p>
             </div>
@@ -114,7 +114,7 @@ export default function DashboardTab({
 
           <div className="flex items-end gap-2 h-44">
             {orders.length === 0 ? (
-              <div className="w-full h-full flex flex-col justify-center items-center text-[#c9b99a]/40">
+              <div className="w-full h-full flex flex-col justify-center items-center text-muted/40">
                 <p>No order data yet</p>
               </div>
             ) : (
@@ -131,7 +131,7 @@ export default function DashboardTab({
                         style={{ height: `${pct}%` }}
                       />
                     </div>
-                    <span className="text-[10px] text-[#c9b99a]/25 tracking-wide">
+                    <span className="text-[10px] text-muted/25 tracking-wide">
                       {d.day}
                     </span>
                   </div>
@@ -149,7 +149,7 @@ export default function DashboardTab({
               },
             ].map((s) => (
               <div key={s.label}>
-                <p className="text-[10px] tracking-[0.18em] uppercase text-[#c9b99a]/25">
+                <p className="text-[10px] tracking-[0.18em] uppercase text-muted/25">
                   {s.label}
                 </p>
                 <p className="font-serif text-lg font-light text-[#c9a96e]">
@@ -165,12 +165,12 @@ export default function DashboardTab({
           <p className="font-serif text-xl font-light text-[#e8dcc8] mb-1">
             Top Sellers
           </p>
-          <p className="text-[10px] tracking-[0.15em] uppercase text-[#c9b99a]/25 mb-6">
+          <p className="text-[10px] tracking-[0.15em] uppercase text-muted/25 mb-6">
             By revenue · all time
           </p>
           <div className="space-y-5">
             {products.length === 0 ? (
-               <p className="text-[#c9b99a]/40 text-sm">No products</p>
+               <p className="text-muted/40 text-sm">No products</p>
             ) : (
                 products.slice(0, 5).map((p, i) => (
                   <div key={i}>
@@ -188,7 +188,7 @@ export default function DashboardTab({
                         style={{ width: `0%` }}
                       />
                     </div>
-                    <p className="text-[10px] text-[#c9b99a]/25 mt-0.5">
+                    <p className="text-[10px] text-muted/25 mt-0.5">
                       —
                     </p>
                   </div>
@@ -215,14 +215,14 @@ export default function DashboardTab({
           {["Order ID", "Customer ID", "Amount", "Status"].map((h) => (
             <span
               key={h}
-              className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/20"
+              className="text-[10px] tracking-[0.2em] uppercase text-muted/20"
             >
               {h}
             </span>
           ))}
         </div>
         {orders.length === 0 ? (
-            <p className="text-[#c9b99a]/40 py-4">No recent orders.</p>
+            <p className="text-muted/40 py-4">No recent orders.</p>
         ) : (
           orders.slice(0, 5).map((o, i) => (
             <div

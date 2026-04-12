@@ -4,8 +4,9 @@ import "../styles/product.css";
 import Sidebar from "../components/Sidebar";
 
 import { getListings, getCategories } from "../api/listings";
-import { addToCart as apiAddToCart } from "../api/cart";
 import type { Listing, ProductCategory } from "../api/types";
+import { useCart } from "../context/CartContext";
+import LuxuryImage from "../components/ui/LuxuryImage";
 import { getImageUrl } from "../utils/imageUrl";
 import { Alert } from "../components/ui/Alert";
 
@@ -22,18 +23,22 @@ export default function Product() {
     );
   };
 
-  const addToCart = async (id: string, item?: { title: string; price: string; image: string; notes: string }) => {
+  const { addItem } = useCart();
+
+  const handleAddToCart = (id: string, item?: { title: string; price: string; image: string; notes: string }) => {
     setCart((prev) => (prev.includes(id) ? prev : [...prev, id]));
-    try {
-      await apiAddToCart(id, 1, item ? {
-        title: item.title,
-        price: item.price,
-        image_url: item.image,
-        notes: item.notes,
-      } : undefined);
-    } catch {
-      setCart((prev) => prev.filter((x) => x !== id));
-    }
+    addItem({
+      id: crypto.randomUUID?.() ?? `cart-${Date.now()}`,
+      sku_id: id,
+      listing_id: id,
+      title: item?.title ?? 'Product',
+      price: item?.price ?? '0',
+      qty: 1,
+      image_url: item?.image ?? '',
+      notes: item?.notes ?? '',
+      in_stock: true,
+      expires_at: null,
+    });
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -258,11 +263,9 @@ export default function Product() {
                     {/* The bottle container — floats transparently over the glow */}
                     <div className="bottle-tilt-container absolute inset-0 z-10 flex items-center justify-center p-8 pb-32">
                       {item.image ? (
-                        <img
+                        <LuxuryImage
                           src={item.image}
                           alt={item.name}
-                          loading="lazy"
-                          decoding="async"
                           className="object-contain w-full h-full drop-shadow-2xl transition-transform duration-700 group-hover:scale-110"
                         />
                       ) : (
@@ -321,7 +324,7 @@ export default function Product() {
                         <Link to={`/product/${item.id}`} className="hover:text-white transition-colors">{item.name}</Link>
                       </h2>
 
-                      <p className="text-xs text-[#c9b99a99] mb-4 line-clamp-2 max-w-[80%] mx-auto drop-shadow-md">
+                      <p className="text-xs text-[#ddcca899] mb-4 line-clamp-2 max-w-[80%] mx-auto drop-shadow-md">
                         {item.notes}
                       </p>
 
@@ -331,13 +334,13 @@ export default function Product() {
                         </span>
 
                         <button
-                          onClick={() => addToCart(item.id, {
+                          onClick={() => handleAddToCart(item.id, {
                             title: item.name,
                             price: String(item.price),
-                            image: item.image,
+                            image: item.image ?? "",
                             notes: item.notes,
                           })}
-                          className="tracking-widest text-[#c9b99a66] hover:text-[#c9a96e] transition-colors"
+                          className="tracking-widest text-[#ddcca866] hover:text-[#c9a96e] transition-colors"
                         >
                           {cart.includes(item.id) ? "ADDED ✓" : "ADD TO CART"}
                         </button>

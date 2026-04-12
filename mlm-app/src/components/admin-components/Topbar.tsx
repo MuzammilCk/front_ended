@@ -22,7 +22,7 @@ export default function Topbar({ tab }: { tab: AdminTabType }) {
                   ? "Audit Log"
                   : "Order History"}
         </h1>
-        <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/20">
+        <p className="text-[10px] tracking-[0.2em] uppercase text-muted/20">
           HADI perfumes · Admin
         </p>
       </div>
@@ -35,7 +35,7 @@ export default function Topbar({ tab }: { tab: AdminTabType }) {
         </div>
         <button 
           onClick={handleLogout}
-          className="text-xs uppercase tracking-widest text-[#c9b99a]/60 hover:text-[#c9a96e] transition-colors"
+          className="text-xs uppercase tracking-widest text-muted/60 hover:text-[#c9a96e] transition-colors"
         >
           Logout
         </button>

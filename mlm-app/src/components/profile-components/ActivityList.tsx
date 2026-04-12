@@ -10,7 +10,7 @@ export default function ActivityList({ activities }) {
           <div key={i} className="flex justify-between p-4 hover:bg-[#c9a96e]/5">
             <div>
               <p>{a.action}</p>
-              <p className="text-xs text-[#c9b99a]/60">{a.date}</p>
+              <p className="text-xs text-muted/60">{a.date}</p>
             </div>
             <div className="text-right">
               <p>{a.status}</p>

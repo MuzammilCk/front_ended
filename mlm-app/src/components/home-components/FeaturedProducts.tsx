@@ -2,6 +2,8 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect, useRef, type MouseEvent } from "react";
 import { Link } from "react-router-dom";
+import LuxuryImage from "../ui/LuxuryImage";
+import { useGsapContext } from "../../hooks/useGsapContext";
 
 import "../../styles/Home.css";
 
@@ -24,40 +26,37 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
   const headerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      if (headerRef.current) {
-        gsap.from(headerRef.current, {
-          y: 24,
-          opacity: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 78%",
-          },
-        });
-      }
+  useGsapContext(() => {
+    if (headerRef.current) {
+      gsap.from(headerRef.current, {
+        y: 24,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 78%",
+        },
+      });
+    }
 
-      const cards = cardRefs.current.filter(
-        (el): el is HTMLDivElement => el != null,
-      );
-      if (cards.length) {
-        gsap.from(cards, {
-          y: 50,
-          opacity: 0,
-          duration: 1.1,
-          stagger: 0.15,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 72%",
-          },
-        });
-      }
-    }, sectionRef);
-    return () => ctx.revert();
-  }, []);
+    const cards = cardRefs.current.filter(
+      (el): el is HTMLDivElement => el != null,
+    );
+    if (cards.length) {
+      gsap.from(cards, {
+        y: 50,
+        opacity: 0,
+        duration: 1.1,
+        stagger: 0.15,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 72%",
+        },
+      });
+    }
+  }, sectionRef, []);
 
   const tiltCard = (e: MouseEvent<HTMLDivElement>, i: number) => {
     const el = cardRefs.current[i];
@@ -118,12 +117,10 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
             >
               <Link to={`/product/${item.id}`} className="fp-card-link">
                 <div className="fp-card-image-wrap">
-                  <img
+                  <LuxuryImage
                     src={item.image}
                     alt={item.name}
                     className="fp-card-img"
-                    loading="lazy"
-                    decoding="async"
                   />
                   <div className="fp-card-shimmer" aria-hidden />
                   <div className="fp-card-overlay" aria-hidden>

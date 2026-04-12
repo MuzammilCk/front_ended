@@ -6,10 +6,11 @@ import {
   useSpring,
   type Transition,
 } from "../../lib/motion";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useHomepage } from "../../hooks/useHomepage";
 import { Link, useNavigate } from "react-router-dom";
+import { useGsapContext } from "../../hooks/useGsapContext";
 import "../../styles/HeroSection.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -46,6 +47,21 @@ export default function HeroSection() {
     [],
   );
 
+  const [lowBattery, setLowBattery] = useState(false);
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && 'getBattery' in navigator) {
+      (navigator as any).getBattery().then((battery: any) => {
+        const updateBattery = () => {
+          setLowBattery(battery.level < 0.2 && !battery.charging);
+        };
+        updateBattery();
+        battery.addEventListener('levelchange', updateBattery);
+        battery.addEventListener('chargingchange', updateBattery);
+      }).catch(() => {});
+    }
+  }, []);
+
   const btnX = useMotionValue(0);
   const btnY = useMotionValue(0);
   const springX = useSpring(btnX, { stiffness: 300, damping: 25 });
@@ -57,13 +73,11 @@ export default function HeroSection() {
     delay: prefersReducedMotion ? 0 : delay,
   });
 
-  useEffect(() => {
+  useGsapContext(() => {
     const container = heroRef.current;
     const layer1 = layer1Ref.current;
     const layer2 = layer2Ref.current;
-    if (!container || !layer1 || !layer2) {
-      return;
-    }
+    if (!container || !layer1 || !layer2) return;
 
     const userPrefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -80,38 +94,39 @@ export default function HeroSection() {
       return;
     }
 
-    const ctx = gsap.context(() => {
-      gsap.to(layer1, {
-        yPercent: 15,
-        ease: "none",
-        scrollTrigger: {
-          trigger: container,
-          start: "top top",
-          end: "bottom top",
-          scrub: 1,
-        },
-      });
+    gsap.fromTo(
+      layer1,
+      { scale: 1.08 },
+      { scale: 1.0, duration: 3, ease: "power2.out" }
+    );
 
-      gsap.to(layer2, {
-        yPercent: 8,
-        ease: "none",
-        scrollTrigger: {
-          trigger: container,
-          start: "top top",
-          end: "bottom top",
-          scrub: 1,
-        },
-      });
-    }, container);
+    gsap.to(layer1, {
+      yPercent: 15,
+      ease: "none",
+      scrollTrigger: {
+        trigger: container,
+        start: "top top",
+        end: "bottom top",
+        scrub: 1,
+      },
+    });
+
+    gsap.to(layer2, {
+      yPercent: 8,
+      ease: "none",
+      scrollTrigger: {
+        trigger: container,
+        start: "top top",
+        end: "bottom top",
+        scrub: 1,
+      },
+    });
 
     refresh();
-
-    return () => {
-      ctx.revert();
-    };
-  }, []);
+  }, heroRef, []);
 
   const handleMagnetMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (typeof window !== "undefined" && 'ontouchstart' in window) return;
     if (prefersReducedMotion) return;
     const btn = btnRef.current;
     if (!btn) return;
@@ -154,10 +169,22 @@ export default function HeroSection() {
   return (
     <section ref={heroRef} className="hs2-section" aria-label="Hero">
       <div ref={layer1Ref} className="hs2-bg-layer1" aria-hidden>
-        <div
-          className="hs2-bg-img"
-          style={{ backgroundImage: `url(${layer1Image})` }}
-        />
+        {prefersReducedMotion || lowBattery ? (
+          <div
+            className="hs2-bg-img"
+            style={{ backgroundImage: `url(${layer1Image})` }}
+          />
+        ) : (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="hs2-bg-video w-full h-full object-cover absolute inset-0"
+          >
+            <source src={(hero as any)?.video_url ?? "/hero-video.mp4"} type="video/mp4" />
+          </video>
+        )}
         <div className="hs2-bg-overlay" style={{ background: VOID_BG }} />
       </div>
 
@@ -245,7 +272,7 @@ export default function HeroSection() {
                 className="hs2-cta-btn"
                 style={{ x: springX, y: springY }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                whileTap={{ scale: prefersReducedMotion ? 1 : 0.97 }}
+                whileTap={{ scale: prefersReducedMotion ? 1 : (typeof window !== "undefined" && 'ontouchstart' in window ? 0.95 : 0.97) }}
                 onClick={() => navigate(hero?.cta_link ?? "/product")}
               >
                 <span>{ctaText}</span>

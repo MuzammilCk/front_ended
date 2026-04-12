@@ -16,7 +16,7 @@ export default function ProductsTab({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-[10px] tracking-[0.2em] uppercase text-[#c9b99a]/25">
+        <p className="text-[10px] tracking-[0.2em] uppercase text-muted/25">
           {products.length} fragrances ·{" "}
           {products.filter((p) => p.active).length} active
         </p>
@@ -41,7 +41,7 @@ export default function ProductsTab({
           ].map((h) => (
             <span
               key={h}
-              className="text-[10px] tracking-[0.22em] uppercase text-[#c9b99a]/20"
+              className="text-[10px] tracking-[0.22em] uppercase text-muted/20"
             >
               {h}
             </span>
@@ -55,17 +55,17 @@ export default function ProductsTab({
             <span className="font-serif text-lg font-light text-[#e8dcc8]">
               {p.name}
             </span>
-            <span className="text-[11px] text-[#c9b99a]/40">{p.type}</span>
-            <span className="text-[11px] text-[#c9b99a]/40">{p.family}</span>
+            <span className="text-[11px] text-muted/40">{p.type}</span>
+            <span className="text-[11px] text-muted/40">{p.family}</span>
             <span className="text-[11px] text-[#c9a96e]">INR {p.price}</span>
             <span
-              className={`text-[11px] ${p.stock < 15 ? "text-rose-400" : "text-[#c9b99a]/50"}`}
+              className={`text-[11px] ${p.stock < 15 ? "text-rose-400" : "text-muted/50"}`}
             >
               {p.stock} {p.stock < 15 ? "⚠" : ""}
             </span>
             <span
               className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit border
-              ${p.active ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-white/5 text-[#c9b99a]/30 border-white/10"}`}
+              ${p.active ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-white/5 text-muted/30 border-white/10"}`}
             >
               {p.active ? "Active" : "Hidden"}
             </span>
@@ -83,7 +83,7 @@ export default function ProductsTab({
               >
                 <div
                   className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-all duration-300
-                  ${p.active ? "left-[18px] bg-[#c9a96e]" : "left-0.5 bg-[#c9b99a]/30"}`}
+                  ${p.active ? "left-[18px] bg-[#c9a96e]" : "left-0.5 bg-muted/30"}`}
                 />
               </button>
               <button
