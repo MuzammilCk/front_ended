@@ -19,13 +19,25 @@ export default function DashboardTab({
   setChartMode,
   setTab,
 }: DashboardTabProps) {
-  const totalRevenueNum = orders.reduce((sum, o) => sum + parseFloat(o.total_amount || "0"), 0);
-  const avgOrderValueNum = orders.length > 0 ? totalRevenueNum / orders.length : 0;
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const thisWeekOrders = orders.filter(o => new Date(o.created_at) >= weekAgo);
+
+  const totalRevenueNum = thisWeekOrders.reduce((sum, o) => sum + parseFloat(o.total_amount || "0"), 0);
+  const avgOrderValueNum = thisWeekOrders.length > 0 ? totalRevenueNum / thisWeekOrders.length : 0;
 
   const currency = orders.length > 0 ? orders[0].currency : 'INR';
   const totalRevenue = ordersTotal > 0 ? `${currency} ${totalRevenueNum.toLocaleString()}` : "—";
   const avgOrderValue = ordersTotal > 0 ? `${currency} ${avgOrderValueNum.toFixed(0)}` : "—";
   const totalOrdersStr = ordersTotal > 0 ? String(ordersTotal) : "—";
+
+  const pendingCount = orders.filter(o => o.status === 'pending').length;
+  const lowStockProducts = products.filter(p => p.stock < 15);
+
+  const topSellers = [...products]
+    .sort((a, b) => b.price - a.price)
+    .slice(0, 5);
+  const maxPrice = topSellers.length > 0 ? topSellers[0].price : 1;
 
   // Chart data: Last 7 days
   const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -94,6 +106,34 @@ export default function DashboardTab({
             </p>
             <p className="text-[10px] text-muted/25">{k.sub}</p>
           </div>
+        ))}
+      </div>
+
+      {lowStockProducts.length > 0 && (
+        <div className="flex items-center gap-3 border border-amber-500/20 bg-amber-500/5 px-5 py-3">
+          <span className="text-amber-400 text-sm">⚠</span>
+          <span className="text-xs text-amber-400">
+            {lowStockProducts.length} product{lowStockProducts.length > 1 ? 's' : ''} below 15 units —{' '}
+            <button onClick={() => setTab('inventory')} className="underline">Manage stock →</button>
+          </span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-4 gap-3">
+        {[
+          { icon: '⊕', label: 'Add Product', action: () => setTab('add') },
+          { icon: '⊟', label: 'Manage Stock', action: () => setTab('inventory') },
+          { icon: '≡', label: `Pending Orders${pendingCount > 0 ? ` (${pendingCount})` : ''}`, action: () => setTab('orders') },
+          { icon: '⊞', label: 'Categories', action: () => setTab('categories') },
+        ].map(({ icon, label, action }) => (
+          <button
+            key={label}
+            onClick={action}
+            className="border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#130e08] p-4 text-left hover:border-[#c9a96e]/30 transition-colors group"
+          >
+            <span className="font-mono text-[#c9a96e]/50 group-hover:text-[#c9a96e] text-lg transition-colors">{icon}</span>
+            <p className="text-[10px] tracking-[0.18em] uppercase text-muted/40 mt-2 group-hover:text-muted/70 transition-colors">{label}</p>
+          </button>
         ))}
       </div>
 
@@ -169,27 +209,23 @@ export default function DashboardTab({
             By revenue · all time
           </p>
           <div className="space-y-5">
-            {products.length === 0 ? (
+            {topSellers.length === 0 ? (
                <p className="text-muted/40 text-sm">No products</p>
             ) : (
-                products.slice(0, 5).map((p, i) => (
-                  <div key={i}>
+                topSellers.map((p, i) => (
+                  <div key={p.id}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-serif text-sm font-light text-[#e8dcc8]">
-                        {p.name}
-                      </span>
-                      <span className="text-[10px] text-[#c9a96e]">
-                        —
-                      </span>
+                      <span className="font-serif text-sm font-light text-[#e8dcc8]">{p.name}</span>
+                      <span className="text-[10px] text-[#c9a96e]">{currency} {p.price.toLocaleString()}</span>
                     </div>
                     <div className="h-0.5 bg-[#c9a96e]/8 overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-[#c9a96e] to-[#e8c87a]/50"
-                        style={{ width: `0%` }}
+                        className="h-full bg-gradient-to-r from-[#c9a96e] to-[#e8c87a]/50 transition-all duration-700"
+                        style={{ width: `${Math.round((p.price / maxPrice) * 100)}%` }}
                       />
                     </div>
                     <p className="text-[10px] text-muted/25 mt-0.5">
-                      —
+                      {p.active ? 'Active' : 'Hidden'} · Stock: {p.stock}
                     </p>
                   </div>
                 ))

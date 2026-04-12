@@ -171,6 +171,10 @@ export async function adminDeactivateCategory(id: string): Promise<ProductCatego
   });
 }
 
+export async function adminGetCategories(): Promise<ProductCategory[]> {
+  return apiRequest<ProductCategory[]>('/admin/categories', { method: 'GET' });
+}
+
 // ─── Admin Inventory ─────────────────────────────────────────────────────────
 
 export interface AddStockPayload {

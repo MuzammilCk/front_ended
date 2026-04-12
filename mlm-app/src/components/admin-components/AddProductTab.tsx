@@ -1,37 +1,22 @@
-import React, { useState } from "react";
-import type { AdminProductType, AdminTabType } from "../../api/types";
+import React, { useState, useEffect } from "react";
+import type { AdminProductType, AdminTabType, ProductCategory } from "../../api/types";
 import { adminCreateListing } from "../../api/admin";
 import { getSignedUploadUrl, confirmUpload } from "../../api/media";
 import LuxuryImage from "../ui/LuxuryImage";
 
-const PERF_TYPES = [
-  "Eau de Parfum",
-  "Extrait de Parfum",
-  "Eau de Toilette",
-  "Eau de Cologne",
-];
+const PERF_TYPES = ["Eau de Parfum", "Extrait de Parfum", "Eau de Toilette", "Eau de Cologne"];
 const FAMILIES = ["Woody", "Floral", "Fresh", "Oriental"];
 
-const EMPTY_FORM = {
-  name: "",
-  type: "Eau de Parfum",
-  family: "Woody",
-  price: "",
-  ml: "50",
-  notes: "",
-  badge: "",
-  intensity: "70",
-};
-
 interface AddProductTabProps {
-  form: typeof EMPTY_FORM;
-  setForm: React.Dispatch<React.SetStateAction<typeof EMPTY_FORM>>;
+  form: any;
+  setForm: React.Dispatch<React.SetStateAction<any>>;
   formError: string;
   setFormError: (error: string) => void;
   products: AdminProductType[];
   setProducts: React.Dispatch<React.SetStateAction<AdminProductType[]>>;
   setAddSuccess: (success: boolean) => void;
   setTab: (tab: AdminTabType) => void;
+  categories: ProductCategory[];
 }
 
 export default function AddProductTab({
@@ -42,35 +27,57 @@ export default function AddProductTab({
   setProducts,
   setAddSuccess,
   setTab,
+  categories,
 }: AddProductTabProps) {
-  const [mediaKeys, setMediaKeys] = useState<string[]>([]);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadedAssets, setUploadedAssets] = useState<{ storage_key: string; cdn_url: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: string, v: string | boolean) => setForm((f: any) => ({ ...f, [k]: v }));
+
+  // Auto-SKU generator
+  const generateSku = (name: string, ml: string, type: string): string => {
+    const typeAbbr: Record<string, string> = {
+      'Eau de Parfum': 'edp',
+      'Extrait de Parfum': 'extrait',
+      'Eau de Toilette': 'edt',
+      'Eau de Cologne': 'edc',
+    };
+    return [
+      name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      `${ml}ml`,
+      typeAbbr[type] ?? 'perfume'
+    ].filter(Boolean).join('-');
+  };
+
+  useEffect(() => {
+    if (!form.skuManuallyEdited && form.name) {
+      set("sku", generateSku(form.name, form.ml, form.type));
+    }
+  }, [form.name, form.ml, form.type]);
+
+  // Smart badge suggestion
+  useEffect(() => {
+    if (form.badge) return;
+    const n = form.name.toLowerCase();
+    if (n.includes('bestsell') || n.includes('best sell')) set("badge", 'Bestseller');
+    else if (n.includes('new') || n.includes('launch')) set("badge", 'New');
+    else if (n.includes('limited') || n.includes('ltd')) set("badge", 'Limited');
+  }, [form.name]);
 
   const handleImageUpload = async (file: File) => {
     setUploading(true);
     setUploadError("");
     try {
-      // Step 1: get signed URL from backend
       const { upload_url, storage_key } = await getSignedUploadUrl(file.name, file.type);
-
-      // Step 2: PUT file directly to storage (NOT through your backend)
       await fetch(upload_url, {
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': file.type },
       });
-
-      // Step 3: confirm with backend
       const asset = await confirmUpload(storage_key, { alt_text: file.name });
-
-      // Step 4: store storage_key in form state so it connects successfully to the Listing
-      setMediaKeys(prev => [...prev, asset.storage_key]);
-      setPreviewUrl(asset.cdn_url);
+      setUploadedAssets(prev => [...prev, asset]);
     } catch {
       setUploadError('Upload failed. Please try again.');
     } finally {
@@ -85,23 +92,35 @@ export default function AddProductTab({
     }
   };
 
+  const validate = (): string | null => {
+    if (!form.name.trim()) return 'Fragrance name is required.';
+    if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) return 'Valid price is required.';
+    if (!form.sku.trim()) return 'SKU is required.';
+    if (!form.quantity || isNaN(Number(form.quantity)) || Number(form.quantity) < 0) return 'Valid quantity is required.';
+    return null;
+  };
+
   const handleAdd = async () => {
-    if (!form.name.trim() || !form.price) {
-      setFormError("Name and price are required.");
+    const err = validate();
+    if (err) {
+      setFormError(err);
       return;
     }
+    
     setFormError("");
     setSubmitting(true);
 
     try {
       await adminCreateListing({
         title: form.name,
-        sku: form.name.toLowerCase().replace(/\s+/g, '-'),
-        description: form.notes,
+        sku: form.sku,
+        description: form.description || form.notes,
         price: Number(form.price),
-        quantity: 50,
+        quantity: Number(form.quantity),
+        category_id: form.categoryId || undefined,
+        condition: form.condition,
         status: 'active',
-        media_keys: mediaKeys,
+        media_keys: uploadedAssets.map(a => a.storage_key),
       });
 
       setProducts((p) => [
@@ -111,14 +130,18 @@ export default function AddProductTab({
           type: form.type,
           family: form.family,
           price: Number(form.price),
-          stock: 50,
+          stock: Number(form.quantity),
           active: true,
         },
         ...p,
       ]);
-      setForm(EMPTY_FORM);
-      setMediaKeys([]);
-      setPreviewUrl(null);
+      
+      setForm({
+        name: "", sku: "", skuManuallyEdited: false, type: "Eau de Parfum", family: "Woody",
+        price: "", quantity: "50", ml: "50", notes: "", badge: "", intensity: "70",
+        categoryId: "", condition: "new", description: ""
+      });
+      setUploadedAssets([]);
       setAddSuccess(true);
       setTimeout(() => setAddSuccess(false), 3000);
       setTab("products");
@@ -129,163 +152,157 @@ export default function AddProductTab({
     }
   };
 
-  const inputCls =
-    "w-full bg-[#080604] border border-[#c9a96e]/15 text-[#e8dcc8] text-xs font-light px-4 py-2.5 outline-none focus:border-[#c9a96e]/50 placeholder-muted/20 transition-colors duration-300";
-  const labelCls =
-    "block text-[10px] tracking-[0.2em] uppercase text-muted/35 mb-1.5";
+  const inputCls = "w-full bg-[#080604] border border-[#c9a96e]/15 text-[#e8dcc8] text-xs font-light px-4 py-2.5 outline-none focus:border-[#c9a96e]/50 placeholder-muted/20 transition-colors duration-300";
+  const labelCls = "block text-[10px] tracking-[0.2em] uppercase text-muted/35 mb-1.5";
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       <div className="border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#100c08] p-8">
-        <p className="font-serif text-3xl font-light text-[#e8dcc8] mb-1">
-          New Fragrance
-        </p>
-        <p className="text-[10px] tracking-[0.2em] uppercase text-muted/25 mb-8">
-          Fill in the details below
-        </p>
+        <p className="font-serif text-3xl font-light text-[#e8dcc8] mb-1">New Fragrance</p>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-muted/25 mb-8">Fill in the details below</p>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <label className={labelCls}>Fragrance Name *</label>
-            <input
-              className={inputCls}
-              placeholder="e.g. Oud Mystique"
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Type *</label>
-            <select
-              className={inputCls}
-              value={form.type}
-              onChange={(e) => set("type", e.target.value)}
-            >
-              {PERF_TYPES.map((t) => (
-                <option key={t} className="bg-[#130e08]">
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Scent Family *</label>
-            <select
-              className={inputCls}
-              value={form.family}
-              onChange={(e) => set("family", e.target.value)}
-            >
-              {FAMILIES.map((f) => (
-                <option key={f} className="bg-[#130e08]">
-                  {f}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Price (INR) *</label>
-            <input
-              type="number"
-              className={inputCls}
-              placeholder="e.g. 450"
-              value={form.price}
-              onChange={(e) => set("price", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Volume (ml)</label>
-            <select
-              className={inputCls}
-              value={form.ml}
-              onChange={(e) => set("ml", e.target.value)}
-            >
-              {["30", "50", "75", "100"].map((v) => (
-                <option key={v} className="bg-[#130e08]">
-                  {v}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-span-2">
-            <label className={labelCls}>Scent Notes</label>
-            <input
-              className={inputCls}
-              placeholder="e.g. Oud · Amber · Sandalwood"
-              value={form.notes}
-              onChange={(e) => set("notes", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Badge</label>
-            <select
-              className={inputCls}
-              value={form.badge}
-              onChange={(e) => set("badge", e.target.value)}
-            >
-              <option value="" className="bg-[#130e08]">
-                None
-              </option>
-              {["New", "Bestseller", "Limited", "Exclusive"].map((b) => (
-                <option key={b} className="bg-[#130e08]">
-                  {b}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Intensity — {form.intensity}%</label>
-            <input
-              type="range"
-              min="10"
-              max="100"
-              className="w-full mt-2 accent-[#c9a96e]"
-              value={form.intensity}
-              onChange={(e) => set("intensity", e.target.value)}
-            />
-          </div>
-
-          {/* Image Upload */}
-          <div className="col-span-2">
-            <label className={labelCls}>Product Image</label>
-            <div className="flex items-center gap-4">
-              <label className="cursor-pointer border border-dashed border-[#c9a96e]/25 px-4 py-3 text-[10px] tracking-[0.15em] uppercase text-[#c9a96e]/60 hover:border-[#c9a96e]/50 hover:text-[#c9a96e] transition-colors">
-                {uploading ? "Uploading…" : "Choose file"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                  disabled={uploading}
-                />
-              </label>
-              {previewUrl && (
-                <LuxuryImage
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-12 h-16 object-cover border border-[#c9a96e]/15"
-                />
-              )}
-              {mediaKeys.length > 0 && (
-                <span className="text-[10px] text-emerald-400/60">
-                  {mediaKeys.length} image(s) attached
-                </span>
-              )}
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label className={labelCls}>Fragrance Name *</label>
+              <input className={inputCls} placeholder="e.g. Oud Mystique" value={form.name} onChange={(e) => set("name", e.target.value)} />
             </div>
-            {uploadError && (
-              <p className="text-rose-400 text-[10px] tracking-[0.1em] mt-2">
-                ⚠ {uploadError}
-              </p>
-            )}
+            
+            <div>
+              <label className={labelCls}>SKU (auto-generated · editable) *</label>
+              <input
+                className={inputCls}
+                value={form.sku}
+                onChange={e => {
+                  set('sku', e.target.value);
+                  set('skuManuallyEdited', true);
+                }}
+                placeholder="e.g. oud-mystique-50ml-edp"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  set('skuManuallyEdited', false);
+                  set('sku', generateSku(form.name, form.ml, form.type));
+                }}
+                className="text-[9px] tracking-widest uppercase text-[#c9a96e]/40 hover:text-[#c9a96e] mt-1 transition"
+              >
+                ↺ Regenerate
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Price (INR) *</label>
+                <input type="number" className={inputCls} placeholder="e.g. 450" value={form.price} onChange={(e) => set("price", e.target.value)} />
+              </div>
+              <div>
+                <label className={labelCls}>Initial Stock *</label>
+                <input type="number" min="0" placeholder="e.g. 50" value={form.quantity} onChange={e => set('quantity', e.target.value)} className={inputCls} />
+              </div>
+            </div>
+
+             <div className="col-span-2">
+              <label className={labelCls}>Category</label>
+              <select value={form.categoryId || ""} onChange={e => set('categoryId', e.target.value)} className={inputCls}>
+                <option value="" className="bg-[#130e08]">Select category...</option>
+                {categories.map(c => <option key={c.id} value={c.id} className="bg-[#130e08]">{c.name}</option>)}
+              </select>
+            </div>
+
+             <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Type *</label>
+                <select className={inputCls} value={form.type} onChange={(e) => set("type", e.target.value)}>
+                  {PERF_TYPES.map((t) => <option key={t} className="bg-[#130e08]">{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Scent Family *</label>
+                <select className={inputCls} value={form.family} onChange={(e) => set("family", e.target.value)}>
+                  {FAMILIES.map((f) => <option key={f} className="bg-[#130e08]">{f}</option>)}
+                </select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Volume (ml)</label>
+                <select className={inputCls} value={form.ml} onChange={(e) => set("ml", e.target.value)}>
+                  {["30", "50", "75", "100"].map((v) => <option key={v} className="bg-[#130e08]">{v}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Condition</label>
+                <select value={form.condition} onChange={e => set('condition', e.target.value)} className={inputCls}>
+                  {['new', 'like_new', 'good', 'fair'].map(c => <option key={c} value={c} className="bg-[#130e08]">{c}</option>)}
+                </select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+               <div>
+                <label className={labelCls}>Badge</label>
+                <select className={inputCls} value={form.badge} onChange={(e) => set("badge", e.target.value)}>
+                  <option value="" className="bg-[#130e08]">None</option>
+                  {["New", "Bestseller", "Limited", "Exclusive"].map((b) => <option key={b} className="bg-[#130e08]">{b}</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col">
+                <label className={labelCls}>Intensity — {form.intensity}%</label>
+                <input type="range" min="10" max="100" className="w-full mt-2 accent-[#c9a96e]" value={form.intensity} onChange={(e) => set("intensity", e.target.value)} />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className={labelCls}>Scent Notes</label>
+              <input className={inputCls} placeholder="e.g. Oud · Amber · Sandalwood" value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+            </div>
+
+            <div>
+              <label className={labelCls}>Full Description</label>
+              <textarea
+                className={`${inputCls} min-h-[120px] resize-y`}
+                placeholder="Detailed product description for the product page..."
+                value={form.description}
+                onChange={e => set('description', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className={labelCls}>Product Images</label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {uploadedAssets.map((a, i) => (
+                  <div key={i} className="relative w-16 h-20 border border-[#c9a96e]/15 overflow-hidden">
+                    <LuxuryImage src={a.cdn_url} alt="" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => setUploadedAssets(prev => prev.filter((_, j) => j !== i))}
+                      className="absolute top-0 right-0 w-4 h-4 bg-rose-500/80 text-white text-[9px] flex items-center justify-center hover:bg-rose-500"
+                    >✕</button>
+                  </div>
+                ))}
+                
+                {uploadedAssets.length < 5 && (
+                  <label className={`w-16 h-20 border border-dashed border-[#c9a96e]/25 flex items-center justify-center cursor-pointer hover:border-[#c9a96e]/50 transition-colors ${uploading ? 'opacity-50' : ''}`}>
+                    {uploading ? (
+                      <div className="w-3 h-3 border-2 border-[#c9a96e]/30 border-t-[#c9a96e] rounded-full animate-spin" />
+                    ) : (
+                      <span className="text-[#c9a96e]/40 text-lg">+</span>
+                    )}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
+                  </label>
+                )}
+              </div>
+              {uploadError && <p className="text-rose-400 text-[10px] tracking-[0.1em] mt-2">⚠ {uploadError}</p>}
+            </div>
           </div>
         </div>
 
-        {formError && (
-          <p className="text-rose-400 text-[10px] tracking-[0.1em] mt-4">
-            ⚠ {formError}
-          </p>
-        )}
+        {formError && <p className="text-rose-400 text-[10px] tracking-[0.1em] mt-4">⚠ {formError}</p>}
 
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-8">
           <button
             onClick={() => void handleAdd()}
             disabled={submitting}
@@ -294,41 +311,18 @@ export default function AddProductTab({
             {submitting ? "Creating…" : "Add to Catalogue"}
           </button>
           <button
-            onClick={() => { setForm(EMPTY_FORM); setMediaKeys([]); setPreviewUrl(null); }}
+            onClick={() => { 
+                setForm({
+                  name: "", sku: "", skuManuallyEdited: false, type: "Eau de Parfum", family: "Woody",
+                  price: "", quantity: "50", ml: "50", notes: "", badge: "", intensity: "70",
+                  categoryId: "", condition: "new", description: ""
+                }); 
+                setUploadedAssets([]); 
+            }}
             className="border border-[#c9a96e]/25 text-[#c9a96e] text-[10px] tracking-[0.2em] uppercase px-5 py-3 hover:bg-[#c9a96e]/8 hover:border-[#c9a96e]/50 transition-all duration-300 font-light"
           >
             Reset
           </button>
-        </div>
-      </div>
-
-      {/* Live Preview */}
-      <div className="border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#100c08] p-6">
-        <p className="text-[10px] tracking-[0.22em] uppercase text-muted/20 mb-4">
-          Live Preview
-        </p>
-        <div className="flex items-center gap-5">
-          <div className="w-16 h-24 border border-[#c9a96e]/15 bg-gradient-to-br from-[#1a0f0a] to-[#2d1810] flex items-center justify-center shrink-0 overflow-hidden">
-            {previewUrl ? (
-              <LuxuryImage src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-6 h-14 border border-[#c9a96e]/25 bg-gradient-to-b from-[#c9a96e]/10 to-transparent" />
-            )}
-          </div>
-          <div>
-            <p className="text-[10px] tracking-[0.2em] uppercase text-muted/25">
-              {form.type} · {form.ml}ml
-            </p>
-            <p className="font-serif text-2xl font-light text-[#e8dcc8]">
-              {form.name || "Fragrance Name"}
-            </p>
-            <p className="text-[11px] text-muted/30">
-              {form.notes || "Scent notes will appear here"}
-            </p>
-            <p className="font-serif text-lg font-light text-[#c9a96e] mt-1">
-              {form.price ? `INR ${form.price}` : "INR —"}
-            </p>
-          </div>
         </div>
       </div>
     </div>

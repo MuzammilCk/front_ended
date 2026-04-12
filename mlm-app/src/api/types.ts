@@ -205,7 +205,9 @@ export interface AdminProductType {
   active: boolean;
 }
 
-export type AdminTabType = 'dashboard' | 'products' | 'add' | 'orders' | 'audit';
+export type AdminTabType =
+  | 'dashboard' | 'products' | 'add' | 'orders' | 'audit'
+  | 'categories' | 'inventory' | 'homepage' | 'network';
 
 export const ORDER_STATUS_CLS: Record<string, string> = {
   Delivered: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',

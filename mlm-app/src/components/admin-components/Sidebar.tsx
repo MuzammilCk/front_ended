@@ -1,59 +1,91 @@
-import { Link } from "react-router-dom";
-import type { AdminTabType } from "../../api/types";
+import { LayoutDashboard, Package, PlusCircle, Tag, ShoppingBag, Archive, Globe, Network, ScrollText } from 'lucide-react';
+import { Link as RouterLink } from 'react-router-dom';
+import { getUserFirstName, getUserRole } from '../../api/client';
+import type { AdminTabType } from '../../api/types';
 
-const NAV_ITEMS = [
-  { key: "dashboard" as const, icon: "◈", label: "Dashboard" },
-  { key: "products" as const, icon: "◇", label: "Products" },
-  { key: "add" as const, icon: "+", label: "Add Perfume" },
-  { key: "orders" as const, icon: "≡", label: "Orders" },
-  { key: "audit" as const, icon: "⊙", label: "Audit Log" },
-];
+const NAV_GROUPS = [
+  { label: 'Overview',    items: [{ key: 'dashboard'  as AdminTabType, icon: LayoutDashboard, label: 'Dashboard'    }] },
+  { label: 'Catalogue',  items: [
+    { key: 'products'   as AdminTabType, icon: Package,       label: 'Products'     },
+    { key: 'add'        as AdminTabType, icon: PlusCircle,    label: 'Add Product'  },
+    { key: 'categories' as AdminTabType, icon: Tag,           label: 'Categories'   },
+  ]},
+  { label: 'Operations', items: [
+    { key: 'orders'     as AdminTabType, icon: ShoppingBag,   label: 'Orders'       },
+    { key: 'inventory'  as AdminTabType, icon: Archive,       label: 'Inventory'    },
+  ]},
+  { label: 'Content',    items: [{ key: 'homepage'  as AdminTabType, icon: Globe,         label: 'Homepage CMS' }] },
+  { label: 'Network',    items: [
+    { key: 'network'    as AdminTabType, icon: Network,       label: 'MLM Network'  },
+    { key: 'audit'      as AdminTabType, icon: ScrollText,    label: 'Audit Log'    },
+  ]},
+] as const;
 
-export default function Sidebar({
-  tab,
-  setTab,
-}: {
+interface SidebarProps {
   tab: AdminTabType;
-  setTab: (t: AdminTabType) => void;
-}) {
+  setTab: (tab: AdminTabType) => void;
+}
+
+export default function Sidebar({ tab, setTab }: SidebarProps) {
+  const name = getUserFirstName() ?? 'Admin';
+  const role = getUserRole() ?? 'admin';
+
   return (
-    <aside className="w-56 shrink-0 min-h-screen flex flex-col border-r border-[#c9a96e]/10 bg-[#0d0a07]">
-      <div className="px-5 py-6 border-b border-[#c9a96e]/10">
-        <Link
-          to="/"
-          className="font-serif text-xl font-light tracking-[0.15em] text-[#e8dcc8]"
-        >
+    <aside className="w-64 shrink-0 border-r border-[#c9a96e]/10 bg-[#0d0a07] z-20 flex flex-col relative">
+      <div className="p-8 border-b border-[#c9a96e]/10">
+        <h1 className="font-serif text-3xl font-light tracking-wide text-[#e8dcc8]">
           HADI
-        </Link>
-        <p className="text-muted/20 mt-1 text-[10px] tracking-[0.25em] uppercase">
+        </h1>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-muted/40 mt-1">
           Admin Console
         </p>
       </div>
 
-      <nav className="flex flex-col flex-1 gap-1 py-6">
-        {NAV_ITEMS.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => setTab(item.key)}
-            className={`flex items-center gap-2.5 px-5 py-2.5 text-[10px] tracking-[0.2em] uppercase font-light border-l-2 transition-all duration-300 text-left w-full
-              ${
-                tab === item.key
-                  ? "border-[#c9a96e] text-[#c9a96e] bg-[#c9a96e]/5"
-                  : "border-transparent text-muted/30 hover:text-[#e8dcc8] hover:bg-[#c9a96e]/5"
-              }`}
-          >
-            <span className="font-mono text-sm">{item.icon}</span>
-            {item.label}
-          </button>
+      <nav className="flex-1 overflow-y-auto py-6 flex flex-col gap-8 px-4">
+        {NAV_GROUPS.map(group => (
+          <div key={group.label}>
+            <p className="text-[9px] tracking-[0.25em] uppercase text-muted/20 mb-3 px-4">
+              — {group.label} —
+            </p>
+            <div className="flex flex-col gap-1">
+              {group.items.map(item => {
+                const isActive = tab === item.key;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => setTab(item.key)}
+                    className={`flex items-center gap-4 px-4 py-3 border-l-2 transition-all duration-300 w-full text-left
+                      ${isActive 
+                        ? "border-[#c9a96e] bg-[#c9a96e]/5 text-[#e8dcc8]" 
+                        : "border-transparent text-muted/30 hover:border-[#c9a96e]/30 hover:text-[#e8dcc8] hover:bg-white/[0.02]"
+                      }`}
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#c9a96e]' : 'text-muted/30'}`} />
+                    <span className="text-xs uppercase tracking-widest">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         ))}
       </nav>
 
-      <div className="px-5 py-5 border-t border-[#c9a96e]/10">
-        <p className="text-[10px] tracking-[0.15em] uppercase text-muted/20 leading-5">
-          Logged in as
-          <br />
-          <span className="text-muted/40">admin@hadi-perfumes.com</span>
-        </p>
+      <div className="p-6 border-t border-[#c9a96e]/10 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-[#e8dcc8]">{name}</p>
+            <span className="text-[9px] uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 mt-1 inline-block">
+              {role}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-muted/30 pt-2 border-t border-white/5">
+          <span>v2.0</span>
+          <RouterLink to="/" className="hover:text-[#c9a96e] transition-colors">
+            Storefront ↗
+          </RouterLink>
+        </div>
       </div>
     </aside>
   );
