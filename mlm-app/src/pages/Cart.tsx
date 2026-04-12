@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 
 import CartItemCard from "../components/Cart-components/CartItemCard";
@@ -43,6 +43,17 @@ function mapApiCartItem(item: CartApiItem): CartItem {
   };
 }
 
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartLoading, setCartLoading] = useState(true);
@@ -53,6 +64,38 @@ export default function Cart() {
   const [checkoutError, setCheckoutError] = useState("");
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [pastOrders, setPastOrders] = useState<Order[]>([]);
+
+  type CheckoutStep = 'cart' | 'address' | 'confirmed';
+  const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('cart');
+
+  const [shippingForm, setShippingForm] = useState({
+    name: '',
+    phone: '',
+    line1: '',
+    city: '',
+    state: '',
+    postal_code: '',
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  const idempotencyKeyRef = useRef<string>(generateUUID());
+
+  useEffect(() => {
+    idempotencyKeyRef.current = generateUUID();
+  }, [cartItems.map((i) => `${i.listingId}:${i.quantity}`).join(",")]);
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    if (!shippingForm.name || shippingForm.name.length < 2) errors.name = "Name is required (min 2 chars)";
+    if (!shippingForm.phone || !/^\+?[0-9]{10,13}$/.test(shippingForm.phone)) errors.phone = "Valid phone number required";
+    if (!shippingForm.line1) errors.line1 = "Address line 1 is required";
+    if (!shippingForm.city) errors.city = "City is required";
+    if (!shippingForm.state) errors.state = "State is required";
+    if (!shippingForm.postal_code || !/^[0-9]{6}$/.test(shippingForm.postal_code)) errors.postal_code = "Valid 6-digit PIN code required";
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   // Fetch cart from API on mount
   useEffect(() => {
@@ -146,30 +189,18 @@ export default function Cart() {
     };
   }, []);
 
-  const generateIdempotencyKey = (): string => {
-    const c = globalThis.crypto;
-    if (c?.randomUUID) return c.randomUUID();
-    const bytes = new Uint8Array(16);
-    if (c?.getRandomValues) {
-      c.getRandomValues(bytes);
-    } else {
-      for (let i = 0; i < bytes.length; i++) {
-        bytes[i] = Math.floor(Math.random() * 256);
-      }
-    }
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0"));
-    return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex
-      .slice(6, 8)
-      .join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10, 16).join("")}`;
-  };
-
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
+    if (checkoutStep === 'cart') {
+      setCheckoutStep('address');
+      return;
+    }
+    
+    if (checkoutStep === 'address' && !validateForm()) return;
+
     setCheckoutError("");
     setCheckoutLoading(true);
-    const idempotencyKey = generateIdempotencyKey();
+    const idempotencyKey = idempotencyKeyRef.current;
     try {
       const order = await createOrder(
         {
@@ -178,15 +209,15 @@ export default function Cart() {
             qty: item.quantity,
           })),
           shipping_address: {
-            line1: "123 Horizon Avenue",
-            city: "Mumbai",
-            state: "MH",
-            postal_code: "400001",
+            line1: shippingForm.line1,
+            city: shippingForm.city,
+            state: shippingForm.state,
+            postal_code: shippingForm.postal_code,
             country: "India",
           },
           contact: {
-            name: "Hadi Customer",
-            phone: "+919876543210",
+            name: shippingForm.name,
+            phone: shippingForm.phone,
           },
           shipping_fee: shipping,
           discount_amount: 0,
@@ -195,8 +226,9 @@ export default function Cart() {
       );
       setLastOrder(order);
       setCheckoutError("");
-      setCartItems([]); // Clear UI
-      clearCart();       // Clear localStorage
+      setCheckoutStep('confirmed');
+      setCartItems([]);
+      clearCart();
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 409) {
@@ -277,6 +309,19 @@ export default function Cart() {
           <div className="py-20 text-center">
             <Alert variant="error">{cartError}</Alert>
           </div>
+        ) : checkoutStep === 'confirmed' && lastOrder ? (
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-6 border border-green-500/20">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <h2 className="mb-2 text-3xl text-[#c9a96e]">Order Confirmed!</h2>
+            <p className="mb-2 text-xl text-[#e8dcc8]">Order #{lastOrder.id.slice(0, 8)}</p>
+            <p className="mb-8 text-[#c9b99a]/80">Your order has been placed successfully.<br/>We will notify you once it ships.</p>
+            <div className="flex gap-4">
+              <Link to="/product" className="px-6 py-3 bg-[#c9a96e]/10 text-[#c9a96e] border border-[#c9a96e]/20 rounded-lg hover:bg-[#c9a96e]/20 transition">Continue Shopping →</Link>
+              <Link to="/profile" className="px-6 py-3 bg-[#c9a96e] text-[#0a0705] rounded-lg hover:bg-[#c9a96e]/90 transition">View All Orders →</Link>
+            </div>
+          </div>
         ) : cartItems.length === 0 ? (
           <div className="py-20 text-center">
             <ShoppingBag className="w-20 h-20 mx-auto text-[#c9a96e]/30 mb-6" />
@@ -287,6 +332,68 @@ export default function Cart() {
             >
               Explore Collection
             </Link>
+          </div>
+        ) : checkoutStep === 'address' ? (
+          <div className="max-w-2xl mx-auto p-6 md:p-8 border border-[#c9a96e]/20 rounded-lg bg-[#0a0705]">
+            <button onClick={() => setCheckoutStep('cart')} className="flex items-center gap-2 text-[#c9a96e]/70 hover:text-[#c9a96e] mb-6 transition">
+              <ArrowLeft className="w-4 h-4" /> Back to Cart
+            </button>
+            <h2 className="text-2xl text-[#c9a96e] mb-2">Delivery Details</h2>
+            <div className="h-px bg-[#c9a96e]/20 mb-6"></div>
+            
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm text-[#e8dcc8] mb-1">Full Name*</label>
+                  <input type="text" value={shippingForm.name} onChange={(e) => { setShippingForm({...shippingForm, name: e.target.value}); setFormErrors({...formErrors, name: ''}); }} className={`w-full bg-transparent border ${formErrors.name ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition`} />
+                  {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm text-[#e8dcc8] mb-1">Phone Number*</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-3 text-[#c9b99a]/50">+91</span>
+                    <input type="tel" value={shippingForm.phone} onChange={(e) => { let val = e.target.value; if (val && !val.startsWith('+')) val = '+' + val; setShippingForm({...shippingForm, phone: val}); setFormErrors({...formErrors, phone: ''}); }} className={`w-full bg-transparent border ${formErrors.phone ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 pl-10 text-[#e8dcc8] outline-none transition`} placeholder="9876543210" />
+                  </div>
+                  {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
+                </div>
+              </div>
+              
+              <h3 className="text-lg text-[#e8dcc8] mt-4 mb-2">Delivery Address</h3>
+              
+              <div>
+                <label className="block text-sm text-[#e8dcc8] mb-1">Line 1 / Street*</label>
+                <input type="text" value={shippingForm.line1} onChange={(e) => { setShippingForm({...shippingForm, line1: e.target.value}); setFormErrors({...formErrors, line1: ''}); }} className={`w-full bg-transparent border ${formErrors.line1 ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition`} />
+                {formErrors.line1 && <p className="text-red-500 text-xs mt-1">{formErrors.line1}</p>}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm text-[#e8dcc8] mb-1">City*</label>
+                  <input type="text" value={shippingForm.city} onChange={(e) => { setShippingForm({...shippingForm, city: e.target.value}); setFormErrors({...formErrors, city: ''}); }} className={`w-full bg-transparent border ${formErrors.city ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition`} />
+                  {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm text-[#e8dcc8] mb-1">State*</label>
+                  <input type="text" value={shippingForm.state} onChange={(e) => { setShippingForm({...shippingForm, state: e.target.value}); setFormErrors({...formErrors, state: ''}); }} className={`w-full bg-transparent border ${formErrors.state ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition`} />
+                  {formErrors.state && <p className="text-red-500 text-xs mt-1">{formErrors.state}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm text-[#e8dcc8] mb-1">PIN Code*</label>
+                  <input type="text" value={shippingForm.postal_code} onChange={(e) => { setShippingForm({...shippingForm, postal_code: e.target.value}); setFormErrors({...formErrors, postal_code: ''}); }} maxLength={6} className={`w-full bg-transparent border ${formErrors.postal_code ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition`} />
+                  {formErrors.postal_code && <p className="text-red-500 text-xs mt-1">{formErrors.postal_code}</p>}
+                </div>
+              </div>
+              
+              {checkoutError && <Alert variant="error" className="mt-4">{checkoutError}</Alert>}
+              
+              <button 
+                onClick={handleCheckout} 
+                disabled={checkoutLoading}
+                className="w-full mt-6 px-6 py-4 bg-[#c9a96e] text-[#0a0705] rounded-lg font-medium hover:bg-[#c9a96e]/90 transition disabled:opacity-50"
+              >
+                {checkoutLoading ? "Placing Order..." : "Place Order"}
+              </button>
+            </div>
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-3">
@@ -312,7 +419,7 @@ export default function Cart() {
             <OrderSummary
               subtotal={subtotal}
               shipping={shipping}
-              onCheckout={handleCheckout}
+              onCheckout={() => setCheckoutStep('address')}
               loading={checkoutLoading}
               disabled={cartItems.length === 0 || checkoutLoading}
               error={checkoutError}
