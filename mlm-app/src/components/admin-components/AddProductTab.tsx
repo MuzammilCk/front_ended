@@ -16,7 +16,7 @@ const EMPTY_FORM = {
 
 export default function AddProductTab() {
   const navigate = useNavigate();
-  const { setProducts, categories } = useAdminData();
+  const { setProducts, categories, addToast } = useAdminData();
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [uploadedAssets, setUploadedAssets] = useState<{ storage_key: string; cdn_url: string }[]>([]);
@@ -26,7 +26,6 @@ export default function AddProductTab() {
 
   const set = (k: string, v: string | boolean) => setForm((f: any) => ({ ...f, [k]: v }));
 
-  // Auto-SKU generator
   const generateSku = (name: string, ml: string, type: string): string => {
     const typeAbbr: Record<string, string> = {
       'Eau de Parfum': 'edp',
@@ -47,7 +46,6 @@ export default function AddProductTab() {
     }
   }, [form.name, form.ml, form.type]);
 
-  // Smart badge suggestion
   useEffect(() => {
     if (form.badge) return;
     const n = form.name.toLowerCase();
@@ -56,29 +54,30 @@ export default function AddProductTab() {
     else if (n.includes('limited') || n.includes('ltd')) set("badge", 'Limited');
   }, [form.name]);
 
-  const handleImageUpload = async (file: File) => {
+  const handleMultipleImageUpload = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files).slice(0, 5 - uploadedAssets.length);
+    if (fileArray.length === 0) return;
+    
     setUploading(true);
-    setUploadError("");
+    setUploadError('');
+    
     try {
-      const { upload_url, storage_key } = await getSignedUploadUrl(file.name, file.type);
-      await fetch(upload_url, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
+      const uploadPromises = fileArray.map(async (file) => {
+        const { upload_url, storage_key } = await getSignedUploadUrl(file.name, file.type);
+        await fetch(upload_url, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type },
+        });
+        return confirmUpload(storage_key, { alt_text: file.name });
       });
-      const asset = await confirmUpload(storage_key, { alt_text: file.name });
-      setUploadedAssets(prev => [...prev, asset]);
+      
+      const newAssets = await Promise.all(uploadPromises);
+      setUploadedAssets(prev => [...prev, ...newAssets]);
     } catch {
-      setUploadError('Upload failed. Please try again.');
+      setUploadError('One or more uploads failed. Please try again.');
     } finally {
       setUploading(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      void handleImageUpload(file);
     }
   };
 
@@ -90,16 +89,13 @@ export default function AddProductTab() {
     return null;
   };
 
-  const handleAdd = async () => {
+  const handleAdd = async (createAnotherVariant = false) => {
     const err = validate();
-    if (err) {
-      setFormError(err);
-      return;
-    }
+    if (err) { setFormError(err); return; }
     
     setFormError("");
     setSubmitting(true);
-
+    
     try {
       await adminCreateListing({
         title: form.name,
@@ -126,18 +122,36 @@ export default function AddProductTab() {
         ...p,
       ]);
       
-      setForm(EMPTY_FORM);
-      setUploadedAssets([]);
-      navigate("/admin/products");
+      if (createAnotherVariant) {
+        setForm(prev => ({
+          ...prev,
+          sku: '',
+          skuManuallyEdited: false,
+          price: '',
+          quantity: '50',
+          ml: '50',
+        }));
+        setFormError('');
+        addToast('Product created! Form ready for next variant — update size and price.', 'success');
+      } else {
+        addToast('Fragrance added to catalogue', 'success');
+        navigate('/admin/products');
+      }
     } catch {
-      setFormError("Failed to create product. Please try again.");
+      setFormError('Failed to create product. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const resetForm = () => {
+    setForm(EMPTY_FORM);
+    setUploadedAssets([]);
+    setFormError("");
+  };
+
   const inputCls = "w-full bg-[#080604] border border-[#c9a96e]/15 text-[#e8dcc8] text-xs font-light px-4 py-2.5 outline-none focus:border-[#c9a96e]/50 placeholder-muted/20 transition-colors duration-300";
-  const labelCls = "block text-[10px] tracking-[0.2em] uppercase text-muted/35 mb-1.5";
+  const labelCls = "admin-label";
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -148,12 +162,12 @@ export default function AddProductTab() {
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className={labelCls}>Fragrance Name *</label>
+              <label className={labelCls}>Fragrance Name <span className="text-rose-400">*</span></label>
               <input className={inputCls} placeholder="e.g. Oud Mystique" value={form.name} onChange={(e) => set("name", e.target.value)} />
             </div>
             
             <div>
-              <label className={labelCls}>SKU (auto-generated · editable) *</label>
+              <label className={labelCls}>SKU (auto-generated · editable) <span className="text-rose-400">*</span></label>
               <input
                 className={inputCls}
                 value={form.sku}
@@ -177,11 +191,11 @@ export default function AddProductTab() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelCls}>Price (INR) *</label>
+                <label className={labelCls}>Price (INR) <span className="text-rose-400">*</span></label>
                 <input type="number" className={inputCls} placeholder="e.g. 450" value={form.price} onChange={(e) => set("price", e.target.value)} />
               </div>
               <div>
-                <label className={labelCls}>Initial Stock *</label>
+                <label className={labelCls}>Initial Stock <span className="text-rose-400">*</span></label>
                 <input type="number" min="0" placeholder="e.g. 50" value={form.quantity} onChange={e => set('quantity', e.target.value)} className={inputCls} />
               </div>
             </div>
@@ -196,13 +210,13 @@ export default function AddProductTab() {
 
              <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelCls}>Type *</label>
+                <label className={labelCls}>Type <span className="text-rose-400">*</span></label>
                 <select className={inputCls} value={form.type} onChange={(e) => set("type", e.target.value)}>
                   {PERF_TYPES.map((t) => <option key={t} className="bg-[#130e08]">{t}</option>)}
                 </select>
               </div>
               <div>
-                <label className={labelCls}>Scent Family *</label>
+                <label className={labelCls}>Scent Family <span className="text-rose-400">*</span></label>
                 <select className={inputCls} value={form.family} onChange={(e) => set("family", e.target.value)}>
                   {FAMILIES.map((f) => <option key={f} className="bg-[#130e08]">{f}</option>)}
                 </select>
@@ -239,16 +253,16 @@ export default function AddProductTab() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col justify-between">
             <div>
               <label className={labelCls}>Scent Notes</label>
               <input className={inputCls} placeholder="e.g. Oud · Amber · Sandalwood" value={form.notes} onChange={(e) => set("notes", e.target.value)} />
             </div>
 
-            <div>
+            <div className="flex-1">
               <label className={labelCls}>Full Description</label>
               <textarea
-                className={`${inputCls} min-h-[120px] resize-y`}
+                className={`${inputCls} min-h-[120px] h-[calc(100%-24px)] resize-none`}
                 placeholder="Detailed product description for the product page..."
                 value={form.description}
                 onChange={e => set('description', e.target.value)}
@@ -257,28 +271,53 @@ export default function AddProductTab() {
 
             <div>
               <label className={labelCls}>Product Images</label>
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap gap-2 mt-2 mb-4">
                 {uploadedAssets.map((a, i) => (
-                  <div key={i} className="relative w-16 h-20 border border-[#c9a96e]/15 overflow-hidden">
+                  <div key={i} className="relative w-16 h-20 border border-[#c9a96e]/15 overflow-hidden group">
                     <LuxuryImage src={a.cdn_url} alt="" className="w-full h-full object-cover" />
                     <button
                       onClick={() => setUploadedAssets(prev => prev.filter((_, j) => j !== i))}
-                      className="absolute top-0 right-0 w-4 h-4 bg-rose-500/80 text-white text-[9px] flex items-center justify-center hover:bg-rose-500"
+                      className="absolute top-0 right-0 w-5 h-5 bg-rose-500/80 text-white text-[10px] flex items-center justify-center hover:bg-rose-500"
                     >✕</button>
                   </div>
                 ))}
-                
-                {uploadedAssets.length < 5 && (
-                  <label className={`w-16 h-20 border border-dashed border-[#c9a96e]/25 flex items-center justify-center cursor-pointer hover:border-[#c9a96e]/50 transition-colors ${uploading ? 'opacity-50' : ''}`}>
-                    {uploading ? (
-                      <div className="w-3 h-3 border-2 border-[#c9a96e]/30 border-t-[#c9a96e] rounded-full animate-spin" />
-                    ) : (
-                      <span className="text-[#c9a96e]/40 text-lg">+</span>
-                    )}
-                    <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
-                  </label>
-                )}
               </div>
+              
+              <div
+                onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#c9a96e]/60'); }}
+                onDragLeave={(e) => { e.currentTarget.classList.remove('border-[#c9a96e]/60'); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.remove('border-[#c9a96e]/60');
+                  void handleMultipleImageUpload(e.dataTransfer.files);
+                }}
+                className={`border-2 border-dashed ${uploadedAssets.length >= 5 ? 'border-white/5 opacity-50 cursor-not-allowed' : 'border-[#c9a96e]/25 hover:border-[#c9a96e]/50 cursor-pointer'} p-6 text-center transition-colors`}
+                onClick={() => {
+                  if (uploadedAssets.length < 5) document.getElementById('multi-image-input')?.click();
+                }}
+              >
+                {uploading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-[#c9a96e]/30 border-t-[#c9a96e] rounded-full animate-spin" />
+                    <span className="font-sans text-xs text-muted/40">Uploading {uploadedAssets.length}/5...</span>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="font-sans text-xs text-white/40">Drop up to 5 images here, or click to select</p>
+                    <p className="font-sans text-[10px] text-muted/25 mt-1">PNG, JPG, WEBP up to 10MB each</p>
+                  </div>
+                )}
+                <input
+                  id="multi-image-input"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => e.target.files && void handleMultipleImageUpload(e.target.files)}
+                  disabled={uploading || uploadedAssets.length >= 5}
+                />
+              </div>
+
               {uploadError && <p className="text-rose-400 text-[10px] tracking-[0.1em] mt-2">⚠ {uploadError}</p>}
             </div>
           </div>
@@ -286,26 +325,27 @@ export default function AddProductTab() {
 
         {formError && <p className="text-rose-400 text-[10px] tracking-[0.1em] mt-4">⚠ {formError}</p>}
 
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-3 mt-8 flex-wrap">
           <button
-            onClick={() => void handleAdd()}
+            onClick={() => void handleAdd(false)}
             disabled={submitting}
-            className="bg-[#c9a96e] text-[#080604] text-[10px] tracking-[0.25em] uppercase px-6 py-3 hover:bg-[#e8c87a] transition-colors duration-300 font-light disabled:opacity-50"
+            className="bg-[#c9a96e] text-[#080604] font-sans text-xs tracking-[0.15em] uppercase px-6 py-3 hover:bg-[#e8c87a] transition-colors disabled:opacity-50 font-medium"
           >
-            {submitting ? "Creating…" : "Add to Catalogue"}
+            {submitting ? 'Creating…' : 'Save Product'}
           </button>
           <button
-            onClick={() => { 
-                setForm({
-                  name: "", sku: "", skuManuallyEdited: false, type: "Eau de Parfum", family: "Woody",
-                  price: "", quantity: "50", ml: "50", notes: "", badge: "", intensity: "70",
-                  categoryId: "", condition: "new", description: ""
-                }); 
-                setUploadedAssets([]); 
-            }}
-            className="border border-[#c9a96e]/25 text-[#c9a96e] text-[10px] tracking-[0.2em] uppercase px-5 py-3 hover:bg-[#c9a96e]/8 hover:border-[#c9a96e]/50 transition-all duration-300 font-light"
+            onClick={() => void handleAdd(true)}
+            disabled={submitting}
+            className="border border-[#c9a96e]/40 text-[#c9a96e] font-sans text-xs tracking-[0.15em] uppercase px-5 py-3 hover:bg-[#c9a96e]/8 hover:border-[#c9a96e]/70 transition-all disabled:opacity-50"
+            title="Save this product and prepare form for a new size variant (keeps images and description)"
           >
-            Reset
+            Save & Add New Size →
+          </button>
+          <button
+            onClick={resetForm}
+            className="border border-white/10 text-white/40 font-sans text-xs px-4 py-3 hover:text-white/60 transition-colors ml-auto uppercase tracking-widest"
+          >
+            Reset All
           </button>
         </div>
       </div>

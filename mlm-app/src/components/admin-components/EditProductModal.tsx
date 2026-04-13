@@ -3,6 +3,7 @@ import { adminUpdateListing, adminAddImage, adminRemoveImage, adminReorderImages
 import { getSignedUploadUrl, confirmUpload } from '../../api/media';
 import type { Listing } from '../../api/types';
 import LuxuryImage from '../ui/LuxuryImage';
+import { GripVertical } from 'lucide-react';
 
 interface EditProductModalProps {
   listing: Listing | null;
@@ -28,18 +29,32 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Drag and drop states
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragTargetId, setDragTargetId] = useState<string | null>(null);
+
   useEffect(() => {
     if (listing) {
       setTitle(listing.title);
       setPrice(String(listing.price));
       setType(listing.category?.name || 'Eau de Parfum');
       setFamily(listing.category?.name || 'Woody');
+      setNotes(listing.description || '');
       setActive(listing.status === 'active');
       setImages([...listing.images].sort((a,b) => a.sort_order - b.sort_order));
     }
   }, [listing]);
 
   if (!listing) return null;
+
+  const hasChanges = 
+    title !== listing.title || 
+    price !== String(listing.price) || 
+    active !== (listing.status === 'active') ||
+    notes !== (listing.description || '') ||
+    type !== (listing.category?.name || 'Eau de Parfum') ||
+    family !== (listing.category?.name || 'Woody');
 
   const handleSave = async () => {
     setSaving(true);
@@ -60,21 +75,37 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleMultipleImageUpload = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files).slice(0, 5 - images.length);
+    if (fileArray.length === 0) return;
+    
     setUploading(true);
     setError('');
+    
     try {
-      const { upload_url, storage_key } = await getSignedUploadUrl(file.name, file.type);
-      await fetch(upload_url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-      await confirmUpload(storage_key, { alt_text: file.name });
+      let currentOrderIndex = images.length;
       
-      const newOrder = images.length;
-      await adminAddImage(listing.id, { storage_key, sort_order: newOrder });
-      onSave();
+      const uploadPromises = fileArray.map(async (file) => {
+        const { upload_url, storage_key } = await getSignedUploadUrl(file.name, file.type);
+        await fetch(upload_url, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type },
+        });
+        await confirmUpload(storage_key, { alt_text: file.name });
+        
+        // Add image to listing via API concurrently
+        const thisOrder = currentOrderIndex++;
+        await adminAddImage(listing.id, { storage_key, sort_order: thisOrder });
+        return { id: `temp-${Date.now()}-${thisOrder}`, storage_key, sort_order: thisOrder }; // Temporary optimisic injection
+      });
+      
+      await Promise.all(uploadPromises);
+      onSave(); 
+      // Note: we just call onSave() here to trigger a parent refetch to guarantee accurate DB IDs.
+      // Alternatively we could re-hit the details endpoint. The parent refreshListings handle this nicely!
     } catch {
-      setError('Upload failed.');
+      setError('One or more uploads failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -89,8 +120,6 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
       setError('Remove image failed.');
     }
   };
-
-  const [dragId, setDragId] = useState<string | null>(null);
 
   const handleDrop = async (dropId: string) => {
     if (!dragId || dragId === dropId) return;
@@ -114,16 +143,16 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
   };
 
   const inputCls = "w-full bg-[#080604] border border-[#c9a96e]/15 text-[#e8dcc8] text-xs font-light px-4 py-2.5 outline-none focus:border-[#c9a96e]/50 placeholder-muted/20 transition-colors duration-300";
-  const labelCls = "block text-[10px] tracking-[0.2em] uppercase text-muted/35 mb-1.5";
+  const labelCls = "admin-label";
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#080604]/80 backdrop-blur-md flex items-center justify-center p-8">
-      <div className="bg-[#0d0a07] border border-[#c9a96e]/20 max-w-3xl w-full max-h-[90vh] overflow-y-auto p-8 relative">
-        <button onClick={onClose} className="absolute top-6 right-6 text-muted/40 hover:text-rose-400">✕</button>
+    <div className="fixed inset-0 z-50 bg-[#080604]/80 backdrop-blur-md flex items-center justify-center p-4 lg:p-8">
+      <div className="bg-[#0d0a07] border border-[#c9a96e]/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 relative shadow-2xl rounded-sm">
+        <button onClick={onClose} className="absolute top-6 right-6 text-muted/40 hover:text-rose-400 text-xl hover:scale-110 transition-transform">✕</button>
         
-        <p className="font-serif text-2xl font-light text-[#e8dcc8] mb-6">Edit Product: {listing.title}</p>
+        <p className="font-serif text-3xl font-light text-[#e8dcc8] mb-8 pr-12 truncate">Edit Product: {listing.title}</p>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-6">
           <div className="col-span-2">
             <label className={labelCls}>Title</label>
             <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -136,7 +165,7 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
             <label className={labelCls}>Status</label>
             <button 
               onClick={() => setActive(!active)}
-              className={`w-full py-2.5 border text-xs tracking-widest uppercase transition-colors
+              className={`w-full py-2.5 border font-sans text-[10px] tracking-widest uppercase transition-colors
                 ${active ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-white/5 border-white/10 text-muted/40'}`}
             >
               {active ? 'Active' : 'Hidden'}
@@ -156,47 +185,110 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
           </div>
           <div className="col-span-2">
             <label className={labelCls}>Scent Notes</label>
-            <textarea className={`${inputCls} min-h-[60px]`} value={notes} onChange={e => setNotes(e.target.value)} />
+            <textarea className={`${inputCls} min-h-[80px] resize-none`} value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
 
-          <div className="col-span-2 pt-4 border-t border-[#c9a96e]/10 mt-2">
-            <label className={labelCls}>Product Images</label>
-            <p className="text-[10px] text-muted/30 mb-3">Drag to reorder</p>
-            <div className="flex flex-wrap gap-3">
+          <div className="col-span-2 pt-6 border-t border-[#c9a96e]/10 mt-2">
+            <label className={labelCls}>Media Gallery</label>
+            <div className="flex flex-wrap gap-4 mt-3">
               {images.map((img) => (
                 <div 
                   key={img.id}
                   draggable
-                  onDragStart={() => setDragId(img.id)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => void handleDrop(img.id)}
-                  className="relative w-20 h-28 border border-[#c9a96e]/20 cursor-move group overflow-hidden"
+                  onDragStart={() => { setDragId(img.id); setDraggingId(img.id); }}
+                  onDragEnd={() => setDraggingId(null)}
+                  onDragOver={(e) => { e.preventDefault(); setDragTargetId(img.id); }}
+                  onDragLeave={() => setDragTargetId(null)}
+                  onDrop={() => { void handleDrop(img.id); setDragTargetId(null); }}
+                  className={`relative w-24 h-32 border cursor-move group overflow-hidden transition-all duration-200
+                    ${draggingId === img.id ? 'opacity-50 scale-95 border-white/20 shadow-none' : 'shadow-md'}
+                    ${dragTargetId === img.id && draggingId !== img.id ? 'border-[#c9a96e] scale-[1.05] z-10' : 'border-[#c9a96e]/15'}
+                  `}
                 >
                   <LuxuryImage src={`https://hadi-perfumes.s3.amazonaws.com/${img.storage_key}`} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button onClick={() => void handleRemoveImage(img.id)} className="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs">✕</button>
+                  
+                  {/* Drag handle icon */}
+                  <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 p-1 rounded-sm backdrop-blur-sm">
+                    <GripVertical className="w-3.5 h-3.5 text-[#c9a96e]" />
+                  </div>
+                  
+                  {/* Remove button */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3 h-1/2">
+                    <button 
+                      onClick={() => void handleRemoveImage(img.id)} 
+                      className="w-6 h-6 rounded-full bg-rose-500/90 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-lg transition-transform hover:scale-110"
+                      title="Remove image"
+                    >
+                      ✕
+                    </button>
                   </div>
                 </div>
               ))}
               
-              <label className="w-20 h-28 border border-dashed border-[#c9a96e]/30 flex flex-col items-center justify-center cursor-pointer hover:bg-[#c9a96e]/5 hover:border-[#c9a96e]/60 transition-colors">
-                 {uploading ? (
-                   <span className="text-[9px] uppercase tracking-widest text-[#c9a96e]/60">...</span>
-                 ) : (
-                   <span className="text-[#c9a96e]/40 text-2xl">+</span>
-                 )}
-                 <input type="file" accept="image/*" className="hidden" onChange={(e) => void handleImageUpload(e)} disabled={uploading}/>
-              </label>
+              {/* Parallel Dropzone */}
+              <div
+                onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#c9a96e]/60'); }}
+                onDragLeave={(e) => { e.currentTarget.classList.remove('border-[#c9a96e]/60'); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.remove('border-[#c9a96e]/60');
+                  void handleMultipleImageUpload(e.dataTransfer.files);
+                }}
+                className={`w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed ${images.length >= 5 ? 'border-white/5 opacity-50 cursor-not-allowed' : 'border-[#c9a96e]/25 hover:border-[#c9a96e]/50 cursor-pointer'} text-center transition-colors`}
+                onClick={() => {
+                  if (images.length < 5) document.getElementById('edit-multi-image-input')?.click();
+                }}
+              >
+                {uploading ? (
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-[#c9a96e]/30 border-t-[#c9a96e] rounded-full animate-spin" />
+                    <span className="font-sans text-[9px] text-muted/40 uppercase tracking-widest">Uploading...</span>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-[#c9a96e]/40 text-2xl font-light">+</p>
+                    <p className="font-sans text-[9px] uppercase tracking-widest text-muted/30 mt-2">Add Media</p>
+                  </div>
+                )}
+                <input
+                  id="edit-multi-image-input"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => e.target.files && void handleMultipleImageUpload(e.target.files)}
+                  disabled={uploading || images.length >= 5}
+                />
+              </div>
             </div>
+            {images.length > 1 && <p className="text-[10px] text-muted/30 mt-3 font-sans font-medium">Tip: Drag images to adjust their display order on the storefront.</p>}
           </div>
         </div>
 
-        {error && <p className="text-rose-400 text-xs mt-4">⚠ {error}</p>}
+        {error && <p className="text-rose-400 text-xs font-sans font-medium mt-4 bg-rose-500/10 border border-rose-500/20 px-3 py-2">⚠ {error}</p>}
 
-        <div className="flex gap-3 mt-8">
-          <button onClick={() => void handleSave()} disabled={saving} className="bg-[#c9a96e] text-[#080604] px-6 py-3 text-[10px] uppercase tracking-[0.2em] hover:bg-[#e8c87a] disabled:opacity-50">
-            {saving ? 'Saving...' : 'Save Changes'}
+        <div className="flex gap-4 mt-8 items-center border-t border-[#c9a96e]/10 pt-6">
+          <button 
+            onClick={() => void handleSave()} 
+            disabled={saving || !hasChanges} 
+            className="bg-[#c9a96e] text-[#080604] px-8 py-3.5 text-[10px] font-sans font-medium uppercase tracking-[0.2em] hover:bg-[#e8c87a] disabled:opacity-30 transition-all flex items-center gap-2"
+          >
+            {saving ? 'Committing changes...' : 'Save Changes'}
           </button>
+          
+          <button
+             onClick={onClose}
+             className="text-[10px] font-sans uppercase tracking-[0.2em] text-muted/50 hover:text-white transition-colors"
+          >
+             Cancel
+          </button>
+
+          {hasChanges && (
+            <div className="ml-auto flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
+              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span className="font-sans text-[10px] uppercase tracking-wider text-amber-400/80">Unsaved Changes</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

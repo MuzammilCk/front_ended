@@ -1,59 +1,91 @@
 import { useState, useMemo, useEffect } from "react";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { adminUpdateListing } from "../../api/admin";
+import { adminUpdateListing, adminGetListings } from "../../api/admin";
+import { apiRequest } from "../../api/client";
 import type { AdminProductType, Listing } from "../../api/types";
 import EditProductModal from "./EditProductModal";
 import DeleteModal from "./DeleteModal";
 import { useAdminData } from "../../context/AdminContext";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import type { SortingState } from "@tanstack/react-table";
 
 const PAGE_SIZE = 20;
 
 export default function ProductsTab() {
   const navigate = useNavigate();
+  // 1. DATA FROM CONTEXT + URL NAVIGATION
   const { products, rawListings, setProducts, refreshListings } = useAdminData();
+  
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteName, setDeleteName] = useState("");
   const [search, setSearch] = useState("");
   const [familyFilter, setFamilyFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [stockFilter, setStockFilter] = useState("");
-  const [page, setPage] = useState(1);
+  const [serverPage, setServerPage] = useState(1);
   const [editingListing, setEditingListing] = useState<Listing | null>(null);
 
-  // Derive families from active products
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = useState({});
+
   const FAMILIES = useMemo(() => Array.from(new Set(products.map((p) => p.family))).filter(Boolean), [products]);
 
-  const filtered = useMemo(() => {
-    return products.filter((p) => {
-      const matchesSearch = !search || p.name.toLowerCase().includes(search.toLowerCase());
-      const matchesFamily = !familyFilter || p.family === familyFilter;
-      const matchesStatus = !statusFilter || (statusFilter === "active" ? p.active : !p.active);
-      const matchesStock = !stockFilter || (stockFilter === "low" && p.stock < 15);
-      return matchesSearch && matchesFamily && matchesStatus && matchesStock;
-    });
-  }, [products, search, familyFilter, statusFilter, stockFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
   useEffect(() => {
-    setPage(1);
+    setServerPage(1);
+    setRowSelection({});
   }, [search, familyFilter, statusFilter, stockFilter]);
+
+  // 2. SERVER-SIDE PAGINATION
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['admin-listings', serverPage, statusFilter, familyFilter, search, stockFilter],
+    queryFn: () => adminGetListings({
+      limit: PAGE_SIZE,
+      page: serverPage,
+      status: statusFilter || undefined,
+    }),
+    placeholderData: keepPreviousData,
+  });
+
+  const tableData: AdminProductType[] = useMemo(() => {
+    if (!data?.data) return [];
+    let mapped = data.data.map((l: Listing) => ({
+      id: l.id,
+      name: l.title,
+      type: l.category?.name ?? "Parfum",
+      family: l.category?.name ?? "General",
+      price: parseFloat(l.price),
+      stock: l.inventory_item?.available_qty ?? l.quantity ?? 0,
+      active: l.status === "active",
+    }));
+
+    if (search) mapped = mapped.filter(m => m.name.toLowerCase().includes(search.toLowerCase()));
+    if (familyFilter) mapped = mapped.filter(m => m.family === familyFilter);
+    if (stockFilter === "low") mapped = mapped.filter(m => m.stock < 15);
+
+    return mapped;
+  }, [data, search, familyFilter, stockFilter]);
+
+  const totalFilteredCount = data?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(totalFilteredCount / PAGE_SIZE));
 
   const handleToggleActive = async (product: AdminProductType) => {
     const newStatus = product.active ? "hidden" : "active";
-    // Optimistic update
-    setProducts((prev) =>
-      prev.map((p) => (p.id === product.id ? { ...p, active: !p.active } : p))
-    );
+    // Quick local optimistic update
+    
     try {
       await adminUpdateListing(product.id, { status: newStatus });
+      void refetch();
+      void refreshListings();
     } catch {
-      // Revert on failure
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? { ...p, active: product.active } : p))
-      );
+      console.error("Failed to toggle listing status");
     }
   };
 
@@ -63,21 +95,150 @@ export default function ProductsTab() {
   };
 
   const openEdit = (p: AdminProductType) => {
-    const listing = rawListings.find(l => l.id === p.id);
+    const listing = rawListings.find(l => l.id === p.id) || data?.data.find(l => l.id === p.id);
     if (listing) setEditingListing(listing);
   };
 
-  const inputCls = "h-9 bg-[#080604] border border-[#c9a96e]/15 text-[#e8dcc8] text-[11px] px-3 outline-none focus:border-[#c9a96e]/50 transition-colors";
+  // 3. TANSTACK TABLE SETUP
+  const columnHelper = createColumnHelper<AdminProductType>();
+
+  const columns = useMemo(() => [
+    columnHelper.display({
+      id: 'select',
+      header: ({ table }) => (
+        <input
+          type="checkbox"
+          className="accent-[#c9a96e] scale-110"
+          checked={table.getIsAllRowsSelected()}
+          onChange={table.getToggleAllRowsSelectedHandler()}
+        />
+      ),
+      cell: ({ row }) => (
+        <input
+          type="checkbox"
+          className="accent-[#c9a96e] scale-110"
+          checked={row.getIsSelected()}
+          onChange={row.getToggleSelectedHandler()}
+        />
+      ),
+    }),
+    columnHelper.accessor('name', {
+      header: 'Product',
+      cell: info => <span className="font-serif text-lg font-light text-[#e8dcc8]">{info.getValue()}</span>,
+      enableSorting: true,
+    }),
+    columnHelper.accessor('type', {
+      header: 'Type',
+      cell: info => <span className="font-sans text-xs text-muted/50">{info.getValue()}</span>,
+      enableSorting: false,
+    }),
+    columnHelper.accessor('price', {
+      header: 'Price',
+      cell: info => <span className="font-sans text-xs text-[#c9a96e]">INR {info.getValue()}</span>,
+      enableSorting: true,
+    }),
+    columnHelper.accessor('stock', {
+      header: 'Stock',
+      cell: info => (
+        <span className={`font-sans text-xs ${info.getValue() < 15 ? 'text-rose-400' : 'text-muted/50'}`}>
+          {info.getValue()} {info.getValue() < 15 ? '⚠' : ''}
+        </span>
+      ),
+      enableSorting: true,
+    }),
+    columnHelper.accessor('active', {
+      header: 'Status',
+      cell: info => (
+        <span className={`font-sans text-[10px] tracking-wide uppercase px-2 py-0.5 border rounded-sm
+          ${info.getValue()
+            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+            : 'bg-white/5 text-muted/30 border-white/10'
+          }`}>
+          {info.getValue() ? 'Active' : 'Hidden'}
+        </span>
+      ),
+      enableSorting: false,
+    }),
+    columnHelper.display({
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => void handleToggleActive(row.original)}
+            className={`w-9 h-5 rounded-full border relative transition-all duration-300 shrink-0
+              ${row.original.active ? "bg-[#c9a96e]/30 border-[#c9a96e]/60" : "bg-white/5 border-white/15"}`}
+          >
+            <div
+              className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-all duration-300
+              ${row.original.active ? "left-[18px] bg-[#c9a96e]" : "left-0.5 bg-muted/30"}`}
+            />
+          </button>
+          <button
+            onClick={() => openEdit(row.original)}
+            className="font-sans font-medium text-[10px] tracking-widest uppercase text-[#c9a96e]/40 hover:text-[#c9a96e] border border-transparent hover:border-[#c9a96e]/25 px-2 py-1 transition"
+            title="Edit"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => openDelete(row.original)}
+            className="text-sm transition-colors duration-200 text-rose-400/30 hover:text-rose-400"
+            title="Remove"
+          >
+            ✕
+          </button>
+        </div>
+      ),
+    })
+  ], []); // Keeping lightweight. If data mappings change, memo holds steady references.
+
+  const table = useReactTable({
+    data: tableData,
+    columns,
+    state: { sorting, rowSelection },
+    onSortingChange: setSorting,
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
+  const selectedRows = table.getSelectedRowModel().rows;
+  
+  const handleBulkStatus = async (status: 'active' | 'hidden') => {
+    try {
+      await Promise.all(selectedRows.map(row => adminUpdateListing(row.original.id, { status })));
+      void refetch();
+      void refreshListings();
+      table.resetRowSelection();
+    } catch {
+      console.error("Bulk status update failed");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${selectedRows.length} items? This cannot be undone.`)) return;
+    try {
+      await Promise.all(selectedRows.map(row => apiRequest(`/admin/listings/${row.original.id}`, { method: 'DELETE' })));
+      void refetch();
+      void refreshListings();
+      table.resetRowSelection();
+    } catch {
+      console.error("Bulk delete failed");
+    }
+  };
+
+  const inputCls = "h-9 bg-[#080604] border border-[#c9a96e]/15 text-[#e8dcc8] text-[11px] font-sans px-3 outline-none focus:border-[#c9a96e]/50 transition-colors";
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-[10px] tracking-[0.2em] uppercase text-muted/25">
-          {products.length} fragrances · {products.filter((p) => p.active).length} active
+          {totalFilteredCount} fragrances total
         </p>
         <button
           onClick={() => navigate("/admin/products/new")}
-          className="bg-[#c9a96e] text-[#080604] text-[10px] tracking-[0.25em] uppercase px-5 py-2.5 hover:bg-[#e8c87a] transition-colors duration-300 font-light"
+          className="bg-[#c9a96e] text-[#080604] font-sans text-[10px] tracking-[0.25em] font-medium uppercase px-5 py-2.5 hover:bg-[#e8c87a] transition-colors duration-300"
         >
           + Add Perfume
         </button>
@@ -110,85 +271,118 @@ export default function ProductsTab() {
         </select>
       </div>
 
-      <div className="border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#100c08]">
-        <div className="grid grid-cols-7 py-3 px-5 border-b border-[#c9a96e]/5">
-          {["Name", "Type", "Family", "Price", "Stock", "Status", "Actions"].map((h) => (
-            <span key={h} className="text-[10px] tracking-[0.22em] uppercase text-muted/20">
-              {h}
-            </span>
-          ))}
-        </div>
-        {paginated.length === 0 ? (
-          <p className="text-muted/40 py-8 text-center text-sm">No products found.</p>
-        ) : (
-          paginated.map((p) => (
-            <div
-              key={p.id}
-              className="grid grid-cols-7 py-4 px-5 border-b border-[#c9a96e]/4 items-center hover:bg-[#c9a96e]/3 transition-colors"
+      {/* 4. BULK ACTION BAR */}
+      {selectedRows.length > 0 && (
+        <div className="sticky top-[80px] z-20 flex items-center gap-4 bg-[#c9a96e]/10 border border-[#c9a96e]/30 px-5 py-4 mb-4 backdrop-blur-md shadow-lg rounded-sm animate-in fade-in slide-in-from-top-2">
+          <span className="font-sans text-xs font-medium text-[#c9a96e] tracking-wide">
+            {selectedRows.length} product{selectedRows.length > 1 ? 's' : ''} selected
+          </span>
+          <div className="flex gap-2 ml-auto">
+            <button
+              onClick={() => void handleBulkStatus('active')}
+              className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-sans font-medium text-[10px] uppercase tracking-wider px-4 py-2 hover:bg-emerald-500/20 transition-colors"
             >
-              <span className="font-serif text-lg font-light text-[#e8dcc8]">
-                {p.name}
-              </span>
-              <span className="text-[11px] text-muted/40">{p.type}</span>
-              <span className="text-[11px] text-muted/40">{p.family}</span>
-              <span className="text-[11px] text-[#c9a96e]">INR {p.price}</span>
-              <span className={`text-[11px] ${p.stock < 15 ? "text-rose-400" : "text-muted/50"}`}>
-                {p.stock} {p.stock < 15 ? "⚠" : ""}
-              </span>
-              <span
-                className={`text-[10px] tracking-[0.1em] uppercase px-2 py-0.5 w-fit border
-                ${p.active ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-white/5 text-muted/30 border-white/10"}`}
-              >
-                {p.active ? "Active" : "Hidden"}
-              </span>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => handleToggleActive(p)}
-                  className={`w-9 h-5 rounded-full border relative transition-all duration-300 shrink-0
-                    ${p.active ? "bg-[#c9a96e]/30 border-[#c9a96e]/60" : "bg-white/5 border-white/15"}`}
-                >
-                  <div
-                    className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-all duration-300
-                    ${p.active ? "left-[18px] bg-[#c9a96e]" : "left-0.5 bg-muted/30"}`}
-                  />
-                </button>
-                <button
-                  onClick={() => openEdit(p)}
-                  className="text-[10px] tracking-widest uppercase text-[#c9a96e]/40 hover:text-[#c9a96e] border border-transparent hover:border-[#c9a96e]/25 px-2 py-1 transition"
-                  title="Edit"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => openDelete(p)}
-                  className="text-sm transition-colors duration-200 text-rose-400/30 hover:text-rose-400"
-                  title="Remove"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          ))
-        )}
+              Activate All
+            </button>
+            <button
+              onClick={() => void handleBulkStatus('hidden')}
+              className="bg-white/5 text-muted/50 border border-white/10 font-sans font-medium text-[10px] uppercase tracking-wider px-4 py-2 hover:bg-white/10 transition-colors"
+            >
+              Hide All
+            </button>
+            <button
+              onClick={() => void handleBulkDelete()}
+              className="bg-rose-500/10 text-rose-400 border border-rose-500/20 font-sans font-medium text-[10px] uppercase tracking-wider px-4 py-2 hover:bg-rose-500/20 transition-colors"
+            >
+              Delete Selected
+            </button>
+          </div>
+          <button
+            onClick={() => table.resetRowSelection()}
+            className="text-muted/40 hover:text-white transition-colors ml-4 font-sans text-xs flex items-center gap-1"
+          >
+            ✕ Clear
+          </button>
+        </div>
+      )}
+
+      {/* 3. TANSTACK TABLE */}
+      <div className="border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#100c08] overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id} className="border-b border-[#c9a96e]/5">
+                {headerGroup.headers.map(header => (
+                  <th
+                    key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
+                    className={`px-5 py-4 text-[10px] tracking-[0.22em] uppercase text-muted/20 font-normal
+                      ${header.column.getCanSort() ? 'cursor-pointer hover:text-[#c9a96e]/70 select-none transition-colors' : ''}
+                    `}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {/* 5. COLUMN SORTING HEADERS */}
+                      {{
+                        asc: <span className="text-[#c9a96e]">↑</span>,
+                        desc: <span className="text-[#c9a96e]">↓</span>,
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {isLoading ? (
+              // 6. SKELETON ROWS
+              Array(5).fill(null).map((_, i) => (
+                <tr key={i} className="animate-pulse border-b border-[#c9a96e]/4 last:border-0">
+                  {columns.map((_, j) => (
+                    <td key={j} className="px-5 py-5">
+                      <div className="h-4 bg-[#c9a96e]/10 rounded-sm w-16" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : table.getRowModel().rows.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="px-5 py-12 text-center text-muted/40 font-sans text-sm">
+                  No products found. Try clearing filters.
+                </td>
+              </tr>
+            ) : (
+              table.getRowModel().rows.map(row => (
+                <tr key={row.id} className="border-b border-[#c9a96e]/4 hover:bg-[#c9a96e]/5 transition-colors last:border-0">
+                  {row.getVisibleCells().map(cell => (
+                    <td key={cell.id} className="px-5 py-4 align-middle">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between text-[11px] text-muted/40 pt-2">
+      {totalFilteredCount > PAGE_SIZE && (
+        <div className="flex items-center justify-between text-[11px] text-muted/40 pt-2 font-sans tracking-wide">
           <span>
-            Showing {(page - 1) * PAGE_SIZE + 1} - {Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} products
+            Showing {(serverPage - 1) * PAGE_SIZE + 1} - {Math.min(serverPage * PAGE_SIZE, totalFilteredCount)} of {totalFilteredCount} products
           </span>
           <div className="flex gap-2">
             <button
-              disabled={page === 1}
-              onClick={() => setPage(p => p - 1)}
+              disabled={serverPage === 1}
+              onClick={() => setServerPage(p => p - 1)}
               className="px-3 py-1 border border-[#c9a96e]/15 hover:border-[#c9a96e]/50 disabled:opacity-30 disabled:hover:border-[#c9a96e]/15 transition-colors"
             >
               Prev
             </button>
-            <span className="px-3 py-1">Page {page} of {totalPages}</span>
+            <span className="px-3 py-1">Page {serverPage} of {totalPages}</span>
             <button
-              disabled={page === totalPages}
-              onClick={() => setPage(p => p + 1)}
+              disabled={serverPage === totalPages}
+              onClick={() => setServerPage(p => p + 1)}
               className="px-3 py-1 border border-[#c9a96e]/15 hover:border-[#c9a96e]/50 disabled:opacity-30 disabled:hover:border-[#c9a96e]/15 transition-colors"
             >
               Next

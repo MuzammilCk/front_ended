@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { adminListOrders, adminGetListings } from '../api/admin';
-// import { adminGetCategories } from '../api/admin'; -> I'll dynamically import or just import normally if it exists. Wait, adminGetCategories exists in api/admin.ts
 import { adminGetCategories } from '../api/admin';
 import type { Order, AdminProductType, Listing, ProductCategory } from '../api/types';
+import { useAdminToast } from '../hooks/useAdminToast';
+import { ToastContainer } from '../components/admin-components/ToastContainer';
 
 interface AdminContextType {
   products: AdminProductType[];
@@ -15,6 +16,7 @@ interface AdminContextType {
   refreshListings: () => Promise<void>;
   refreshOrders: () => Promise<void>;
   setProducts: React.Dispatch<React.SetStateAction<AdminProductType[]>>;
+  addToast: (message: string, variant?: 'success' | 'error' | 'warning' | 'info', duration?: number) => void;
 }
 
 const AdminContext = createContext<AdminContextType | null>(null);
@@ -26,7 +28,18 @@ export function useAdminData() {
 }
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
+  // Wrap with QueryClientProvider so children (and the fetcher itself) have access to React Query
+  const [queryClient] = useState(() => new QueryClient());
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AdminDataFetcher>{children}</AdminDataFetcher>
+    </QueryClientProvider>
+  );
+}
+
+function AdminDataFetcher({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<AdminProductType[]>([]);
+  const { toasts, addToast, removeToast } = useAdminToast();
 
   const { 
     data: listingsData, 
@@ -44,7 +57,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
             type: listing.category?.name ?? "Parfum",
             family: listing.category?.name ?? "General",
             price: parseFloat(listing.price),
-            stock: 0,
+            stock: listing.inventory_item?.available_qty ?? listing.quantity ?? 0,
             active: listing.status === "active",
           }))
         );
@@ -93,9 +106,11 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         loading,
         refreshListings,
         refreshOrders,
+        addToast,
       }}
     >
       {children}
+      <ToastContainer toasts={toasts} onDismiss={removeToast} />
     </AdminContext.Provider>
   );
 }

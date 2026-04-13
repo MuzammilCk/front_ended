@@ -20,19 +20,30 @@ export default function StatCard({ label, value, sub, trend, color = 'gold', onC
   return (
     <div
       onClick={onClick}
-      className={`border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#130e08] p-5
-        hover:border-[#c9a96e]/25 transition-colors duration-300 ${onClick ? 'cursor-pointer' : ''}`}
+      className={`relative border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#130e08] p-5 
+        transition-all duration-300 hover:border-[#c9a96e]/30 group shadow-md ${onClick ? 'cursor-pointer hover:shadow-black/50 hover:-translate-y-0.5' : ''}`}
     >
-      <p className="text-[10px] tracking-[0.22em] uppercase text-muted/25">{label}</p>
-      <p className={`font-serif text-3xl font-light mt-2 mb-1 ${COLOR_MAP[color]}`}>{value}</p>
-      <div className="flex items-center justify-between">
-        {sub && <p className="text-[10px] text-muted/25">{sub}</p>}
+      <p className="font-sans text-xs font-medium text-white/50 tracking-wide">{label}</p>
+      
+      <p className={`font-serif text-[32px] leading-none font-light mt-4 mb-3 ${COLOR_MAP[color]}`}>{value}</p>
+      
+      <div className="flex items-center justify-between mt-auto">
+        {sub && <p className="font-sans text-[10px] text-muted/30">{sub}</p>}
+        
         {trend !== undefined && (
-          <span className={`text-[9px] tracking-widest ${trend >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-            {trend >= 0 ? '▲' : '▼'} {Math.abs(trend)}%
-          </span>
+          <div className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm font-sans text-[9px] font-medium uppercase tracking-widest
+            ${trend >= 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/10' : 'bg-rose-500/10 text-rose-400 border border-rose-500/10'}`}>
+            {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}%
+            <span className="text-current/60 font-normal ml-1 lowercase tracking-normal">vs last week</span>
+          </div>
         )}
       </div>
+
+      {onClick && (
+        <span className="absolute top-4 right-4 text-[#c9a96e]/0 group-hover:text-[#c9a96e]/40 transition-colors duration-300 text-sm font-sans">
+          →
+        </span>
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 // All endpoints under /admin/* require JWT authentication with admin role.
 // Authorization is handled centrally by client.ts Bearer token.
 
-import { apiRequest } from './client';
+import { apiRequest, ApiError } from './client';
 import type {
   Listing,
   ProductCategory,
@@ -12,6 +12,11 @@ import type {
   GraphCorrectionLog,
   PaginatedAuditLogs,
   AdminDashboardStats,
+  Dispute,
+  ReturnRequest,
+  FraudSignal,
+  PayoutRequest,
+  LedgerEntry,
 } from './types';
 
 // ─── Admin Listings ──────────────────────────────────────────────────────────
@@ -330,4 +335,322 @@ export async function getAuditLogs(
       }
     }))
   };
+}
+
+// ─── Admin Trust & Safety ──────────────────────────────────────────────────
+
+// ─ Disputes ──────────────────────────────────────────────────────────────────
+
+/**
+ * List all disputes with optional status/pagination filters.
+ * GET /admin/disputes?status=&page=&limit=
+ */
+export async function adminListDisputes(params: {
+  status?: string;
+  page?: number;
+  limit?: number;
+} = {}): Promise<{ data: Dispute[]; total: number; page: number; limit: number }> {
+  try {
+    const query = new URLSearchParams();
+    if (params.status) query.set('status', params.status);
+    if (params.page !== undefined) query.set('page', String(params.page));
+    if (params.limit !== undefined) query.set('limit', String(params.limit));
+    const qs = query.toString();
+    return apiRequest<{ data: Dispute[]; total: number; page: number; limit: number }>(
+      `/admin/disputes${qs ? `?${qs}` : ''}`,
+      { method: 'GET' },
+    );
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+/**
+ * Resolve a dispute.
+ * PATCH /admin/disputes/:id/resolve
+ * Body: { resolution: DisputeResolution, note?: string }
+ */
+export async function adminResolveDispute(
+  disputeId: string,
+  payload: { resolution: string; note?: string },
+): Promise<Dispute> {
+  try {
+    return apiRequest<Dispute>(`/admin/disputes/${disputeId}/resolve`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+/**
+ * Escalate a dispute.
+ * POST /admin/disputes/:id/escalate
+ * Body: { note?: string }
+ */
+export async function adminEscalateDispute(
+  disputeId: string,
+  note?: string,
+): Promise<Dispute> {
+  try {
+    return apiRequest<Dispute>(`/admin/disputes/${disputeId}/escalate`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+/**
+ * Close a dispute.
+ * POST /admin/disputes/:id/close
+ * Body: { note?: string }
+ */
+export async function adminCloseDispute(
+  disputeId: string,
+  note?: string,
+): Promise<Dispute> {
+  try {
+    return apiRequest<Dispute>(`/admin/disputes/${disputeId}/close`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+// ─ Returns ───────────────────────────────────────────────────────────────────
+
+/**
+ * List return requests with optional filters.
+ * GET /admin/returns?status=&page=&limit=
+ */
+export async function adminListReturns(params: {
+  status?: string;
+  page?: number;
+  limit?: number;
+} = {}): Promise<{ data: ReturnRequest[]; total: number; page: number; limit: number }> {
+  try {
+    const query = new URLSearchParams();
+    if (params.status) query.set('status', params.status);
+    if (params.page !== undefined) query.set('page', String(params.page));
+    if (params.limit !== undefined) query.set('limit', String(params.limit));
+    const qs = query.toString();
+    return apiRequest<{ data: ReturnRequest[]; total: number; page: number; limit: number }>(
+      `/admin/returns${qs ? `?${qs}` : ''}`,
+      { method: 'GET' },
+    );
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+/**
+ * Approve a return request.
+ * POST /admin/returns/:id/approve
+ * Body: { note?: string }
+ */
+export async function adminApproveReturn(
+  returnId: string,
+  note?: string,
+): Promise<ReturnRequest> {
+  try {
+    return apiRequest<ReturnRequest>(`/admin/returns/${returnId}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+/**
+ * Reject a return request.
+ * POST /admin/returns/:id/reject
+ * Body: { note?: string }
+ */
+export async function adminRejectReturn(
+  returnId: string,
+  note?: string,
+): Promise<ReturnRequest> {
+  try {
+    return apiRequest<ReturnRequest>(`/admin/returns/${returnId}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+/**
+ * Mark a return request as completed.
+ * POST /admin/returns/:id/complete
+ * Body: { note?: string }
+ */
+export async function adminCompleteReturn(
+  returnId: string,
+  note?: string,
+): Promise<ReturnRequest> {
+  try {
+    return apiRequest<ReturnRequest>(`/admin/returns/${returnId}/complete`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+// ─ Fraud Signals ───────────────────────────────────────────────────────────
+
+/**
+ * List fraud signals with optional filters.
+ * GET /admin/fraud-signals?status=&user_id=&page=&limit=
+ * Note: backend filters by `status` (new/reviewed/actioned/false_positive),
+ * not by `severity`/`risk_level`.
+ */
+export async function adminListFraudSignals(params: {
+  status?: string;
+  user_id?: string;
+  page?: number;
+  limit?: number;
+} = {}): Promise<{ data: FraudSignal[]; total: number; page: number; limit: number }> {
+  try {
+    const query = new URLSearchParams();
+    if (params.status) query.set('status', params.status);
+    if (params.user_id) query.set('user_id', params.user_id);
+    if (params.page !== undefined) query.set('page', String(params.page));
+    if (params.limit !== undefined) query.set('limit', String(params.limit));
+    const qs = query.toString();
+    return apiRequest<{ data: FraudSignal[]; total: number; page: number; limit: number }>(
+      `/admin/fraud-signals${qs ? `?${qs}` : ''}`,
+      { method: 'GET' },
+    );
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+/**
+ * Review / action a fraud signal.
+ * POST /admin/fraud-signals/:id/review
+ * Body: { verdict: 'actioned' | 'false_positive', note?: string }
+ *
+ * Note: backend only supports 'actioned' and 'false_positive' verdicts.
+ * For ban/suspend workflows use the user-management endpoints instead.
+ */
+export async function adminReviewFraudSignal(
+  signalId: string,
+  verdict: 'actioned' | 'false_positive',
+  note?: string,
+): Promise<FraudSignal> {
+  try {
+    return apiRequest<FraudSignal>(`/admin/fraud-signals/${signalId}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ verdict, note }),
+    });
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+// ─── Admin Finance ────────────────────────────────────────────────────────────
+
+// ─ Payouts ───────────────────────────────────────────────────────────────────
+
+/**
+ * List payout requests with optional filters.
+ * GET /admin/payouts?status=&page=&limit=&user_id=
+ */
+export async function adminListPayouts(params: {
+  status?: string;
+  user_id?: string;
+  page?: number;
+  limit?: number;
+} = {}): Promise<{ data: PayoutRequest[]; total: number; page: number; limit: number }> {
+  try {
+    const query = new URLSearchParams();
+    if (params.status) query.set('status', params.status);
+    if (params.user_id) query.set('user_id', params.user_id);
+    if (params.page !== undefined) query.set('page', String(params.page));
+    if (params.limit !== undefined) query.set('limit', String(params.limit));
+    const qs = query.toString();
+    return apiRequest<{ data: PayoutRequest[]; total: number; page: number; limit: number }>(
+      `/admin/payouts${qs ? `?${qs}` : ''}`,
+      { method: 'GET' },
+    );
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+/**
+ * Approve a payout request.
+ * POST /admin/payouts/:id/approve
+ */
+export async function adminApprovePayout(payoutId: string): Promise<PayoutRequest> {
+  try {
+    return apiRequest<PayoutRequest>(`/admin/payouts/${payoutId}/approve`, {
+      method: 'POST',
+    });
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+/**
+ * Reject a payout request (backend has no on_hold state; rejection is the
+ * closest equivalent to "holding" a payout).
+ * POST /admin/payouts/:id/reject
+ * Body: { reason: string }
+ */
+export async function adminRejectPayout(
+  payoutId: string,
+  reason: string,
+): Promise<PayoutRequest> {
+  try {
+    return apiRequest<PayoutRequest>(`/admin/payouts/${payoutId}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
+}
+
+// ─ Ledger ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch ledger history for a specific user (admin view).
+ * GET /wallet/ledger?user_id=<userId>&page=&limit=&entry_type=
+ * The LedgerService.adminGetLedgerEntries() is called by the wallet controller
+ * which accepts `user_id` as a query parameter when the caller is an admin.
+ */
+export async function adminGetUserLedger(
+  userId: string,
+  params: {
+    page?: number;
+    limit?: number;
+    entry_type?: string;
+    status?: string;
+  } = {},
+): Promise<{ data: LedgerEntry[]; total: number; page: number; limit: number }> {
+  try {
+    const query = new URLSearchParams();
+    query.set('user_id', userId);
+    if (params.page !== undefined) query.set('page', String(params.page));
+    if (params.limit !== undefined) query.set('limit', String(params.limit));
+    if (params.entry_type) query.set('entry_type', params.entry_type);
+    if (params.status) query.set('status', params.status);
+    return apiRequest<{ data: LedgerEntry[]; total: number; page: number; limit: number }>(
+      `/wallet/ledger?${query.toString()}`,
+      { method: 'GET' },
+    );
+  } catch (err) {
+    throw err instanceof ApiError ? err : new ApiError(0, String(err));
+  }
 }

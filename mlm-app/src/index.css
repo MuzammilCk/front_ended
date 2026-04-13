@@ -3,6 +3,7 @@
 @import "@fontsource/cormorant-garamond/400-italic.css";
 @import "@fontsource/jost/300.css";
 @import "@fontsource/jost/400.css";
+@import './styles/admin.css';
 
 @tailwind base;
 @tailwind components;
@@ -89,6 +90,11 @@ h3 {
   }
 }
 
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 .anim-route {
   animation: routeFade 320ms var(--ease-out-quart) both;
 }
@@ -125,3 +131,4 @@ h3 {
     transform: none !important;
   }
 }
+

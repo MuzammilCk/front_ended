@@ -1,12 +1,14 @@
 import {
   LayoutDashboard, Package, PlusCircle, Tag, ShoppingBag,
-  Archive, Globe, Network, ScrollText, ShieldAlert, PackageX, Banknote,
+  Archive, Globe, Network, ScrollText, AlertTriangle, DollarSign, RotateCcw
 } from 'lucide-react';
-import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
+import { Link as RouterLink, NavLink } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '../../api/client';
 import { getUserFirstName, getUserRole } from '../../api/client';
 
 interface NavItem {
-  path: string;
+  key: string;
   icon: typeof LayoutDashboard;
   label: string;
 }
@@ -17,35 +19,42 @@ interface NavGroup {
 }
 
 const NAV_GROUPS: NavGroup[] = [
-  { label: 'Overview',    items: [{ path: 'dashboard',  icon: LayoutDashboard, label: 'Dashboard'    }] },
+  { label: 'Overview',    items: [{ key: 'dashboard',  icon: LayoutDashboard, label: 'Dashboard'    }] },
   { label: 'Catalogue',   items: [
-    { path: 'products',   icon: Package,       label: 'Products'     },
-    { path: 'products/new', icon: PlusCircle,  label: 'Add Product'  },
-    { path: 'categories', icon: Tag,           label: 'Categories'   },
+    { key: 'products',   icon: Package,       label: 'Products'     },
+    { key: 'products/new', icon: PlusCircle,  label: 'Add Product'  },
+    { key: 'categories', icon: Tag,           label: 'Categories'   },
   ]},
   { label: 'Operations',  items: [
-    { path: 'orders',     icon: ShoppingBag,   label: 'Orders'       },
-    { path: 'inventory',  icon: Archive,       label: 'Inventory'    },
+    { key: 'orders',     icon: ShoppingBag,   label: 'Orders'       },
+    { key: 'inventory',  icon: Archive,       label: 'Inventory'    },
   ]},
-  { label: 'Content',     items: [{ path: 'homepage', icon: Globe, label: 'Homepage CMS' }] },
+  { label: 'Content',     items: [{ key: 'homepage', icon: Globe, label: 'Homepage CMS' }] },
   { label: 'Network',     items: [
-    { path: 'network',    icon: Network,       label: 'MLM Network'  },
-    { path: 'audit',      icon: ScrollText,    label: 'Audit Log'    },
+    { key: 'network',    icon: Network,       label: 'MLM Network'  },
+    { key: 'audit',      icon: ScrollText,    label: 'Audit Log'    },
   ]},
   { label: 'Trust & Safety', items: [
-    { path: 'trust/disputes', icon: ShieldAlert, label: 'Disputes'   },
-    { path: 'trust/returns',  icon: PackageX,    label: 'Returns'    },
+    { key: 'trust/disputes', icon: AlertTriangle, label: 'Disputes Desk' },
+    { key: 'trust/returns',  icon: RotateCcw,     label: 'Returns'       },
   ]},
-  { label: 'Finance',     items: [
-    { path: 'finance/payouts', icon: Banknote,  label: 'Payouts'    },
+  { label: 'Finance', items: [
+    { key: 'finance/payouts', icon: DollarSign, label: 'Payouts' },
   ]},
 ];
 
 export default function Sidebar() {
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
   const name = getUserFirstName() ?? 'Admin';
   const role = getUserRole() ?? 'admin';
+
+  // Fetch open disputes count
+  const { data: disputesRes } = useQuery({
+    queryKey: ['admin-open-disputes'],
+    queryFn: () => apiRequest<{ total: number }>('/admin/disputes?status=open'),
+    refetchInterval: 60000, // Re-fetch every minute for almost real-time updates
+  });
+  
+  const openDisputesCount = disputesRes?.total || 0;
 
   return (
     <aside className="w-64 shrink-0 border-r border-[#c9a96e]/10 bg-[#0d0a07] z-20 flex flex-col relative">
@@ -66,22 +75,33 @@ export default function Sidebar() {
             </p>
             <div className="flex flex-col gap-1">
               {group.items.map(item => {
-                const fullPath = `/admin/${item.path}`;
-                const isActive = pathname === fullPath || pathname.startsWith(fullPath + '/');
                 const Icon = item.icon;
                 return (
-                  <button
-                    key={item.path}
-                    onClick={() => navigate(fullPath)}
-                    className={`flex items-center gap-4 px-4 py-3 border-l-2 transition-all duration-300 w-full text-left
-                      ${isActive 
-                        ? "border-[#c9a96e] bg-[#c9a96e]/5 text-[#e8dcc8]" 
-                        : "border-transparent text-muted/30 hover:border-[#c9a96e]/30 hover:text-[#e8dcc8] hover:bg-white/[0.02]"
-                      }`}
+                  <NavLink
+                    key={item.key}
+                    to={`/admin/${item.key}`}
+                    className={({ isActive }) =>
+                      `flex items-center gap-4 px-4 py-3 border-l-2 transition-all duration-300 w-full text-left
+                      ${isActive
+                        ? 'border-[#c9a96e] bg-[#c9a96e]/5 text-[#e8dcc8]'
+                        : 'border-transparent text-muted/30 hover:border-[#c9a96e]/30 hover:text-[#e8dcc8] hover:bg-white/[0.02]'
+                      }`
+                    }
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#c9a96e]' : 'text-muted/30'}`} />
-                    <span className="text-xs uppercase tracking-widest">{item.label}</span>
-                  </button>
+                    {({ isActive }) => (
+                      <>
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-[#c9a96e]' : 'text-muted/30'}`} />
+                        <span className="text-[11px] tracking-[0.2em] uppercase flex-1">
+                          {item.label}
+                        </span>
+                        {item.key === 'trust/disputes' && openDisputesCount > 0 && (
+                          <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] px-1.5 min-w-[1.25rem] text-center rounded-full">
+                            {openDisputesCount}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </NavLink>
                 );
               })}
             </div>
