@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useWishlist } from "../context/WishlistContext";
 import {
   X,
   Home,
@@ -13,17 +14,16 @@ import {
 
 interface SidebarProps {
   cartCount?: number;
-  wishlistCount?: number;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export default function Sidebar({
   cartCount = 0,
-  wishlistCount = 0,
   isOpen,
   onClose,
 }: SidebarProps) {
+  const { count: wishlistCount } = useWishlist();
   const location = useLocation();
   const { logout } = useAuth();
   const onCloseRef = useRef(onClose);

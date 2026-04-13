@@ -1,14 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useWishlist } from "../context/WishlistContext";
 import { User, Heart, ShoppingBag, LogOut, Package, Wallet } from "lucide-react";
 
 interface NavbarProps {
   cartCount?: number;
-  wishlistCount?: number;
 }
 
-export default function Navbar({ cartCount = 0, wishlistCount = 0 }: NavbarProps) {
+export default function Navbar({ cartCount = 0 }: NavbarProps) {
+  const { count: wishlistCount } = useWishlist();
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);

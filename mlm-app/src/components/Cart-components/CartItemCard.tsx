@@ -37,7 +37,7 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
   const handleRemove = () => {
     if (isRemoving) return;
     setIsRemoving(true);
-    
+
     if (cardRef.current) {
       gsap.to(cardRef.current, {
         x: -50,
@@ -101,22 +101,22 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
         <p className="text-[#c9a96e] font-serif tracking-widest whitespace-nowrap">
           INR {(item.price * item.quantity).toLocaleString('en-IN')}
         </p>
-        
+
         <div className="flex items-center justify-between gap-3 bg-[#110d0a] border border-[#c9a96e]/20 rounded-full px-2 py-1 min-w-[90px]">
-          <button 
-            onClick={handleMinus} 
+          <button
+            onClick={handleMinus}
             disabled={isRemoving}
             className="text-white/60 hover:text-white transition p-1"
           >
             <Minus className="w-3 h-3" />
           </button>
-          
+
           <span ref={qtyRef} className="text-sm font-medium w-4 text-center select-none text-[#e8dcc8] inline-block">
             {item.quantity}
           </span>
-          
-          <button 
-            onClick={handlePlus} 
+
+          <button
+            onClick={handlePlus}
             disabled={isRemoving}
             className="text-white/60 hover:text-white transition p-1"
           >

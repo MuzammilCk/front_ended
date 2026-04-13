@@ -8,6 +8,7 @@ import Sidebar from "../components/Sidebar";
 import { getListings, getCategories } from "../api/listings";
 import type { Listing, ProductCategory } from "../api/types";
 import { useCart } from "../context/CartContext";
+import { useWishlist, type WishlistItem } from "../context/WishlistContext";
 import LuxuryImage from "../components/ui/LuxuryImage";
 import { getImageUrl } from "../utils/imageUrl";
 import { Alert } from "../components/ui/Alert";
@@ -31,8 +32,8 @@ export default function Product() {
   };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [wishlist, setWishlist] = useState<string[]>([]);
 
+  const { isInWishlist, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlist();
   const { addItem, items } = useCart();
   const cartCount = items.reduce((acc, item) => acc + item.qty, 0);
 
@@ -148,10 +149,20 @@ export default function Product() {
     return () => observer.disconnect();
   }, [hasMore, isLoading]);
 
-  const toggleWishlist = (id: string) => {
-    setWishlist((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+  const handleWishlistToggle = (item: any) => {
+    if (isInWishlist(item.id)) {
+      removeFromWishlist(item.id);
+    } else {
+      addToWishlist({
+        id: item.id,
+        name: item.name,
+        type: item.type ?? "",
+        price: typeof item.price === "string" ? parseFloat(item.price) : item.price,
+        image: item.image ?? "",
+        notes: item.notes ?? "",
+        inStock: true,
+      });
+    }
   };
 
   const handleAddToCart = (e: React.MouseEvent, item: { id: string, title: string; price: string; image: string; notes: string }) => {
@@ -445,21 +456,21 @@ export default function Product() {
 
                   {/* Wishlist Button */}
                   <button
-                    onClick={() => toggleWishlist(item.id)}
+                    onClick={() => handleWishlistToggle(item)}
                     type="button"
                     aria-label={
-                      wishlist.includes(item.id)
+                      isInWishlist(item.id)
                         ? "Remove from wishlist"
                         : "Add to wishlist"
                     }
-                    className={`absolute top-4 right-4 z-30 w-8 h-8 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${wishlist.includes(item.id)
-                        ? "bg-red-500 text-white"
+                    className={`absolute top-4 right-4 z-30 w-8 h-8 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${isInWishlist(item.id)
+                        ? "bg-[#c9a96e]/20 border border-[#c9a96e] text-[#c9a96e]"
                         : "bg-black/60 text-white/80 hover:bg-[#c9a96e] hover:text-black"
                       }`}
                   >
                     <svg
                       className="w-4 h-4"
-                      fill={wishlist.includes(item.id) ? "currentColor" : "none"}
+                      fill={isInWishlist(item.id) ? "currentColor" : "none"}
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
