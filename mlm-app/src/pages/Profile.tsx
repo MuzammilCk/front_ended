@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getOnboardingStatus, getMe, updateMe } from "../api/auth";
 import { listOrders } from "../api/orders";
+import { getWalletBalance } from "../api/wallet";
 import type { OnboardingStatus } from "../api/types";
 
 import StatsCard from "../components/profile-components/StatsCard";
@@ -88,11 +89,12 @@ export default function Profile() {
       setStatusLoading(true);
 
       try {
-        const [me, status, orderCounts, recentOrders] = await Promise.all([
+        const [me, status, orderCounts, recentOrders, walletSummary] = await Promise.all([
           getMe().catch(() => null),
           getOnboardingStatus().catch(() => null),
           listOrders({ limit: 1 }).catch(() => null),
           listOrders({ limit: 4 }).catch(() => null),
+          getWalletBalance().catch(() => null),
         ]);
 
         if (cancelled) return;
@@ -106,8 +108,10 @@ export default function Profile() {
             name: me.full_name || "User",
             email: me.email || "",
             mobile: me.phone || "",
-            walletBalance: 0,
-            referralCode: me.id.slice(0, 8).toUpperCase(),
+            // Fix B8: Use real wallet balance instead of hardcoded 0
+            walletBalance: walletSummary?.total_earned ?? 0,
+            // Fix B8: Use real referral code instead of fake id.slice
+            referralCode: me.referral_code || me.id.slice(0, 8).toUpperCase(),
             joinedDate,
             address: "",
           };
@@ -159,7 +163,6 @@ export default function Profile() {
     <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif">
       <Sidebar
         cartCount={cart.length}
-        wishlistCount={wishlist.length}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />

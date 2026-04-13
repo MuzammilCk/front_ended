@@ -56,8 +56,13 @@ export default function Cart() {
 
   const [pastOrders, setPastOrders] = useState<Order[]>([]);
 
-  // Fetch past orders
+  // Fetch past orders — only if authenticated
+  // Fix B1: listOrders requires a valid JWT. Without this guard, guest users
+  // would trigger a 401 error on every Cart page visit.
   useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
     let cancelled = false;
     listOrders({ limit: 5 })
       .then((result) => {

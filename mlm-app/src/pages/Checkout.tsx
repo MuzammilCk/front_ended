@@ -146,8 +146,13 @@ export default function Checkout() {
         } else {
           setCheckoutError(err.body || "Checkout failed. Please try again.");
         }
+        // Business errors: keep the same idempotency key (server rejected cleanly)
       } else {
-        setCheckoutError("Network error during checkout.");
+        // Fix B2: Network error — the request may not have reached the server.
+        // Regenerate the idempotency key so retry creates a fresh order attempt
+        // instead of being permanently stuck on the old key.
+        idempotencyKeyRef.current = generateUUID();
+        setCheckoutError("Network error during checkout. Please try again.");
       }
     } finally {
       setCheckoutLoading(false);
