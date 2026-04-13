@@ -21,7 +21,7 @@ export default function Product() {
   const activeSort = searchParams.get("sort") || "newest";
   const intensityFilter = searchParams.get("intensity") || "All";
   const priceMin = Number(searchParams.get("min")) || 0;
-  const priceMax = Number(searchParams.get("max")) || 500;
+  const priceMax = Number(searchParams.get("max")) || 15000;
 
   const updateSearchParam = (key: string, value: string | number) => {
     const next = new URLSearchParams(searchParams);
@@ -376,7 +376,7 @@ export default function Product() {
               <div className="flex-shrink-0 w-full lg:w-48">
                  <p className="text-[10px] uppercase tracking-widest text-white/40 mb-3 flex justify-between">
                    <span>Price Range</span>
-                   <span className="text-[#c9a96e]">${priceMin} - ${priceMax}</span>
+                   <span className="text-[#c9a96e]">INR {priceMin} - {priceMax}</span>
                  </p>
                  <Slider.Root 
                    className="relative flex items-center select-none touch-none w-full h-4" 
@@ -385,8 +385,8 @@ export default function Product() {
                      updateSearchParam("min", min);
                      updateSearchParam("max", max);
                    }} 
-                   max={500} 
-                   step={10}
+                   max={15000} 
+                   step={100}
                  >
                    <Slider.Track className="bg-[#2a2a2a] relative grow rounded-full h-[2px]">
                      <Slider.Range className="absolute bg-[#c9a96e] rounded-full h-full" />

@@ -12,7 +12,7 @@ export function useAdminToast() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   
   const addToast = useCallback((message: string, variant: ToastVariant = 'success', duration = 4000) => {
-    const id = crypto.randomUUID();
+    const id = crypto.randomUUID?.() ?? `toast-${Date.now()}-${Math.random()}`;
     setToasts(prev => [...prev, { id, message, variant }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
