@@ -63,7 +63,7 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
       await adminUpdateListing(listing.id, {
         title,
         price: Number(price),
-        status: active ? 'active' : 'hidden',
+        status: active ? 'active' : 'paused',
         description: notes,
       });
       onSave();

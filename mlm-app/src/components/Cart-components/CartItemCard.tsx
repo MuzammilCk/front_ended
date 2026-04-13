@@ -1,8 +1,9 @@
 import { useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Trash2, Plus, Minus } from "lucide-react";
+import { Trash2, Plus, Minus, Heart } from "lucide-react";
 import LuxuryImage from "../ui/LuxuryImage";
 import gsap from "gsap";
+import { useWishlist } from "../../context/WishlistContext";
 
 interface CartItemCardProps {
   item: {
@@ -13,6 +14,9 @@ interface CartItemCardProps {
     quantity: number;
     image: string;
     listing_id?: string;
+    notes?: string;
+    available_qty?: number;
+    inStock?: boolean;
   };
   updateQuantity: (id: string, qty: number) => void;
   removeItem: (id: string) => void;
@@ -22,6 +26,7 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
   const cardRef = useRef<HTMLDivElement>(null);
   const qtyRef = useRef<HTMLSpanElement>(null);
   const [isRemoving, setIsRemoving] = useState(false);
+  const { addItem } = useWishlist();
 
   // Animate the quantity flip when it changes
   useEffect(() => {
@@ -56,6 +61,38 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
     }
   };
 
+  const moveToWishlist = () => {
+    if (isRemoving) return;
+    setIsRemoving(true);
+
+    addItem({
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      price: item.price,
+      image: item.image,
+      notes: item.notes || "",
+      inStock: item.inStock ?? true
+    });
+
+    if (cardRef.current) {
+      gsap.to(cardRef.current, {
+        x: -50,
+        opacity: 0,
+        height: 0,
+        padding: 0,
+        margin: 0,
+        duration: 0.4,
+        ease: "power2.inOut",
+        onComplete: () => {
+          removeItem(item.id);
+        }
+      });
+    } else {
+      removeItem(item.id);
+    }
+  };
+
   const handleMinus = () => {
     if (item.quantity <= 1) {
       handleRemove();
@@ -67,6 +104,8 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
   const handlePlus = () => {
     updateQuantity(item.id, item.quantity + 1);
   };
+
+  const isOutOfStock = item.inStock === false;
 
   return (
     <div ref={cardRef} className="p-4 border-b border-[#c9a96e]/10 flex gap-4 overflow-hidden">
@@ -85,16 +124,43 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
         >
           {item.name}
         </Link>
-        <p className="text-xs text-white/50">{item.type}</p>
+        <p className="text-[10px] text-white/50 uppercase tracking-widest mt-0.5">
+          {item.type}
+        </p>
+        
+        {item.notes && (
+          <p className="text-[11px] text-white/40 italic line-clamp-1 mt-0.5">
+            {item.notes}
+          </p>
+        )}
 
-        <button
-          onClick={handleRemove}
-          className="flex items-center gap-1 mt-3 text-xs text-red-400 hover:text-red-300 w-max transition"
-          disabled={isRemoving}
-        >
-          <Trash2 className="w-3 h-3" />
-          Remove
-        </button>
+        {isOutOfStock ? (
+          <p className="text-xs text-rose-500 mt-1">Out of Stock</p>
+        ) : item.available_qty !== undefined && item.available_qty < 10 ? (
+          <p className="text-xs text-amber-500 mt-1">Only {item.available_qty} left in stock — order soon.</p>
+        ) : item.inStock === true ? (
+          <p className="text-xs text-emerald-500 mt-1">In Stock</p>
+        ) : null}
+
+        <div className="flex items-center gap-4 mt-3">
+          <button
+            onClick={moveToWishlist}
+            className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white w-max transition"
+            disabled={isRemoving}
+          >
+            <Heart className="w-3.5 h-3.5" />
+            Move to Wishlist
+          </button>
+
+          <button
+            onClick={handleRemove}
+            className="flex items-center gap-1.5 text-xs text-red-500/80 hover:text-red-400 w-max transition"
+            disabled={isRemoving}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Remove
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col items-end gap-3 justify-center">
@@ -117,8 +183,8 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
 
           <button
             onClick={handlePlus}
-            disabled={isRemoving}
-            className="text-white/60 hover:text-white transition p-1"
+            disabled={isRemoving || isOutOfStock}
+            className="text-white/60 hover:text-white transition p-1 disabled:opacity-50"
           >
             <Plus className="w-3 h-3" />
           </button>

@@ -77,7 +77,7 @@ export default function ProductsTab() {
   const totalPages = Math.max(1, Math.ceil(totalFilteredCount / PAGE_SIZE));
 
   const handleToggleActive = async (product: AdminProductType) => {
-    const newStatus = product.active ? "hidden" : "active";
+    const newStatus = product.active ? "paused" : "active";
     // Quick local optimistic update
     
     try {
@@ -205,7 +205,7 @@ export default function ProductsTab() {
 
   const selectedRows = table.getSelectedRowModel().rows;
   
-  const handleBulkStatus = async (status: 'active' | 'hidden') => {
+  const handleBulkStatus = async (status: 'active' | 'paused') => {
     try {
       await Promise.all(selectedRows.map(row => adminUpdateListing(row.original.id, { status })));
       void refetch();
@@ -263,7 +263,7 @@ export default function ProductsTab() {
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={inputCls}>
           <option value="" className="bg-[#130e08]">All Status</option>
           <option value="active" className="bg-[#130e08]">Active</option>
-          <option value="hidden" className="bg-[#130e08]">Hidden</option>
+          <option value="paused" className="bg-[#130e08]">Hidden</option>
         </select>
         <select value={stockFilter} onChange={(e) => setStockFilter(e.target.value)} className={inputCls}>
           <option value="" className="bg-[#130e08]">All Stock</option>
@@ -285,7 +285,7 @@ export default function ProductsTab() {
               Activate All
             </button>
             <button
-              onClick={() => void handleBulkStatus('hidden')}
+              onClick={() => void handleBulkStatus('paused')}
               className="bg-white/5 text-muted/50 border border-white/10 font-sans font-medium text-[10px] uppercase tracking-wider px-4 py-2 hover:bg-white/10 transition-colors"
             >
               Hide All

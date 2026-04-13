@@ -12,7 +12,7 @@ interface CartDrawerProps {
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const { items, total, removeItem } = useCart();
+  const { items, total, removeItem, count } = useCart();
   const navigate = useNavigate();
 
   const SHIPPING_THRESHOLD = 15000;
@@ -48,7 +48,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0a0705] border-l border-[#2a2a2a] z-[101] shadow-2xl flex flex-col translate-x-full"
       >
         <div className="flex items-center justify-between p-6 border-b border-[#2a2a2a]">
-          <h2 className="text-xl font-display text-[#e8dcc8] uppercase tracking-widest">Your Cart</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-display text-[#e8dcc8] uppercase tracking-widest">Your Cart</h2>
+            <span className="bg-[#c9a96e]/15 text-[#c9a96e] text-[10px] px-2 py-0.5 rounded-full font-medium">
+              {count}
+            </span>
+          </div>
           <button onClick={onClose} className="p-2 text-white/50 hover:text-white transition">
             ✕
           </button>
@@ -67,7 +72,18 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {items.length === 0 ? (
-            <p className="text-center text-white/40 tracking-widest text-sm mt-10">Your cart is empty.</p>
+            <div className="flex flex-col items-center justify-center mt-10">
+              <p className="text-center text-white/40 tracking-widest text-sm mb-6">Your cart is empty.</p>
+              <button
+                onClick={() => {
+                  onClose();
+                  navigate('/product');
+                }}
+                className="px-6 py-2.5 text-xs tracking-widest uppercase border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e]/10 transition rounded"
+              >
+                Explore Collection
+              </button>
+            </div>
           ) : (
             items.map(item => (
               <div key={item.id} className="flex gap-4">
@@ -77,6 +93,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 <div className="flex-1 flex flex-col justify-center">
                   <h3 className="text-sm font-medium text-[#e8dcc8]">{item.title}</h3>
                   <p className="text-xs text-white/40 mt-1">Qty: {item.qty}</p>
+                  <p className="text-white/30 text-[10px] mt-0.5">₹{parseFloat(item.price).toLocaleString('en-IN', { maximumFractionDigits: 0 })} each</p>
                   <button
                     onClick={() => removeItem(item.id)}
                     className="mt-2 text-[10px] font-sans uppercase tracking-widest text-white/30 hover:text-rose-400 transition"
@@ -97,22 +114,34 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <span className="text-xl font-light">INR {total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
           
-          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[#2a2a2a]">
+          <div className="flex flex-col gap-3 pt-4 border-t border-[#2a2a2a]">
             <button 
-              onClick={onClose}
-              className="py-3 text-xs tracking-widest uppercase border border-white/20 text-white/70 hover:bg-white/5 transition"
-            >
-              Continue Shopping
-            </button>
-            <button 
+              onMouseEnter={() => (navigate as any).prefetch?.('/checkout')}
               onClick={() => {
                 onClose();
                 navigate('/checkout');
               }}
-              className="py-3 text-xs tracking-widest uppercase border border-[#c9a96e] bg-[#c9a96e] text-black hover:bg-[#b0935d] transition font-medium"
+              className="w-full py-3 text-xs tracking-widest uppercase border border-[#c9a96e] bg-[#c9a96e] text-black hover:bg-[#b0935d] transition font-medium"
             >
-              Checkout →
+              Proceed to Checkout →
             </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => {
+                  onClose();
+                  navigate('/cart');
+                }}
+                className="py-3 text-xs tracking-widest uppercase border border-white/20 text-white/70 hover:bg-white/5 transition"
+              >
+                View Full Cart
+              </button>
+              <button 
+                onClick={onClose}
+                className="py-3 text-xs tracking-widest uppercase border border-white/20 text-white/70 hover:bg-white/5 transition"
+              >
+                Continue Shopping
+              </button>
+            </div>
           </div>
         </div>
       </div>

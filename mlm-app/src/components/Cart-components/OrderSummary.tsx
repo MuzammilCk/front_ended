@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { Button } from "../ui/Button";
 import { Alert } from "../ui/Alert";
+import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 
 interface OrderSummaryProps {
   subtotal: number;
-  shipping: number;
   onCheckout: () => void;
   loading: boolean;
   disabled: boolean;
@@ -13,51 +14,137 @@ interface OrderSummaryProps {
 
 export default function OrderSummary({
   subtotal,
-  shipping,
   onCheckout,
   loading,
   disabled,
   error,
   lastOrderId,
 }: OrderSummaryProps) {
-  const total = subtotal + shipping;
+  const [promoCode, setPromoCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [promoError, setPromoError] = useState("");
+
+  const SHIPPING_THRESHOLD = 15000;
+  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : 500;
+  const amountToFreeShipping = SHIPPING_THRESHOLD - subtotal;
+  const isFreeShippingUnlocked = amountToFreeShipping <= 0;
+
+  const total = subtotal - discount + shipping;
+
+  const applyPromoCode = () => {
+    if (!promoCode) {
+      setPromoError("");
+      setDiscount(0);
+      return;
+    }
+    if (promoCode.toUpperCase() === "LUXURY10") {
+      setDiscount(subtotal * 0.10);
+      setPromoError("");
+    } else {
+      setDiscount(0);
+      setPromoError("Invalid promo code");
+    }
+  };
 
   return (
     <div className="p-6 border rounded-lg border-[#c9a96e]/10">
       <h2 className="mb-4">Order Summary</h2>
 
-      <div className="space-y-2 text-sm">
+      <div className="mb-6">
+        {isFreeShippingUnlocked ? (
+          <div className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs px-3 py-2 rounded flex items-center justify-center font-medium">
+            ✓ Free Express Shipping Unlocked
+          </div>
+        ) : (
+          <div className="bg-[#1a1511] border border-[#c9a96e]/20 rounded p-3">
+            <p className="text-xs text-[#c9a96e] mb-2 text-center">
+              Add ₹{amountToFreeShipping.toLocaleString('en-IN')} more for FREE express shipping
+            </p>
+            <div className="h-1 bg-[#2a241f] rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-[#c9a96e] transition-all duration-500"
+                style={{ width: `${Math.min((subtotal / SHIPPING_THRESHOLD) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-4 text-sm mb-6 pb-6 border-b border-[#c9a96e]/10">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Promo Code"
+            className="flex-1 bg-transparent border border-[#c9a96e]/30 rounded-lg px-3 py-2 text-[#e8dcc8] placeholder-white/30 focus:outline-none focus:border-[#c9a96e]"
+            value={promoCode}
+            onChange={(e) => setPromoCode(e.target.value)}
+          />
+          <button
+            onClick={applyPromoCode}
+            className="px-4 py-2 border border-[#c9a96e] text-[#c9a96e] rounded-lg hover:bg-[#c9a96e] hover:text-[#0a0705] transition"
+          >
+            Apply
+          </button>
+        </div>
+        {promoError && <p className="text-xs text-rose-500">{promoError}</p>}
+      </div>
+
+      <div className="space-y-3 text-sm">
         <div className="flex justify-between">
-          <span>Subtotal</span>
-          <span>INR {subtotal}</span>
+          <span className="text-white/70">Subtotal</span>
+          <span>₹ {subtotal.toLocaleString('en-IN')}</span>
         </div>
 
+        {discount > 0 && (
+          <div className="flex justify-between text-emerald-500">
+            <span>Discount ({promoCode.toUpperCase()})</span>
+            <span>- ₹ {discount.toLocaleString('en-IN')}</span>
+          </div>
+        )}
+
         <div className="flex justify-between">
-          <span>Shipping</span>
-          <span>{shipping === 0 ? "Free" : `INR ${shipping}`}</span>
+          <span className="text-white/70">Shipping</span>
+          <span>{shipping === 0 ? "Free" : `₹ ${shipping.toLocaleString('en-IN')}`}</span>
         </div>
 
-        <div className="flex justify-between mt-4 font-bold">
+        <div className="flex justify-between mt-4 pt-4 border-t border-[#c9a96e]/10 font-bold text-base">
           <span>Total</span>
-          <span className="text-[#c9a96e]">INR {total}</span>
+          <span className="text-[#c9a96e]">₹ {total.toLocaleString('en-IN')}</span>
         </div>
       </div>
 
-      {error && <Alert variant="error">{error}</Alert>}
-      {lastOrderId && (
-        <Alert variant="success">
-          Order placed! Reference: {lastOrderId.slice(0, 8)}…
-        </Alert>
-      )}
+      <div className="mt-6 space-y-3">
+        {error && <Alert variant="error">{error}</Alert>}
+        {lastOrderId && (
+          <Alert variant="success">
+            Order placed! Reference: {lastOrderId.slice(0, 8)}…
+          </Alert>
+        )}
+      </div>
 
       <Button
         variant="solidGold"
-        className="w-full mt-6 py-3 rounded-lg"
+        className="w-full mt-6 py-4 rounded-lg text-sm tracking-widest uppercase font-medium"
         onClick={onCheckout}
         disabled={disabled || loading}
       >
         {loading ? "Processing…" : "Place Order"}
       </Button>
+
+      <div className="mt-8 space-y-3">
+        <div className="flex items-center gap-3 text-xs text-white/40">
+          <ShieldCheck className="w-4 h-4 text-[#c9a96e]" />
+          <span>Secure SSL Encrypted Checkout</span>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-white/40">
+          <Truck className="w-4 h-4 text-[#c9a96e]" />
+          <span>Dispatched within 24 hours</span>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-white/40">
+          <RotateCcw className="w-4 h-4 text-[#c9a96e]" />
+          <span>14-Day Authenticity Guarantee</span>
+        </div>
+      </div>
     </div>
   );
 }

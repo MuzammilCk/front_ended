@@ -19,7 +19,7 @@ export default function DeleteModal({ deleteId, deleteName, setDeleteId, setProd
     setLoading(true);
     setError('');
     try {
-      await adminUpdateListing(deleteId, { status: 'deleted' });
+      await adminUpdateListing(deleteId, { status: 'removed' });
       setProducts(p => p.filter(x => x.id !== deleteId));
       setDeleteId(null);
     } catch {

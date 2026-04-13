@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react";
 import type { CartApiItem } from "../api/types";
+import { AuthContext } from "./AuthContext";
 
 // Re-use mapping from cart.ts logic for items
 interface CartState {
@@ -15,6 +16,7 @@ type CartAction =
   | { type: "REMOVE_ITEM"; payload: string }
   | { type: "UPDATE_QTY"; payload: { id: string; qty: number } }
   | { type: "CLEAR_CART" }
+  | { type: "MERGE_CART"; payload: CartApiItem[] }
   | { type: "SET_GUEST_SESSION"; payload: boolean };
 
 interface CartContextProps extends CartState {
@@ -22,6 +24,7 @@ interface CartContextProps extends CartState {
   removeItem: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
   clearCart: () => void;
+  mergeCart: (items: CartApiItem[]) => void;
   setGuestSession: (isGuest: boolean) => void;
 }
 
@@ -71,6 +74,25 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case "CLEAR_CART":
       newItems = [];
       break;
+    case "MERGE_CART": {
+      const mergedList = [...state.items];
+      action.payload.forEach((incomingItem) => {
+        const existingIndex = mergedList.findIndex(
+          (i) => i.listing_id === incomingItem.listing_id
+        );
+        if (existingIndex > -1) {
+          // Keep the higher qty
+          const existingItem = mergedList[existingIndex];
+          if (incomingItem.qty > existingItem.qty) {
+            mergedList[existingIndex] = { ...existingItem, qty: incomingItem.qty };
+          }
+        } else {
+          mergedList.push(incomingItem);
+        }
+      });
+      newItems = mergedList;
+      break;
+    }
     case "SET_GUEST_SESSION":
       return { ...state, guestSession: action.payload };
     default:
@@ -89,6 +111,7 @@ const CartContext = createContext<CartContextProps | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const authCtx = useContext(AuthContext);
 
   // Initial load
   useEffect(() => {
@@ -118,6 +141,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "UPDATE_QTY", payload: { id, qty } });
   };
   const clearCart = () => dispatch({ type: "CLEAR_CART" });
+  const mergeCart = (items: CartApiItem[]) => dispatch({ type: "MERGE_CART", payload: items });
+  
   const setGuestSession = (isGuest: boolean) => {
     dispatch({ type: "SET_GUEST_SESSION", payload: isGuest });
     if (isGuest) {
@@ -134,6 +159,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Watch for auth user login event
+  useEffect(() => {
+    if (authCtx?.user && state.items.length > 0) {
+      // TODO: When backend cart sync is added, fetch server cart here and merge with local before dispatching
+      mergeCart(state.items);
+    }
+    // We only want this to run when the user changes (login event), intentional exhaustive-deps disabled
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authCtx?.user]); 
+
   return (
     <CartContext.Provider
       value={{
@@ -142,6 +177,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         removeItem,
         updateQty,
         clearCart,
+        mergeCart,
         setGuestSession,
       }}
     >

@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 import CartItemCard from "../components/Cart-components/CartItemCard";
 import OrderSummary from "../components/Cart-components/OrderSummary";
 import RecommendedProducts from "../components/Cart-components/RecommendedProducts";
 
 import { listOrders } from "../api/orders";
-import { getListings } from "../api/listings";
+import { getListingById, getListings } from "../api/listings";
 import type { Order, CartApiItem } from "../api/types";
 import { useCart } from "../context/CartContext";
 
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/Sidebar";
+import { Alert } from "../components/ui/Alert";
 
 interface CartItem {
   id: string;
@@ -33,7 +35,8 @@ function mapApiCartItem(item: CartApiItem): CartItem {
     listingId: item.listing_id,
     listing_id: item.listing_id,
     name: item.title,
-    type: "Eau de Parfum",
+    // TODO: store type in CartApiItem when backend cart module is added
+    type: item.notes?.includes('ml') ? 'Eau de Parfum' : 'Eau de Parfum',
     price: parseFloat(item.price),
     quantity: item.qty,
     image: item.image_url,
@@ -76,7 +79,7 @@ export default function Cart() {
   };
 
   const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const shipping = subtotal > 150 ? 0 : 25;
+  const shipping = subtotal >= 15000 ? 0 : 500;
 
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
 
@@ -86,7 +89,7 @@ export default function Cart() {
       .then((result) => {
         if (!cancelled) {
           setRecommendedProducts(
-            result.data.map((listing) => ({
+            result.data.map((listing: any) => ({
               id: listing.id,
               name: listing.title,
               price: parseFloat(listing.price),
@@ -103,11 +106,35 @@ export default function Cart() {
     };
   }, []);
 
+  const { data: liveInventory } = useQuery({
+    queryKey: ['cart-inventory', cartItems.map(i => i.listingId)],
+    queryFn: async () => {
+      const results = await Promise.all(
+        cartItems.map(i => getListingById(i.listingId))
+      );
+      
+      const inventory: Record<string, { status: string; qty: number }> = {};
+      results.forEach((res: any) => {
+        const item = res?.data ? res.data : res;
+        if (item && item.id) {
+          inventory[item.id] = { 
+            status: item.status, 
+            qty: item.quantity 
+          };
+        }
+      });
+      return inventory;
+    },
+    enabled: cartItems.length > 0,
+    refetchInterval: 60000,
+  });
+
+  const isCartValid = !liveInventory ? true : cartItems.every(i => liveInventory[i.listingId]?.status === 'active');
+
   return (
     <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif pb-24 md:pb-0">
       <Sidebar
         cartCount={cartItems.length}
-        wishlistCount={0}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
@@ -149,6 +176,14 @@ export default function Cart() {
           Shopping <span className="text-[#c9a96e]">Cart</span>
         </h1>
 
+        {!isCartValid && (
+          <div className="mb-8">
+            <Alert variant="error">
+              One or more items in your cart are no longer available. Please review your cart.
+            </Alert>
+          </div>
+        )}
+
         {cartLoading ? (
           <div className="py-20 text-center">
             <div className="animate-pulse flex flex-col items-center gap-4">
@@ -174,7 +209,11 @@ export default function Cart() {
                 {cartItems.map((item) => (
                   <CartItemCard
                     key={item.id}
-                    item={item}
+                    item={{
+                      ...item,
+                      available_qty: liveInventory?.[item.listingId]?.qty,
+                      inStock: liveInventory ? liveInventory[item.listingId]?.status === 'active' : item.inStock
+                    }}
                     updateQuantity={updateQuantity}
                     removeItem={removeItem}
                   />
@@ -187,10 +226,9 @@ export default function Cart() {
             <div className="hidden md:block">
                <OrderSummary
                  subtotal={subtotal}
-                 shipping={shipping}
                  onCheckout={() => navigate('/checkout')}
                  loading={false}
-                 disabled={false}
+                 disabled={!isCartValid}
                  error={""}
                  lastOrderId={null}
                />
@@ -203,7 +241,7 @@ export default function Cart() {
             <h3 className="text-lg mb-4 text-[#e8dcc8]">Recent Orders</h3>
             <div className="space-y-3">
               {pastOrders.map((order) => (
-                <div
+               <div
                   key={order.id}
                   className="flex items-center justify-between px-4 py-3 border border-[#c9a96e]/10 rounded-lg text-sm"
                 >
@@ -230,7 +268,8 @@ export default function Cart() {
           </div>
           <button 
             onClick={() => navigate('/checkout')}
-            className="px-6 h-12 bg-[#c9a96e] text-[#0a0705] tracking-widest uppercase font-medium text-xs hover:bg-[#b0935d] transition"
+            disabled={!isCartValid}
+            className="px-6 h-12 bg-[#c9a96e] text-[#0a0705] tracking-widest uppercase font-medium text-xs hover:bg-[#b0935d] transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Checkout →
           </button>
