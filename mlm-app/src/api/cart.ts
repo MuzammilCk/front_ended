@@ -1,17 +1,91 @@
 // src/api/cart.ts
-// Client-side cart backed by localStorage.
-// The backend has no cart module — cart state lives entirely in the browser.
-// At checkout, cart items are converted to order line-items via POST /orders.
+// Dual-mode cart API:
+//   - Server-side functions (for authenticated users) → hits /cart endpoints
+//   - localStorage functions (for guests) → unchanged from original
+// CartContext decides which path to use based on auth state.
 
+import { apiRequest } from './client';
 import type { CartApiItem, CartResponse } from './types';
+import { CART_STORAGE_KEY } from '../constants/cart.constants';
 
-const CART_KEY = 'hadi_cart';
+// ═══════════════════════════════════════════════════════════════════
+//  Server-Side Cart API (authenticated users)
+// ═══════════════════════════════════════════════════════════════════
 
-// ─── Internal helpers ────────────────────────────────────────────────────────
+/** Shape returned by the server for each cart item (live prices + stock) */
+export interface ServerCartItem {
+  id: string;
+  listing_id: string;
+  title: string;
+  sku: string;
+  price: string;
+  qty: number;
+  image_url: string;
+  available_qty: number;
+  in_stock: boolean;
+  listing_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ServerCartResponse {
+  items: ServerCartItem[];
+}
+
+/** Fetch the full cart with live prices and stock */
+export async function getServerCart(): Promise<ServerCartResponse> {
+  return apiRequest<ServerCartResponse>('/cart', { method: 'GET' });
+}
+
+/** Add an item to the server cart (upserts if already present) */
+export async function addServerCartItem(
+  listing_id: string,
+  qty: number,
+): Promise<ServerCartResponse> {
+  return apiRequest<ServerCartResponse>('/cart/items', {
+    method: 'POST',
+    body: JSON.stringify({ listing_id, qty }),
+  });
+}
+
+/** Update the quantity of a cart item */
+export async function updateServerCartItem(
+  itemId: string,
+  qty: number,
+): Promise<ServerCartResponse> {
+  return apiRequest<ServerCartResponse>(`/cart/items/${itemId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ qty }),
+  });
+}
+
+/** Remove a single item from the cart */
+export async function removeServerCartItem(itemId: string): Promise<void> {
+  return apiRequest<void>(`/cart/items/${itemId}`, { method: 'DELETE' });
+}
+
+/** Clear the entire cart on the server */
+export async function clearServerCart(): Promise<void> {
+  return apiRequest<void>('/cart', { method: 'DELETE' });
+}
+
+/** Merge guest localStorage cart items into the server cart on login */
+export async function mergeGuestCart(
+  items: Array<{ listing_id: string; qty: number }>,
+): Promise<ServerCartResponse> {
+  return apiRequest<ServerCartResponse>('/cart/merge', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Guest Cart (localStorage) — fallback for unauthenticated users
+// ═══════════════════════════════════════════════════════════════════
 
 function readCart(): CartApiItem[] {
   try {
-    const raw = localStorage.getItem(CART_KEY);
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
     return raw ? (JSON.parse(raw) as CartApiItem[]) : [];
   } catch {
     return [];
@@ -19,10 +93,8 @@ function readCart(): CartApiItem[] {
 }
 
 function writeCart(items: CartApiItem[]): void {
-  localStorage.setItem(CART_KEY, JSON.stringify(items));
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
 }
-
-// ─── Public API (same signatures as before) ──────────────────────────────────
 
 export async function getCart(): Promise<CartResponse> {
   return { items: readCart() };
@@ -81,6 +153,6 @@ export async function removeCartItem(itemId: string): Promise<void> {
   writeCart(items);
 }
 
-export function clearCart(): void {
-  localStorage.removeItem(CART_KEY);
+export function clearLocalCart(): void {
+  localStorage.removeItem(CART_STORAGE_KEY);
 }

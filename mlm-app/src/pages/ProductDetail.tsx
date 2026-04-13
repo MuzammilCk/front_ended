@@ -8,6 +8,7 @@ import LuxuryImage from "../components/ui/LuxuryImage";
 import { getImageUrl } from "../utils/imageUrl";
 import { Alert } from "../components/ui/Alert";
 import Sidebar from "../components/Sidebar";
+import { MAX_QTY_PER_ITEM } from "../constants/cart.constants";
 
 import CartDrawer from "../components/Cart-components/CartDrawer";
 
@@ -123,7 +124,7 @@ export default function ProductDetail() {
           ? getImageUrl(listing.images[0].storage_key) ?? ''
           : '',
         notes: listing.description ?? '',
-        in_stock: true,
+        in_stock: listing.status === 'active' && listing.quantity > 0,
         expires_at: null,
       });
       setIsAdding(false);
@@ -373,13 +374,19 @@ export default function ProductDetail() {
                         {quantity}
                       </span>
                       <button
-                        onClick={() => setQuantity(quantity + 1)}
-                        className="px-3 py-3 text-white/50 hover:text-white hover:bg-white/5 transition"
+                        onClick={() => setQuantity(Math.min(quantity + 1, Math.min(listing.quantity, MAX_QTY_PER_ITEM)))}
+                        disabled={quantity >= Math.min(listing.quantity, MAX_QTY_PER_ITEM)}
+                        className="px-3 py-3 text-white/50 hover:text-white hover:bg-white/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
                         aria-label="Increase quantity"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
+                    {quantity >= Math.min(listing.quantity, MAX_QTY_PER_ITEM) && (
+                      <p className="text-[10px] text-amber-400/70 font-sans mt-1.5">
+                        Max {Math.min(listing.quantity, MAX_QTY_PER_ITEM)} available
+                      </p>
+                    )}
                   </div>
                 </div>
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "../ui/Button";
 import { Alert } from "../ui/Alert";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
+import { SHIPPING_THRESHOLD, SHIPPING_FEE } from "../../constants/cart.constants";
 
 interface OrderSummaryProps {
   subtotal: number;
@@ -24,8 +25,7 @@ export default function OrderSummary({
   const [discount, setDiscount] = useState(0);
   const [promoError, setPromoError] = useState("");
 
-  const SHIPPING_THRESHOLD = 15000;
-  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : 500;
+  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const amountToFreeShipping = SHIPPING_THRESHOLD - subtotal;
   const isFreeShippingUnlocked = amountToFreeShipping <= 0;
 

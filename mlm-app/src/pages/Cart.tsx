@@ -14,6 +14,7 @@ import { useCart } from "../context/CartContext";
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import { Alert } from "../components/ui/Alert";
+import { SHIPPING_THRESHOLD, SHIPPING_FEE } from "../constants/cart.constants";
 
 interface CartItem {
   id: string;
@@ -79,7 +80,7 @@ export default function Cart() {
   };
 
   const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const shipping = subtotal >= 15000 ? 0 : 500;
+  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
 
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
 

@@ -7,6 +7,7 @@ import { ApiError } from "../api/client";
 import type { Order, CartApiItem } from "../api/types";
 import { useCart } from "../context/CartContext";
 import { Alert } from "../components/ui/Alert";
+import { SHIPPING_THRESHOLD, SHIPPING_FEE } from "../constants/cart.constants";
 import Sidebar from "../components/Sidebar";
 
 function generateUUID(): string {
@@ -106,7 +107,7 @@ export default function Checkout() {
     }));
 
     const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const shipping = subtotal > 150 ? 0 : 25;
+    const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
 
     try {
       const order = await createOrder(
@@ -114,6 +115,7 @@ export default function Checkout() {
           items: cartItems.map((item) => ({
             listing_id: item.listingId,
             qty: item.quantity,
+            expected_unit_price: item.price,
           })),
           shipping_address: {
             line1: shippingForm.line1,
@@ -139,6 +141,8 @@ export default function Checkout() {
       if (err instanceof ApiError) {
         if (err.status === 409) {
           setCheckoutError("Some items are out of stock. Please refresh your cart.");
+        } else if (err.status === 422 || (err.body && typeof err.body === 'string' && err.body.includes('price'))) {
+          setCheckoutError("A product's price has changed since you added it. Please return to your cart and review the updated prices.");
         } else {
           setCheckoutError(err.body || "Checkout failed. Please try again.");
         }

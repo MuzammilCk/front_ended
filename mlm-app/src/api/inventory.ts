@@ -1,5 +1,6 @@
 // src/api/inventory.ts
 // Inventory reservation API — cart item operations.
+// Note: This is a legacy convenience wrapper. Prefer using cart.ts directly.
 
 import { apiRequest } from './client';
 import type { CartApiItem } from './types';
@@ -9,11 +10,11 @@ import type { CartApiItem } from './types';
  * Throws ApiError with status 409 if out of stock.
  */
 export async function addToCartReservation(
-  skuId: string,
+  listingId: string,
   qty: number,
 ): Promise<CartApiItem> {
   return apiRequest<CartApiItem>('/cart/items', {
     method: 'POST',
-    body: JSON.stringify({ sku_id: skuId, qty }),
+    body: JSON.stringify({ listing_id: listingId, qty }),
   });
 }

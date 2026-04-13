@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import gsap from "gsap";
 import LuxuryImage from "../ui/LuxuryImage";
+import { SHIPPING_THRESHOLD } from "../../constants/cart.constants";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const { items, total, removeItem, count } = useCart();
   const navigate = useNavigate();
 
-  const SHIPPING_THRESHOLD = 15000;
+
   const progress = Math.min((total / SHIPPING_THRESHOLD) * 100, 100);
   const remaining = Math.max(SHIPPING_THRESHOLD - total, 0);
 

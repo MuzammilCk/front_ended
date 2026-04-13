@@ -4,6 +4,7 @@ import { Trash2, Plus, Minus, Heart } from "lucide-react";
 import LuxuryImage from "../ui/LuxuryImage";
 import gsap from "gsap";
 import { useWishlist } from "../../context/WishlistContext";
+import { MAX_QTY_PER_ITEM } from "../../constants/cart.constants";
 
 interface CartItemCardProps {
   item: {
@@ -106,6 +107,8 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
   };
 
   const isOutOfStock = item.inStock === false;
+  const maxQty = Math.min(item.available_qty ?? MAX_QTY_PER_ITEM, MAX_QTY_PER_ITEM);
+  const isAtMax = item.quantity >= maxQty;
 
   return (
     <div ref={cardRef} className="p-4 border-b border-[#c9a96e]/10 flex gap-4 overflow-hidden">
@@ -183,8 +186,9 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
 
           <button
             onClick={handlePlus}
-            disabled={isRemoving || isOutOfStock}
+            disabled={isRemoving || isOutOfStock || isAtMax}
             className="text-white/60 hover:text-white transition p-1 disabled:opacity-50"
+            title={isAtMax ? `Max ${maxQty} allowed` : undefined}
           >
             <Plus className="w-3 h-3" />
           </button>

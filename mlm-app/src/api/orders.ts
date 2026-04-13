@@ -53,6 +53,7 @@ export async function releaseReservation(reservationId: string): Promise<void> {
 export interface OrderItemPayload {
   listing_id: string; // UUID — exact field from CreateOrderDto.items
   qty: number;
+  expected_unit_price?: number; // Price guard — backend rejects if stale
 }
 
 export interface CreateOrderPayload {
