@@ -16,6 +16,7 @@ import Sidebar from "../components/Sidebar";
 interface CartItem {
   id: string;
   listingId: string;
+  listing_id?: string;
   name: string;
   type: string;
   price: number;
@@ -30,6 +31,7 @@ function mapApiCartItem(item: CartApiItem): CartItem {
   return {
     id: item.id,
     listingId: item.listing_id,
+    listing_id: item.listing_id,
     name: item.title,
     type: "Eau de Parfum",
     price: parseFloat(item.price),

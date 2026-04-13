@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Trash2, Plus, Minus } from "lucide-react";
 import LuxuryImage from "../ui/LuxuryImage";
 import gsap from "gsap";
@@ -11,6 +12,7 @@ interface CartItemCardProps {
     price: number;
     quantity: number;
     image: string;
+    listing_id?: string;
   };
   updateQuantity: (id: string, qty: number) => void;
   removeItem: (id: string) => void;
@@ -68,14 +70,21 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
 
   return (
     <div ref={cardRef} className="p-4 border-b border-[#c9a96e]/10 flex gap-4 overflow-hidden">
-      <LuxuryImage
-        src={item.image}
-        alt={item.name}
-        className="object-cover w-20 h-20 rounded-lg shrink-0"
-      />
+      <Link to={`/product/${item.listing_id ?? ''}`} className="shrink-0 block">
+        <LuxuryImage
+          src={item.image}
+          alt={item.name}
+          className="object-cover w-20 h-20 rounded-lg hover:opacity-80 transition"
+        />
+      </Link>
 
       <div className="flex-1 flex flex-col justify-center">
-        <h3 className="text-[#e8dcc8]">{item.name}</h3>
+        <Link
+          to={`/product/${item.listing_id ?? ''}`}
+          className="text-[#e8dcc8] hover:text-[#c9a96e] transition line-clamp-2 leading-snug"
+        >
+          {item.name}
+        </Link>
         <p className="text-xs text-white/50">{item.type}</p>
 
         <button
