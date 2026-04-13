@@ -169,9 +169,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [isLoggedIn]);
 
   // Persist guest cart to localStorage
+  // Fix A9: clear localStorage when cart is emptied, not just when items exist.
+  // Without this, removing all items left stale data that reappeared on refresh.
   useEffect(() => {
-    if (!isLoggedIn && guestState.items.length > 0) {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(guestState.items));
+    if (!isLoggedIn) {
+      if (guestState.items.length > 0) {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(guestState.items));
+      } else {
+        localStorage.removeItem(CART_STORAGE_KEY);
+      }
     }
   }, [guestState.items, isLoggedIn]);
 
