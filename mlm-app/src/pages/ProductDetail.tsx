@@ -1,177 +1,53 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
+import { ChevronDown, Plus, Minus, Star, Shield, Truck, ArrowLeft } from "lucide-react";
 import { getListingById } from "../api/listings";
 import type { Listing } from "../api/types";
 import { useCart } from "../context/CartContext";
-import { useGsapContext } from "../hooks/useGsapContext";
 import LuxuryImage from "../components/ui/LuxuryImage";
 import { getImageUrl } from "../utils/imageUrl";
 import { Alert } from "../components/ui/Alert";
 import Sidebar from "../components/Sidebar";
 
-import gsap from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-
 import CartDrawer from "../components/Cart-components/CartDrawer";
 
-const ProductSequence = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imagesRef = useRef<HTMLImageElement[]>([]);
-  const frameObj = useRef({ frame: 0 });
-  const [loadedFrame, setLoadedFrame] = useState(0);
+interface AccordionProps {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}
 
-  const [frames, setFrames] = useState<string[]>([]);
-  const [loadProgress, setLoadProgress] = useState(0);
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    const isSafari = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    const count = isSafari ? 10 : 20;
-    
-    const paths = Array.from({ length: count }, (_, i) => {
-      const idx = isSafari ? i * 2 + 1 : i + 1;
-      const n = String(idx).padStart(3, '0');
-      return `/frames/frame_${n}.webp`;
-    });
-    setFrames(paths);
-
-    document.body.style.overflow = 'hidden';
-
-    let loaded = 0;
-    const imgObjs = paths.map(src => {
-      const img = new Image();
-      img.src = src;
-      return new Promise<HTMLImageElement>((resolve, reject) => {
-        img.onload = () => {
-          loaded++;
-          setLoadProgress((loaded / count) * 100);
-          resolve(img);
-        };
-        img.onerror = () => {
-          // ignore error to keep promise.all resolving, or just reject
-          loaded++;
-          setLoadProgress((loaded / count) * 100);
-          resolve(img);
-        };
-      });
-    });
-
-    Promise.all(imgObjs).then(imgs => {
-      imagesRef.current = imgs;
-      setIsReady(true);
-      document.body.style.overflow = '';
-      if ((window as any).lenis) (window as any).lenis.start();
-    });
-
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const img = imagesRef.current[loadedFrame];
-    if (img && img.complete) {
-      ctx.fillStyle = "#000000";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      const hRatio = canvas.width / img.width;
-      const vRatio = canvas.height / img.height;
-      const ratio  = Math.min(hRatio, vRatio);
-      const centerShift_x = (canvas.width - img.width*ratio) / 2;
-      const centerShift_y = (canvas.height - img.height*ratio) / 2;  
-
-      ctx.drawImage(img, 0,0, img.width, img.height,
-                    centerShift_x, centerShift_y, img.width*ratio, img.height*ratio);  
-    }
-  }, [loadedFrame]);
-
-  useGsapContext(() => {
-    if (!containerRef.current) return;
-
-    gsap.to(frameObj.current, {
-      frame: Math.max(0, frames.length - 1),
-      snap: "frame",
-      ease: "none",
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top top",
-        end: "+=200%",
-        scrub: 1.5,
-      },
-      onUpdate: () => {
-        const f = Math.round(frameObj.current.frame);
-        setLoadedFrame(f);
-      },
-    });
-
-    gsap.to(".hero-titles", {
-      opacity: 0,
-      y: -50,
-      duration: 1,
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top top",
-        end: "+=50%",
-        scrub: true,
-      },
-    });
-
-    gsap.set(".reveal-feature", { opacity: 0, y: 30 });
-    gsap.to(".reveal-feature", {
-      opacity: 1,
-      y: 0,
-      stagger: 0.2,
-      duration: 0.8,
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top left",
-        end: "+=150%",
-        scrub: true,
-      },
-    });
-  }, containerRef, []);
+function Accordion({ title, children, defaultOpen = false }: AccordionProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={containerRef} id="sequence-container" className="relative w-full h-screen bg-black overflow-hidden border-b border-[#2a2a2a]">
-      <div className="absolute inset-x-0 top-[15%] hero-titles flex flex-col items-center justify-center z-10 pointer-events-none">
-        <h2 className="text-[#e8dcc8] text-5xl md:text-7xl font-display uppercase tracking-widest text-center mt-12 drop-shadow-2xl">
-          360° Vision
-        </h2>
-        <p className="text-[#c9a96e] tracking-[0.4em] mt-6 text-xs font-serif uppercase">
-          Scroll to explore
-        </p>
-      </div>
-
-      {!isReady && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black">
-          <p className="text-white/40 tracking-widest text-xs uppercase mb-4">Loading Experience...</p>
-          <div className="w-64 h-px bg-white/10 relative overflow-hidden">
-            <div 
-              className="absolute left-0 top-0 bottom-0 bg-[#c9a96e] transition-all duration-200" 
-              style={{ width: `${loadProgress}%` }}
-            />
-          </div>
+    <div className="border-b border-[#c9a96e]/20">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex justify-between items-center w-full py-5 text-left
+                   transition-colors hover:text-[#c9a96e] focus:outline-none"
+      >
+        <span className="font-sans text-xs tracking-widest uppercase text-[#e8dcc8]">
+          {title}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 text-[#c9a96e] transition-transform duration-300
+            ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+      <div
+        ref={contentRef}
+        className="overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]"
+        style={{ maxHeight: isOpen ? (contentRef.current?.scrollHeight ?? 500) + 'px' : '0px' }}
+      >
+        <div className="pb-6 text-sm text-white/60 leading-relaxed font-sans space-y-2">
+          {children}
         </div>
-      )}
-
-      <canvas 
-        ref={canvasRef} 
-        width={1920} 
-        height={1080} 
-        style={{ willChange: 'transform' }} 
-        className="w-full h-full object-contain filter drop-shadow-[0_20px_50px_rgba(201,169,110,0.15)]" 
-      />
+      </div>
     </div>
   );
-};
+}
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -182,10 +58,12 @@ export default function ProductDetail() {
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
   
   const mainCtaRef = useRef<HTMLButtonElement>(null);
 
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
 
   useEffect(() => {
     if (!id) return;
@@ -211,47 +89,50 @@ export default function ProductDetail() {
 
     void run();
 
-    const ctaEl = mainCtaRef.current;
-    if (ctaEl) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          // Show sticky bar when main CTA is out of view (scrolled above it)
-          if (entry.boundingClientRect.top < 0 && !entry.isIntersecting) {
-            setShowStickyBar(true);
-          } else {
-            setShowStickyBar(false);
-          }
-        });
-      }, { threshold: 0 });
-      observer.observe(ctaEl);
-      return () => {
-        cancelled = true;
-        observer.disconnect();
-      };
-    }
-
     return () => { cancelled = true; };
   }, [id]);
 
+  useEffect(() => {
+    const ctaEl = mainCtaRef.current;
+    if (!ctaEl) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Show sticky bar only when CTA has scrolled above viewport
+        setShowStickyBar(entry.boundingClientRect.top < 0 && !entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+    observer.observe(ctaEl);
+    return () => observer.disconnect();
+  }, [listing]);
+
   const handleAddToCart = () => {
-    if (!listing) return;
-    addItem({
-      id: crypto.randomUUID?.() ?? `cart-${Date.now()}`,
-      sku_id: listing.id,
-      listing_id: listing.id,
-      title: listing.title,
-      price: listing.price,
-      qty: 1,
-      image_url: listing.images.length > 0 ? getImageUrl(listing.images[0].storage_key) ?? '' : '',
-      notes: listing.description ?? '',
-      in_stock: true,
-      expires_at: null,
-    });
-    setCartDrawerOpen(true);
+    if (!listing || isAdding) return;
+    setIsAdding(true);
+
+    setTimeout(() => {
+      addItem({
+        id: crypto.randomUUID?.() ?? `cart-${Date.now()}`,
+        sku_id: listing.id,
+        listing_id: listing.id,
+        title: listing.title,
+        price: listing.price,
+        qty: quantity,
+        image_url: listing.images.length > 0
+          ? getImageUrl(listing.images[0].storage_key) ?? ''
+          : '',
+        notes: listing.description ?? '',
+        in_stock: true,
+        expires_at: null,
+      });
+      setIsAdding(false);
+      setCartDrawerOpen(true);
+    }, 380);
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative pb-16 md:pb-0">
+    <div className="min-h-screen bg-black text-white relative pt-16">
       <CartDrawer isOpen={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />
       {/* Sidebar */}
       <Sidebar
@@ -260,27 +141,50 @@ export default function ProductDetail() {
       />
 
       {/* Top bar */}
-      <div className="sticky top-0 z-40 bg-black/95 backdrop-blur-sm border-b border-[#2a2a2a] p-4 flex items-center justify-between">
-        <button
-          type="button"
-          aria-label="Open navigation menu"
-          onClick={() => setIsSidebarOpen((prev) => !prev)}
-          className="p-2 transition rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
-        >
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor">
-            <path strokeWidth="1.5" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+      <nav className="fixed top-0 w-full z-40 bg-[#0a0705]/80 backdrop-blur-xl
+                      border-b border-[#c9a96e]/10">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
 
-        <Link
-          to="/product"
-          className="text-xs tracking-widest text-[#c9a96e]/70 hover:text-[#c9a96e] transition"
-        >
-          ← Back to Collection
-        </Link>
-      </div>
+          {/* Left: Hamburger + Back */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="Open menu"
+              className="p-2 -ml-2 text-white/70 hover:text-white transition"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+                      d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+            <Link
+              to="/product"
+              className="hidden md:flex items-center gap-1.5 text-[10px] font-sans
+                         uppercase tracking-widest text-[#c9a96e]/70 hover:text-[#c9a96e] transition"
+            >
+              <ArrowLeft className="w-3 h-3" /> Collection
+            </Link>
+          </div>
 
-      <ProductSequence />
+          {/* Center: Brand wordmark */}
+          <Link
+            to="/"
+            className="font-display text-2xl tracking-widest text-[#e8dcc8]
+                       absolute left-1/2 -translate-x-1/2"
+          >
+            HADI
+          </Link>
+
+          {/* Right: Cart count */}
+          <button
+            onClick={() => setCartDrawerOpen(true)}
+            className="font-sans text-xs uppercase tracking-widest text-white/70
+                       hover:text-white transition"
+          >
+            Cart ({items.reduce((acc, i) => acc + i.qty, 0)})
+          </button>
+        </div>
+      </nav>
 
       <div className="px-4 py-20 sm:px-6 md:px-12 max-w-7xl mx-auto">
 
@@ -310,126 +214,248 @@ export default function ProductDetail() {
 
         {/* Detail view */}
         {!isLoading && listing && (
-          <div className="grid gap-12 md:grid-cols-2">
+          <div className="flex flex-col lg:flex-row min-h-screen">
 
-            {/* Image */}
-            <div className="relative aspect-[3/4] overflow-hidden bg-[#0c0c0c]">
-              {listing.images.length > 0 && getImageUrl(listing.images[0].storage_key) ? (
-                <LuxuryImage
-                  src={getImageUrl(listing.images[0].storage_key) as string}
-                  alt={listing.title}
-                  className="object-cover w-full h-full"
-                  priority
-                />
-              ) : (
-                <div className="flex items-center justify-center w-full h-full">
-                  <span className="text-white/20 text-xs tracking-widest">
-                    No image available
-                  </span>
+            {/* LEFT: Image Stack — 60% on desktop, full width on mobile */}
+            <div className="w-full lg:w-[60%] lg:border-r border-[#c9a96e]/10">
+              <div className="flex flex-col gap-[2px] bg-[#c9a96e]/5">
+
+                {/* Hero image — aspect 4/5 on mobile, square on tablet, 4/5 on desktop */}
+                <div className="relative w-full aspect-[4/5] md:aspect-square lg:aspect-[4/5] bg-[#0d0a07]">
+                  {listing.images.length > 0 && getImageUrl(listing.images[0].storage_key) ? (
+                    <LuxuryImage
+                      src={getImageUrl(listing.images[0].storage_key) as string}
+                      alt={listing.title}
+                      className="w-full h-full object-cover"
+                      priority
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-white/20 text-xs tracking-widest uppercase">No image</span>
+                    </div>
+                  )}
+                  {listing.status !== 'active' && (
+                    <div className="absolute top-6 left-6 bg-rose-500/10 border border-rose-500/20
+                                    px-3 py-1 text-[10px] uppercase tracking-widest text-rose-400 backdrop-blur-md">
+                      {listing.status.replace('_', ' ')}
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {/* Status badge */}
-              {listing.status !== 'active' && (
-                <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1 text-[10px] tracking-widest text-[#c9a96e] border border-[#c9a96e44]">
-                    {listing.status}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="flex flex-col justify-center space-y-6">
-
-              {/* Category */}
-              {listing.category && (
-                <p className="text-[10px] tracking-[0.3em] uppercase text-[#c9a96e66]">
-                  {listing.category.name}
-                </p>
-              )}
-
-              {/* Title */}
-              <h1 className="text-4xl font-display text-[#e8dcc8] leading-tight">
-                {listing.title}
-              </h1>
-
-              {/* SKU */}
-              <p className="text-xs text-white/30 tracking-widest">
-                SKU: {listing.sku}
-              </p>
-
-              {/* Description */}
-              {listing.description && (
-                <p className="text-sm text-muted/70 leading-relaxed max-w-md">
-                  {listing.description}
-                </p>
-              )}
-
-              {/* Price */}
-              <div className="pt-4 border-t border-[#2a2a2a]">
-                <p className="text-3xl text-[#c9a96e] font-light tracking-wide">
-                  INR {parseFloat(listing.price).toLocaleString('en-IN', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </p>
+                {/* Additional images — 2-column grid below hero */}
+                {listing.images.length > 1 && (
+                  <div className="grid grid-cols-2 gap-[2px]">
+                    {listing.images.slice(1, 5).map((img) => {
+                      const url = getImageUrl(img.storage_key);
+                      return url ? (
+                        <div key={img.id} className="relative aspect-[4/5] bg-[#0d0a07]">
+                          <LuxuryImage src={url} alt={listing.title} className="w-full h-full object-cover" />
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                )}
               </div>
-
-              {/* Add to Cart */}
-              <button
-                ref={mainCtaRef}
-                type="button"
-                onClick={handleAddToCart}
-                className="w-full py-4 text-xs tracking-widest border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0a0705] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
-              >
-                ADD TO CART →
-              </button>
-
-              {/* Additional images */}
-              {listing.images.length > 1 && (
-                <div className="flex gap-3 pt-2">
-                  {listing.images.slice(1, 5).map((img) => {
-                    const url = getImageUrl(img.storage_key);
-                    return url ? (
-                      <div
-                        key={img.id}
-                        className="w-16 h-16 overflow-hidden border border-[#2a2a2a] hover:border-[#c9a96e]/40 transition cursor-pointer"
-                      >
-                        <LuxuryImage
-                          src={url}
-                          alt={listing.title}
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              )}
             </div>
+
+            {/* RIGHT: Sticky Info Rail — 40% on desktop */}
+            <div className="w-full lg:w-[40%] relative">
+              <div className="lg:sticky lg:top-16 p-6 md:p-10 lg:h-[calc(100vh-64px)] lg:overflow-y-auto">
+
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-2 text-[10px] font-sans uppercase
+                                tracking-[0.2em] text-white/40 mb-8">
+                  <Link to="/" className="hover:text-[#c9a96e] transition">Home</Link>
+                  <span className="opacity-40">/</span>
+                  <Link to="/product" className="hover:text-[#c9a96e] transition">
+                    {listing.category?.name || 'Collection'}
+                  </Link>
+                  <span className="opacity-40">/</span>
+                  <span className="text-[#c9a96e] truncate max-w-[120px]">{listing.sku}</span>
+                </div>
+
+                {/* Title + Price */}
+                <div className="mb-8">
+                  <h1 className="font-display text-4xl md:text-5xl text-[#e8dcc8] leading-[1.1] mb-4">
+                    {listing.title}
+                  </h1>
+                  <p className="font-sans text-2xl text-[#c9a96e] font-light tracking-wide">
+                    INR {parseFloat(listing.price).toLocaleString('en-IN', {
+                      minimumFractionDigits: 2, maximumFractionDigits: 2
+                    })}
+                  </p>
+                  {/* Star Rating */}
+                  <div className="flex items-center gap-2 mb-6 mt-3">
+                    <div className="flex text-[#c9a96e]">
+                      {[1,2,3,4,5].map(i => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                      ))}
+                    </div>
+                    <span className="text-xs font-sans text-white/40 hover:text-white/70
+                                     transition cursor-pointer underline underline-offset-2">
+                      124 Reviews
+                    </span>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {listing.description && (
+                  <p className="font-sans text-sm text-white/60 leading-relaxed mb-8 max-w-md">
+                    {listing.description}
+                  </p>
+                )}
+
+                {/* Accordion Blocks */}
+                <div className="mt-2 mb-8 border-t border-[#c9a96e]/20 pt-2">
+                  <Accordion title="Olfactory Pyramid" defaultOpen={true}>
+                    <div className="space-y-3">
+                      <p>
+                        <span className="text-[#c9a96e] text-[10px] uppercase tracking-widest block mb-1">
+                          Top Notes
+                        </span>
+                        Bergamot · Pink Pepper · Saffron
+                      </p>
+                      <p>
+                        <span className="text-[#c9a96e] text-[10px] uppercase tracking-widest block mb-1">
+                          Heart Notes
+                        </span>
+                        Turkish Rose · Iris · Vetiver
+                      </p>
+                      <p>
+                        <span className="text-[#c9a96e] text-[10px] uppercase tracking-widest block mb-1">
+                          Base Notes
+                        </span>
+                        Cambodian Oud · Amber · Vanilla
+                      </p>
+                    </div>
+                  </Accordion>
+
+                  <Accordion title="Ingredients & Care">
+                    <p>
+                      Alcohol Denat., Parfum (Fragrance), Aqua, Limonene, Linalool, Citronellol.
+                      Store away from direct sunlight and heat. Keep tightly capped when not in use.
+                    </p>
+                  </Accordion>
+
+                  <Accordion title="Shipping & Returns">
+                    <p>
+                      Complimentary express shipping on all orders over INR 15,000.
+                      Returns accepted within 14 days of delivery, provided the seal remains unbroken.
+                      Free returns on all authenticated fragrances.
+                    </p>
+                  </Accordion>
+                </div>
+
+                <div className="flex items-end gap-4 mb-6">
+                  {/* Volume badge (static — could be made dynamic later) */}
+                  <div className="flex-1">
+                    <span className="block text-[10px] font-sans uppercase tracking-widest
+                                     text-white/50 mb-2">Volume</span>
+                    <div className="border border-[#c9a96e]/30 px-4 py-3 text-xs text-center
+                                    font-sans tracking-widest bg-[#c9a96e]/5 text-[#c9a96e]">
+                      50 ML
+                    </div>
+                  </div>
+
+                  {/* Quantity stepper */}
+                  <div>
+                    <span className="block text-[10px] font-sans uppercase tracking-widest
+                                     text-white/50 mb-2">Quantity</span>
+                    <div className="flex items-center border border-[#2a2a2a]">
+                      <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="px-3 py-3 text-white/50 hover:text-white hover:bg-white/5 transition"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="w-8 text-center font-sans text-sm text-[#e8dcc8]">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => setQuantity(quantity + 1)}
+                        className="px-3 py-3 text-white/50 hover:text-white hover:bg-white/5 transition"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Add to Cart CTA — keep the existing ref and onClick */}
+                <button
+                  ref={mainCtaRef}
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={isAdding || listing.status !== 'active'}
+                  className={`w-full py-4 font-sans text-xs uppercase tracking-[0.2em] font-medium
+                    transition-all duration-300
+                    ${listing.status !== 'active'
+                      ? 'bg-[#2a2a2a] text-white/30 cursor-not-allowed'
+                      : isAdding
+                        ? 'bg-[#e8c87a] text-black scale-[0.98] cursor-not-allowed'
+                        : 'bg-[#c9a96e] text-[#0a0705] hover:bg-[#e8c87a] active:scale-[0.98]'}`}
+                >
+                  {isAdding ? 'Adding...' : listing.status !== 'active' ? listing.status.replace('_', ' ') : 'Add to Bag'}
+                </button>
+
+                <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-[#c9a96e]/20">
+                  <div className="flex items-start gap-2.5">
+                    <Truck className="w-4 h-4 text-[#c9a96e] shrink-0 mt-0.5" strokeWidth={1.5} />
+                    <div>
+                      <p className="font-sans text-[10px] text-[#e8dcc8] uppercase tracking-widest mb-0.5">
+                        Free Shipping
+                      </p>
+                      <p className="font-sans text-[10px] text-white/40">
+                        Orders above INR 15,000
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Shield className="w-4 h-4 text-[#c9a96e] shrink-0 mt-0.5" strokeWidth={1.5} />
+                    <div>
+                      <p className="font-sans text-[10px] text-[#e8dcc8] uppercase tracking-widest mb-0.5">
+                        Authenticated
+                      </p>
+                      <p className="font-sans text-[10px] text-white/40">
+                        Sourced from Grasse
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
           </div>
         )}
       </div>
 
       {/* Sticky Bottom Bar (Mobile) */}
       {!isLoading && listing && (
-        <div 
-          className={`fixed bottom-0 left-0 right-0 h-16 bg-[#0a0705]/90 backdrop-blur border-t border-[#2a2a2a] z-50 flex items-center px-4 gap-4 transition-transform duration-300 md:hidden ${
-            showStickyBar ? 'translate-y-0' : 'translate-y-full'
-          }`}
-        >
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-[#e8dcc8] truncate">{listing.title}</h3>
-            <p className="text-xs text-[#c9a96e]">
-              INR {parseFloat(listing.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-            </p>
+        <div className={`fixed bottom-0 left-0 right-0 z-50 bg-[#0a0705]/95 backdrop-blur-xl
+          border-t border-[#c9a96e]/20 p-4 md:hidden transition-transform duration-300
+          ${showStickyBar ? 'translate-y-0' : 'translate-y-full'}`}>
+          <div className="flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="font-display text-sm text-[#e8dcc8] truncate">{listing!.title}</p>
+              <p className="font-sans text-xs text-[#c9a96e]">
+                INR {(parseFloat(listing!.price) * quantity).toLocaleString('en-IN', {
+                  minimumFractionDigits: 2
+                })}
+              </p>
+            </div>
+            <button
+              onClick={handleAddToCart}
+              disabled={isAdding || listing!.status !== 'active'}
+              className="bg-[#c9a96e] text-black px-6 py-3 font-sans text-[10px]
+                         font-medium uppercase tracking-widest disabled:opacity-50
+                         transition hover:bg-[#e8c87a] active:scale-[0.98]"
+            >
+              {isAdding ? '...' : 'Add'}
+            </button>
           </div>
-          <button
-            onClick={handleAddToCart}
-            className="flex-1 max-w-[140px] h-10 bg-[#c9a96e] text-black text-xs font-medium tracking-widest uppercase hover:bg-[#b0935d] transition-colors"
-          >
-            Add to Cart
-          </button>
         </div>
       )}
     </div>
