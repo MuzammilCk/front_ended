@@ -22,28 +22,16 @@ export default function OrderSummary({
   lastOrderId,
 }: OrderSummaryProps) {
   const [promoCode, setPromoCode] = useState("");
-  const [discount, setDiscount] = useState(0);
-  const [promoError, setPromoError] = useState("");
+  const [promoFeedback, setPromoFeedback] = useState("");
 
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const amountToFreeShipping = SHIPPING_THRESHOLD - subtotal;
   const isFreeShippingUnlocked = amountToFreeShipping <= 0;
 
-  const total = subtotal - discount + shipping;
+  const total = subtotal + shipping;
 
   const applyPromoCode = () => {
-    if (!promoCode) {
-      setPromoError("");
-      setDiscount(0);
-      return;
-    }
-    if (promoCode.toUpperCase() === "LUXURY10") {
-      setDiscount(subtotal * 0.10);
-      setPromoError("");
-    } else {
-      setDiscount(0);
-      setPromoError("Invalid promo code");
-    }
+    setPromoFeedback("Promo codes are not yet available.");
   };
 
   return (
@@ -81,12 +69,13 @@ export default function OrderSummary({
           />
           <button
             onClick={applyPromoCode}
-            className="px-4 py-2 border border-[#c9a96e] text-[#c9a96e] rounded-lg hover:bg-[#c9a96e] hover:text-[#0a0705] transition"
+            disabled={!!promoFeedback || loading}
+            className="px-4 py-2 border border-[#c9a96e] text-[#c9a96e] rounded-lg hover:bg-[#c9a96e] hover:text-[#0a0705] transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Apply
           </button>
         </div>
-        {promoError && <p className="text-xs text-rose-500">{promoError}</p>}
+        {promoFeedback && <p className="text-xs text-white/50">{promoFeedback}</p>}
       </div>
 
       <div className="space-y-3 text-sm">
@@ -94,13 +83,6 @@ export default function OrderSummary({
           <span className="text-white/70">Subtotal</span>
           <span>₹ {subtotal.toLocaleString('en-IN')}</span>
         </div>
-
-        {discount > 0 && (
-          <div className="flex justify-between text-emerald-500">
-            <span>Discount ({promoCode.toUpperCase()})</span>
-            <span>- ₹ {discount.toLocaleString('en-IN')}</span>
-          </div>
-        )}
 
         <div className="flex justify-between">
           <span className="text-white/70">Shipping</span>

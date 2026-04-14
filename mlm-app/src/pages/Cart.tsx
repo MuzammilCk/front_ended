@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-
 import CartItemCard from "../components/Cart-components/CartItemCard";
 import OrderSummary from "../components/Cart-components/OrderSummary";
 import RecommendedProducts from "../components/Cart-components/RecommendedProducts";
 
-import { listOrders } from "../api/orders";
-import { getListingById, getListings } from "../api/listings";
-import type { Order, CartApiItem } from "../api/types";
+import { getListings } from "../api/listings";
+import type { CartApiItem } from "../api/types";
 import { useCart } from "../context/CartContext";
 import { getImageUrl } from "../utils/imageUrl";
 
@@ -28,6 +25,7 @@ interface CartItem {
   image: string;
   notes: string;
   inStock: boolean;
+  available_qty?: number;
   expiresAt?: string | null;
 }
 
@@ -38,12 +36,13 @@ function mapApiCartItem(item: CartApiItem): CartItem {
     listing_id: item.listing_id,
     name: item.title,
     // TODO: store type in CartApiItem when backend cart module is added
-    type: item.notes?.includes('ml') ? 'Eau de Parfum' : 'Eau de Parfum',
+    type: 'Eau de Parfum',
     price: parseFloat(item.price),
     quantity: item.qty,
     image: item.image_url,
     notes: item.notes,
     inStock: item.in_stock,
+    available_qty: (item as any).available_qty ?? undefined,
     expiresAt: item.expires_at,
   };
 }
@@ -51,31 +50,11 @@ function mapApiCartItem(item: CartApiItem): CartItem {
 export default function Cart() {
   const { items: ctxItems, updateQty: contextUpdateQty, removeItem: contextRemoveItem } = useCart();
   const cartItems = ctxItems.map(mapApiCartItem);
+  const availableItems = cartItems.filter(i => i.inStock !== false);
+  const unavailableItems = cartItems.filter(i => i.inStock === false);
   const cartLoading = false;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
-
-  const [pastOrders, setPastOrders] = useState<Order[]>([]);
-
-  // Fetch past orders — only if authenticated
-  // Fix B1: listOrders requires a valid JWT. Without this guard, guest users
-  // would trigger a 401 error on every Cart page visit.
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) return;
-
-    let cancelled = false;
-    listOrders({ limit: 5 })
-      .then((result) => {
-        if (!cancelled) setPastOrders(result.data);
-      })
-      .catch(() => {
-        // Silently fail
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const updateQuantity = async (id: string, qty: number) => {
     contextUpdateQty(id, qty);
@@ -85,7 +64,7 @@ export default function Cart() {
     contextRemoveItem(id);
   };
 
-  const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const subtotal = availableItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
 
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
@@ -114,30 +93,7 @@ export default function Cart() {
     };
   }, []);
 
-  const { data: liveInventory } = useQuery({
-    queryKey: ['cart-inventory', cartItems.map(i => i.listingId)],
-    queryFn: async () => {
-      const results = await Promise.all(
-        cartItems.map(i => getListingById(i.listingId))
-      );
-      
-      const inventory: Record<string, { status: string; qty: number }> = {};
-      results.forEach((res: any) => {
-        const item = res?.data ? res.data : res;
-        if (item && item.id) {
-          inventory[item.id] = { 
-            status: item.status, 
-            qty: item.quantity 
-          };
-        }
-      });
-      return inventory;
-    },
-    enabled: cartItems.length > 0,
-    refetchInterval: 60000,
-  });
-
-  const isCartValid = !liveInventory ? true : cartItems.every(i => liveInventory[i.listingId]?.status === 'active');
+  const isCartValid = availableItems.length > 0;
 
   return (
     <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif pb-24 md:pb-0">
@@ -184,14 +140,6 @@ export default function Cart() {
           Shopping <span className="text-[#c9a96e]">Cart</span>
         </h1>
 
-        {!isCartValid && (
-          <div className="mb-8">
-            <Alert variant="error">
-              One or more items in your cart are no longer available. Please review your cart.
-            </Alert>
-          </div>
-        )}
-
         {cartLoading ? (
           <div className="py-20 text-center">
             <div className="animate-pulse flex flex-col items-center gap-4">
@@ -214,19 +162,32 @@ export default function Cart() {
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <div className="border border-[#c9a96e]/10 rounded-lg">
-                {cartItems.map((item) => (
+                {availableItems.map((item) => (
                   <CartItemCard
                     key={item.id}
-                    item={{
-                      ...item,
-                      available_qty: liveInventory?.[item.listingId]?.qty,
-                      inStock: liveInventory ? liveInventory[item.listingId]?.status === 'active' : item.inStock
-                    }}
+                    item={item}
                     updateQuantity={updateQuantity}
                     removeItem={removeItem}
                   />
                 ))}
               </div>
+              {unavailableItems.length > 0 && (
+                <div className="mt-6 border border-rose-500/20 rounded-lg">
+                  <div className="px-4 pt-4 pb-2">
+                    <p className="text-xs uppercase tracking-widest text-rose-400/80">
+                      Currently Unavailable
+                    </p>
+                  </div>
+                  {unavailableItems.map((item) => (
+                    <CartItemCard
+                      key={item.id}
+                      item={item}
+                      updateQuantity={updateQuantity}
+                      removeItem={removeItem}
+                    />
+                  ))}
+                </div>
+              )}
               <RecommendedProducts products={recommendedProducts} />
             </div>
 
@@ -240,28 +201,6 @@ export default function Cart() {
                  error={""}
                  lastOrderId={null}
                />
-            </div>
-          </div>
-        )}
-
-        {pastOrders.length > 0 && (
-          <div className="mt-12 border-t border-[#c9a96e]/10 pt-8">
-            <h3 className="text-lg mb-4 text-[#e8dcc8]">Recent Orders</h3>
-            <div className="space-y-3">
-              {pastOrders.map((order) => (
-               <div
-                  key={order.id}
-                  className="flex items-center justify-between px-4 py-3 border border-[#c9a96e]/10 rounded-lg text-sm"
-                >
-                  <span className="text-white/50 font-mono">
-                    #{order.id.slice(0, 8)}
-                  </span>
-                  <span className="text-[#c9a96e]">{order.status}</span>
-                  <span className="text-[#e8dcc8]">
-                    {order.currency} {order.total_amount}
-                  </span>
-                </div>
-              ))}
             </div>
           </div>
         )}

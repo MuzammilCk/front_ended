@@ -96,6 +96,31 @@ function writeCart(items: CartApiItem[]): void {
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
 }
 
+/**
+ * Remove guest cart items that are missing required fields.
+ * This handles the case where an admin-deleted listing left a stale localStorage entry.
+ * Does not make any network call.
+ */
+export function pruneStaleGuestItems(): void {
+  try {
+    const items = readCart();
+    const valid = items.filter(
+      (i) =>
+        typeof i.listing_id === 'string' &&
+        i.listing_id.length > 0 &&
+        typeof i.title === 'string' &&
+        i.title.length > 0 &&
+        typeof i.price === 'string' &&
+        parseFloat(i.price) >= 0,
+    );
+    if (valid.length !== items.length) {
+      writeCart(valid);
+    }
+  } catch {
+    // localStorage read/write failure — do nothing
+  }
+}
+
 export async function getCart(): Promise<CartResponse> {
   return { items: readCart() };
 }

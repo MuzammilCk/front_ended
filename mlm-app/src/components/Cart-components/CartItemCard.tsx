@@ -66,16 +66,6 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
     if (isRemoving) return;
     setIsRemoving(true);
 
-    addItem({
-      id: item.id,
-      name: item.name,
-      type: item.type,
-      price: item.price,
-      image: item.image,
-      notes: item.notes || "",
-      inStock: item.inStock ?? true
-    });
-
     if (cardRef.current) {
       gsap.to(cardRef.current, {
         x: -50,
@@ -86,13 +76,35 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
         duration: 0.4,
         ease: "power2.inOut",
         onComplete: () => {
+          addItem({
+            id: item.id,
+            name: item.name,
+            type: item.type,
+            price: item.price,
+            image: item.image,
+            notes: item.notes || "",
+            inStock: item.inStock ?? true,
+          });
           removeItem(item.id);
-        }
+        },
       });
     } else {
+      addItem({
+        id: item.id,
+        name: item.name,
+        type: item.type,
+        price: item.price,
+        image: item.image,
+        notes: item.notes || "",
+        inStock: item.inStock ?? true,
+      });
       removeItem(item.id);
     }
   };
+
+  const isOutOfStock = item.inStock === false;
+  const maxQty = Math.min(item.available_qty ?? MAX_QTY_PER_ITEM, MAX_QTY_PER_ITEM);
+  const isAtMax = item.quantity >= maxQty;
 
   const handleMinus = () => {
     if (item.quantity <= 1) {
@@ -103,12 +115,9 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
   };
 
   const handlePlus = () => {
+    if (item.quantity >= maxQty) return;
     updateQuantity(item.id, item.quantity + 1);
   };
-
-  const isOutOfStock = item.inStock === false;
-  const maxQty = Math.min(item.available_qty ?? MAX_QTY_PER_ITEM, MAX_QTY_PER_ITEM);
-  const isAtMax = item.quantity >= maxQty;
 
   return (
     <div ref={cardRef} className="p-4 border-b border-[#c9a96e]/10 flex gap-4 overflow-hidden">

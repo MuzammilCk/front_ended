@@ -208,7 +208,6 @@ export default function Checkout() {
             phone: `+91${shippingForm.phone}`,
           },
           shipping_fee: shipping,
-          discount_amount: 0,
         },
         idempotencyKeyRef.current,
       );

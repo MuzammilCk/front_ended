@@ -16,9 +16,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const { items, total, removeItem, count } = useCart();
   const navigate = useNavigate();
 
-
-  const progress = Math.min((total / SHIPPING_THRESHOLD) * 100, 100);
-  const remaining = Math.max(SHIPPING_THRESHOLD - total, 0);
+  const availableTotal = items.reduce(
+    (sum, i) => (i.in_stock !== false ? sum + parseFloat(i.price || '0') * i.qty : sum),
+    0,
+  );
+  const progress = Math.min((availableTotal / SHIPPING_THRESHOLD) * 100, 100);
+  const remaining = Math.max(SHIPPING_THRESHOLD - availableTotal, 0);
 
   useEffect(() => {
     if (isOpen) {
@@ -112,7 +115,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         <div className="p-6 border-t border-[#2a2a2a] bg-[#0a0705] space-y-4">
           <div className="flex justify-between items-center text-[#e8dcc8]">
             <span className="text-sm tracking-widest uppercase">Subtotal</span>
-            <span className="text-xl font-light">INR {total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-xl font-light">
+              INR {availableTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
           </div>
           
           <div className="flex flex-col gap-3 pt-4 border-t border-[#2a2a2a]">

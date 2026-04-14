@@ -313,6 +313,7 @@ export interface CartApiItem {
   image_url: string;
   notes: string;
   in_stock: boolean;
+  available_qty?: number;
   expires_at: string | null;
 }
 

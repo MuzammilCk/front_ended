@@ -18,6 +18,7 @@ import {
   clearServerCart,
   mergeGuestCart,
   clearLocalCart,
+  pruneStaleGuestItems,
 } from '../api/cart';
 import { AuthContext } from './AuthContext';
 import {
@@ -73,6 +74,7 @@ function serverItemToCartItem(s: ServerCartItem): CartApiItem {
     image_url: s.image_url,
     notes: '',
     in_stock: s.in_stock,
+    available_qty: s.available_qty,
     expires_at: null,
   };
 }
@@ -157,6 +159,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isLoggedIn) {
       try {
+        pruneStaleGuestItems();
         const raw = localStorage.getItem(CART_STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw) as CartApiItem[];
@@ -206,12 +209,44 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateMutation = useMutation({
     mutationFn: (vars: { itemId: string; qty: number }) =>
       updateServerCartItem(vars.itemId, vars.qty),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['server-cart'] }),
+    onMutate: async (vars) => {
+      await queryClient.cancelQueries({ queryKey: ['server-cart'] });
+      const previousCart = queryClient.getQueryData<ServerCartItem[]>(['server-cart']);
+      queryClient.setQueryData<ServerCartItem[]>(['server-cart'], (old) =>
+        (old ?? []).map((item) =>
+          item.id === vars.itemId ? { ...item, qty: vars.qty } : item,
+        ),
+      );
+      return { previousCart };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousCart !== undefined) {
+        queryClient.setQueryData(['server-cart'], context.previousCart);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['server-cart'] });
+    },
   });
 
   const removeMutation = useMutation({
     mutationFn: (itemId: string) => removeServerCartItem(itemId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['server-cart'] }),
+    onMutate: async (itemId) => {
+      await queryClient.cancelQueries({ queryKey: ['server-cart'] });
+      const previousCart = queryClient.getQueryData<ServerCartItem[]>(['server-cart']);
+      queryClient.setQueryData<ServerCartItem[]>(['server-cart'], (old) =>
+        (old ?? []).filter((item) => item.id !== itemId),
+      );
+      return { previousCart };
+    },
+    onError: (_err, _itemId, context) => {
+      if (context?.previousCart !== undefined) {
+        queryClient.setQueryData(['server-cart'], context.previousCart);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['server-cart'] });
+    },
   });
 
   const clearMutation = useMutation({
