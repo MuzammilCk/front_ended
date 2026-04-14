@@ -67,7 +67,7 @@ export function InlineOtpGate({ onVerified }: InlineOtpGateProps) {
   };
 
   return (
-    <div className="max-w-sm w-full mx-auto border border-[#c9a96e]/20 rounded-lg p-6 bg-[#0a0705]">
+    <div className="w-full border border-[#c9a96e]/20 rounded-lg p-6 bg-[#0a0705]">
       <h2 className="text-xl text-[#c9a96e] font-serif mb-2">Sign in to continue</h2>
       <p className="text-white/50 text-sm mb-6">Enter your phone number to receive a one-time password.</p>
 
