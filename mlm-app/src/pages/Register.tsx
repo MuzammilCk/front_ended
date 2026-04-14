@@ -27,7 +27,6 @@ export default function Register() {
 
   const navigate = useNavigate();
   const { signup } = useAuth();
-  const { setGuestSession } = useCart();
   type RegisterStep = "form" | "otp" | "creating" | "done";
   const [step, setStep] = useState<RegisterStep>("form");
   const [otp, setOtp] = useState("");
@@ -242,7 +241,6 @@ export default function Register() {
               
               <button
                 onClick={() => {
-                  setGuestSession(true);
                   navigate("/");
                 }}
                 disabled={isLoading}

@@ -50,7 +50,7 @@ export function StripeCheckoutForm({ orderTotal, onSuccess, onError }: StripeChe
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <PaymentElement options={{ theme: 'night' }} />
+      <PaymentElement />
       
       <p className="mt-5 mb-3 text-[11px] text-white/30 text-center leading-relaxed">
         Payments are processed securely by{' '}

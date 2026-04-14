@@ -13,7 +13,6 @@ import { useCart } from "../context/CartContext";
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { setGuestSession } = useCart();
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const [formData, setFormData] = useState({
     email: "",
@@ -110,7 +109,6 @@ export default function Login() {
             
             <button
               onClick={() => {
-                setGuestSession(true);
                 navigate("/");
               }}
               disabled={isLoading}
