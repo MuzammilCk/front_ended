@@ -10,6 +10,7 @@ import { listOrders } from "../api/orders";
 import { getListingById, getListings } from "../api/listings";
 import type { Order, CartApiItem } from "../api/types";
 import { useCart } from "../context/CartContext";
+import { getImageUrl } from "../utils/imageUrl";
 
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 import Sidebar from "../components/Sidebar";
@@ -100,6 +101,7 @@ export default function Cart() {
               name: listing.title,
               price: parseFloat(listing.price),
               type: listing.category?.name ?? 'Parfum',
+              image: getImageUrl(listing.images?.[0]?.storage_key ?? listing.image_url),
             }))
           );
         }
