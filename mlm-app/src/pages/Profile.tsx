@@ -38,7 +38,6 @@ interface UserData {
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [cart, setCart] = useState<number[]>([]);
@@ -109,13 +108,6 @@ export default function Profile() {
   }) ?? [];
 
   const isLoading = meLoading;
-
-  const handleCopyReferral = () => {
-    if (!userData) return;
-    navigator.clipboard.writeText(userData.referralCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handleSave = async () => {
     if (!editForm || isSaving) return;
@@ -268,11 +260,7 @@ export default function Profile() {
               <div className="space-y-6">
                 <WalletCard balance={userData.walletBalance} pending={walletData?.pending} />
 
-                <ReferralCard
-                  code={userData.referralCode}
-                  copied={copied}
-                  onCopy={handleCopyReferral}
-                />
+                <ReferralCard code={userData.referralCode} />
 
                 <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
                   <div className="flex items-center gap-3 mb-4">
