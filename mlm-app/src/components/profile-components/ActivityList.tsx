@@ -19,7 +19,7 @@ export default function ActivityList({ activities }: { activities: Activity[] })
       <div className="divide-y divide-[#c9a96e]/10">
         {activities.map((a, i) => {
           const isCredit = a.action.toLowerCase().startsWith('commission') || a.action.toLowerCase().startsWith('credit') || a.action.toLowerCase().startsWith('refund');
-          
+
           return (
             <Link
               key={i}

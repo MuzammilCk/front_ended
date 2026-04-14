@@ -1,3 +1,5 @@
+import type { ChangeEvent } from 'react';
+
 export default function InfoField({
   icon: Icon,
   label,
@@ -5,6 +7,13 @@ export default function InfoField({
   isEditing,
   onChange,
   type = "text"
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  isEditing?: boolean;
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
 }) {
   return (
     <div className="flex items-start gap-4">
