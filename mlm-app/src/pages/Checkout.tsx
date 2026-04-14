@@ -89,16 +89,20 @@ export default function Checkout() {
     const saved = localStorage.getItem('hadi_saved_address');
     if (saved) {
       try {
-        setShippingForm(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (parsed.phone && parsed.phone.startsWith('+91')) {
+          parsed.phone = parsed.phone.replace('+91', '');
+        }
+        setShippingForm(parsed);
       } catch (e) {}
     } else if (user) {
       setShippingForm(prev => ({
         ...prev,
         name: userName || '',
-        phone: user.phone || '',
+        phone: (user.phone || '').replace('+91', ''),
       }));
     }
-  }, [user]);
+  }, [user, userName]);
 
   const cartItems = ctxItems.map((item: CartApiItem) => ({
     listingId: item.listing_id,
@@ -111,7 +115,7 @@ export default function Checkout() {
   const validateForm = () => {
     const errors: Record<string, string> = {};
     if (!shippingForm.name || shippingForm.name.length < 2) errors.name = "Name is required (min 2 chars)";
-    if (!shippingForm.phone || !/^\+?[0-9]{10,13}$/.test(shippingForm.phone)) errors.phone = "Valid phone number required";
+    if (!shippingForm.phone || shippingForm.phone.length !== 10) errors.phone = "10-digit phone number required";
     if (!shippingForm.line1) errors.line1 = "Address line 1 is required";
     if (!shippingForm.city) errors.city = "City is required";
     if (!shippingForm.state) errors.state = "State is required";
@@ -201,7 +205,7 @@ export default function Checkout() {
               },
           contact: {
             name: shippingForm.name,
-            phone: shippingForm.phone,
+            phone: `+91${shippingForm.phone}`,
           },
           shipping_fee: shipping,
           discount_amount: 0,
@@ -241,7 +245,7 @@ export default function Checkout() {
   };
 
   const handleOtpVerified = async (sessionToken: string, phone: string) => {
-    setShippingForm(prev => ({ ...prev, phone }));
+    setShippingForm(prev => ({ ...prev, phone: phone.replace('+91', '') }));
     setCheckoutStep('details');
   };
 
@@ -442,9 +446,21 @@ export default function Checkout() {
                     </div>
                     <div>
                       <label className="block text-sm text-[#e8dcc8] mb-1">Phone Number*</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-3 text-white/40">+91</span>
-                        <input type="tel" value={shippingForm.phone} onChange={(e) => { let val = e.target.value; if (val && !val.startsWith('+')) val = '+' + val; setShippingForm({...shippingForm, phone: val}); setFormErrors({...formErrors, phone: ''}); }} className={`w-full bg-transparent border ${formErrors.phone ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 pl-10 text-[#e8dcc8] outline-none transition`} placeholder="9876543210" />
+                      <div className={`flex bg-transparent border ${formErrors.phone ? 'border-red-500' : 'border-[#c9a96e]/20'} focus-within:border-[#c9a96e] rounded-lg overflow-hidden transition`}>
+                        <div className="flex items-center px-4 bg-[#c9a96e]/5 border-r border-[#c9a96e]/20 text-white/50 text-sm select-none">
+                          +91
+                        </div>
+                        <input 
+                          type="tel" 
+                          value={shippingForm.phone} 
+                          onChange={(e) => { 
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setShippingForm({...shippingForm, phone: val}); 
+                            setFormErrors({...formErrors, phone: ''}); 
+                          }} 
+                          className="w-full bg-transparent p-3 text-[#e8dcc8] outline-none placeholder-white/20" 
+                          placeholder="9876543210" 
+                        />
                       </div>
                       {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
                     </div>
@@ -627,7 +643,7 @@ export default function Checkout() {
                 <div className="space-y-4 max-h-[38vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#c9a96e]/20">
                   {ctxItems.map((item: CartApiItem) => {
                     const imgSrc = getImageUrl(
-                      (item as keyof typeof item & { images?: any[] }).images?.[0]?.storage_key ?? item.image_url ?? undefined
+                      (item as unknown as { images?: any[] }).images?.[0]?.storage_key ?? item.image_url ?? undefined
                     );
                     return (
                       <div key={item.listing_id} className="flex gap-3 items-start">
