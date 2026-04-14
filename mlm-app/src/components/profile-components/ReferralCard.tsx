@@ -2,18 +2,29 @@ import { useState } from "react";
 import { Gift, Copy, Check, Share2, Send, Sparkles } from "lucide-react";
 
 export default function ReferralCard({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const baseUrl = typeof window !== 'undefined'
     ? window.location.origin
     : 'https://front-ended.vercel.app';
   const referralLink = `${baseUrl}/register?ref=${code}`;
 
-  const handleCopy = async () => {
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy code", err);
+    }
+  };
+
+  const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(referralLink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
     } catch (err) {
       console.error("Failed to copy link", err);
     }
@@ -33,7 +44,7 @@ export default function ReferralCard({ code }: { code: string }) {
         }
       }
     } else {
-      handleCopy();
+      handleCopyLink();
     }
   };
 
@@ -48,8 +59,8 @@ export default function ReferralCard({ code }: { code: string }) {
         <div className="flex items-center justify-between p-3 rounded-lg bg-[#c9a96e]/5 border border-[#c9a96e]/20">
           <code className="text-sm text-[#c9a96e]">{code}</code>
 
-          <button onClick={handleCopy}>
-            {copied ? (
+          <button onClick={handleCopyCode}>
+            {copiedCode ? (
               <Check className="w-4 h-4 text-green-500" />
             ) : (
               <Copy className="w-4 h-4 text-[#c9a96e]" />
@@ -67,14 +78,14 @@ export default function ReferralCard({ code }: { code: string }) {
           </button>
 
           <button
-            onClick={handleCopy}
-            className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition border ${copied
+            onClick={handleCopyLink}
+            className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition border ${copiedLink
                 ? 'bg-green-500/10 border-green-500/20 text-green-500'
                 : 'bg-white/5 border-white/10 text-[#e8dcc8] hover:bg-white/10'
               }`}
           >
-            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            {copied ? "Link Copied" : "Copy Link"}
+            {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            {copiedLink ? "Link Copied" : "Copy Link"}
           </button>
         </div>
 
