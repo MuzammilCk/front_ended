@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOnboardingStatus, getMe, updateMe } from "../api/auth";
 import { listOrders } from "../api/orders";
-import { getWalletBalance } from "../api/wallet";
+import { getWalletBalance, type WalletSummary } from "../api/wallet";
 import type { OnboardingStatus } from "../api/types";
+import { useAuth } from "../context/AuthContext";
+import { useWishlist } from '../context/WishlistContext';
 
 import StatsCard from "../components/profile-components/StatsCard";
 import ActivityList from "../components/profile-components/ActivityList";
@@ -15,7 +18,6 @@ import ProfileHeader from "../components/profile-components/ProfileHeader";
 import {
   Mail,
   Phone,
-  MapPin,
   Shield,
   Clock,
   Gift,
@@ -31,7 +33,6 @@ interface UserData {
   walletBalance: number;
   referralCode: string;
   joinedDate: string;
-  address: string;
   avatar?: string;
 }
 
@@ -42,20 +43,72 @@ export default function Profile() {
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [cart, setCart] = useState<number[]>([]);
 
-  const [userData, setUserData] = useState<UserData | null>(null);
+  const { count: wishlistCount } = useWishlist();
+
   const [editForm, setEditForm] = useState<UserData | null>(null);
-
-  const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatus | null>(null);
-  const [statusLoading, setStatusLoading] = useState(true);
   const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [stats, setStats] = useState([
-    { label: "Orders", value: "—", icon: ShoppingBag },
-    { label: "Wishlist", value: "—", icon: Heart },
-    { label: "Reviews", value: "—", icon: Gift },
-  ]);
+  const { setUserName } = useAuth();
+  const queryClient = useQueryClient();
 
-  const [activities, setActivities] = useState<any[]>([]);
+  const { data: meData, isLoading: meLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => getMe(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: onboardingStatus } = useQuery({
+    queryKey: ['onboarding-status'],
+    queryFn: () => getOnboardingStatus(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: ordersData } = useQuery({
+    queryKey: ['my-orders'],
+    queryFn: () => listOrders({ limit: 5 }),
+    staleTime: 60 * 1000,
+  });
+
+  const { data: walletData } = useQuery({
+    queryKey: ['wallet-balance'],
+    queryFn: () => getWalletBalance(),
+    staleTime: 60 * 1000,
+  });
+
+  const userData: UserData | null = meData ? {
+    name: meData.full_name || 'User',
+    email: meData.email || '',
+    mobile: meData.phone || '',
+    walletBalance: walletData?.available ?? 0,
+    referralCode: (meData as any).referral_code || meData.id.slice(0, 8).toUpperCase(),
+    joinedDate: meData.onboarding_completed_at
+      ? new Date(meData.onboarding_completed_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      : 'Member',
+  } : null;
+
+  useEffect(() => {
+    if (userData && !editForm) setEditForm(userData);
+  }, [userData]);
+
+  const stats = [
+    { label: 'Orders', value: ordersData ? String(ordersData.total) : '—', icon: ShoppingBag },
+    { label: 'Wishlist', value: String(wishlistCount), icon: Heart },
+    { label: 'Reviews', value: '—', icon: Gift },
+  ];
+
+  const activities = ordersData?.data.map((order) => {
+    const diffDays = Math.floor((Date.now() - new Date(order.created_at).getTime()) / 86400000);
+    return {
+      id: order.id,
+      action: `Order #${order.id.slice(-6)}`,
+      date: diffDays === 0 ? 'Today' : `${diffDays} days ago`,
+      status: order.status,
+      amount: `${order.currency} ${parseFloat(order.total_amount).toFixed(0)}`,
+    };
+  }) ?? [];
+
+  const isLoading = meLoading;
 
   const handleCopyReferral = () => {
     if (!userData) return;
@@ -65,14 +118,18 @@ export default function Profile() {
   };
 
   const handleSave = async () => {
-    if (!editForm) return;
+    if (!editForm || isSaving) return;
+    setIsSaving(true);
     setSaveError("");
     try {
       await updateMe({ full_name: editForm.name, email: editForm.email });
-      setUserData(editForm);
+      setUserName(editForm.name);
+      await queryClient.invalidateQueries({ queryKey: ['me'] });
       setIsEditing(false);
     } catch (err) {
       setSaveError("Failed to save changes.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -81,83 +138,6 @@ export default function Profile() {
     setIsEditing(false);
     setSaveError("");
   };
-
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      await Promise.resolve();
-      setStatusLoading(true);
-
-      try {
-        const [me, status, orderCounts, recentOrders, walletSummary] = await Promise.all([
-          getMe().catch(() => null),
-          getOnboardingStatus().catch(() => null),
-          listOrders({ limit: 1 }).catch(() => null),
-          listOrders({ limit: 4 }).catch(() => null),
-          getWalletBalance().catch(() => null),
-        ]);
-
-        if (cancelled) return;
-
-        if (me) {
-          const joinedDate = me.onboarding_completed_at
-            ? new Date(me.onboarding_completed_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-            : 'Member';
-
-          const newUserData = {
-            name: me.full_name || "User",
-            email: me.email || "",
-            mobile: me.phone || "",
-            // Fix B8: Use real wallet balance instead of hardcoded 0
-            walletBalance: walletSummary?.total_earned ?? 0,
-            // Fix B8: Use real referral code instead of fake id.slice
-            referralCode: me.referral_code || me.id.slice(0, 8).toUpperCase(),
-            joinedDate,
-            address: "",
-          };
-          setUserData(newUserData);
-          setEditForm(newUserData);
-        }
-
-        if (status) {
-          setOnboardingStatus(status);
-        }
-
-        if (orderCounts) {
-          setStats([
-            { label: "Orders", value: orderCounts.total.toString(), icon: ShoppingBag },
-            { label: "Wishlist", value: "—", icon: Heart },
-            { label: "Reviews", value: "—", icon: Gift },
-          ]);
-        }
-
-        if (recentOrders && recentOrders.data.length > 0) {
-          const mappedActivities = recentOrders.data.map((order) => {
-            const diffTime = Math.abs(new Date().getTime() - new Date(order.created_at).getTime());
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            let dateStr = diffDays === 0 ? "Today" : `${diffDays} days ago`;
-
-            return {
-              action: `Order #${order.id.slice(-6)}`,
-              date: dateStr,
-              status: order.status,
-              amount: `${order.currency} ${parseFloat(order.total_amount).toFixed(0)}`,
-            };
-          });
-          setActivities(mappedActivities);
-        } else {
-          setActivities([]);
-        }
-
-      } finally {
-        if (!cancelled) setStatusLoading(false);
-      }
-    };
-    void run();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif">
@@ -188,9 +168,32 @@ export default function Profile() {
           <Link to="/" className="text-[#c9a96e]/70 hover:text-[#c9a96e]">← Back to Home</Link>
         </div>
 
-        {statusLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="w-8 h-8 border-2 border-[#c9a96e] border-t-transparent rounded-full animate-spin"></div>
+        {isLoading ? (
+          <div className="animate-pulse space-y-8">
+            {/* Header skeleton */}
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-12">
+              <div className="w-32 h-32 rounded-full bg-[#c9a96e]/10 shrink-0" />
+              <div className="flex-1 space-y-3 w-full max-w-sm">
+                <div className="h-8 w-48 rounded-lg bg-[#c9a96e]/10" />
+                <div className="h-4 w-32 rounded-lg bg-white/5" />
+              </div>
+            </div>
+            {/* Stats skeleton */}
+            <div className="grid gap-4 md:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-28 rounded-2xl bg-white/5 border border-white/5" />
+              ))}
+            </div>
+            {/* Main grid skeleton */}
+            <div className="grid gap-8 lg:grid-cols-3">
+              <div className="lg:col-span-2 h-64 rounded-2xl bg-white/5 border border-white/5" />
+              <div className="space-y-6">
+                <div className="h-40 rounded-2xl bg-white/5 border border-white/5" />
+                <div className="h-32 rounded-2xl bg-white/5 border border-white/5" />
+              </div>
+            </div>
+            {/* Activity skeleton */}
+            <div className="h-48 rounded-2xl bg-white/5 border border-white/5" />
           </div>
         ) : userData && editForm ? (
           <>
@@ -202,6 +205,7 @@ export default function Profile() {
               setEditForm={setEditForm}
               handleSave={handleSave}
               handleCancel={handleCancel}
+              isSaving={isSaving}
             />
 
             {saveError && (
@@ -247,27 +251,22 @@ export default function Profile() {
                       onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                     />
 
-                    <InfoField
-                      icon={Phone}
-                      label="Mobile Number"
-                      value={editForm.mobile}
-                      isEditing={isEditing}
-                      onChange={(e) => setEditForm({ ...editForm, mobile: e.target.value })}
-                    />
-
-                    <InfoField
-                      icon={MapPin}
-                      label="Address"
-                      value={editForm.address}
-                      isEditing={isEditing}
-                      onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                    />
+                    <div>
+                      <InfoField
+                        icon={Phone}
+                        label="Mobile Number"
+                        value={editForm.mobile}
+                        isEditing={false}
+                        type="tel"
+                      />
+                      <p className="text-xs text-muted/40 mt-0.5 ml-9">To update, contact support</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-6">
-                <WalletCard balance={userData.walletBalance} />
+                <WalletCard balance={userData.walletBalance} pending={walletData?.pending} />
 
                 <ReferralCard
                   code={userData.referralCode}
@@ -281,14 +280,12 @@ export default function Profile() {
                     <h3 className="text-sm">Account Security</h3>
                   </div>
 
-                  <div className="flex justify-between">
-                    <div className="flex items-center gap-2 text-xs text-muted/60">
-                      <Clock className="w-4 h-4" />
-                      2FA Available
-                    </div>
-                    <button className="text-xs text-[#c9a96e] hover:underline">
-                      Enable →
-                    </button>
+                  <div className="flex items-center gap-2 text-xs text-muted/40">
+                    <Clock className="w-4 h-4" />
+                    <span>Two-factor authentication</span>
+                    <span className="ml-auto px-2 py-0.5 rounded-full border border-[#c9a96e]/20 text-[#c9a96e]/40 text-[10px] tracking-wider uppercase">
+                      Coming Soon
+                    </span>
                   </div>
                 </div>
               </div>
