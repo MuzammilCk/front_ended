@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Lock, AlertTriangle } from "lucide-react";
 
 import { createOrder } from "../api/orders";
@@ -33,6 +33,7 @@ type CheckoutStep = 'auth' | 'details' | 'payment' | 'processing' | 'confirmed';
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { items: ctxItems, clearCart } = useCart();
   const { user, userName } = useAuth();
   
@@ -72,6 +73,21 @@ export default function Checkout() {
   const idempotencyKeyRef = useRef<string>(generateUUID());
   const paymentIdempotencyRef = useRef<string>(generateUUID());
   const skippedAuthRef = useRef(checkoutStep !== 'auth');
+
+  useEffect(() => {
+    const paymentIntentClientSecret = searchParams.get("payment_intent_client_secret");
+    const redirectStatus = searchParams.get("redirect_status");
+
+    if (paymentIntentClientSecret && redirectStatus) {
+      if (redirectStatus === "succeeded") {
+        clearCart();
+        setCheckoutStep('confirmed');
+      } else {
+        setCheckoutError("Payment was not successful. Please try again.");
+        setCheckoutStep('payment');
+      }
+    }
+  }, [searchParams, clearCart]);
 
   // Prevent accessing checkout with empty cart
   useEffect(() => {

@@ -8,10 +8,4 @@ export default defineConfig({
     react(),
     // remove this → tailwindcss(),
   ],
-  server: {
-    watch: {
-      usePolling: true,
-      interval: 1000,
-    },
-  },
 })
