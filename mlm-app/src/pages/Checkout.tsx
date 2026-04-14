@@ -10,6 +10,12 @@ import { Alert } from "../components/ui/Alert";
 import { SHIPPING_THRESHOLD, SHIPPING_FEE } from "../constants/cart.constants";
 import Sidebar from "../components/Sidebar";
 
+import { useAuth } from '../hooks/useAuth';
+import { createPaymentIntent, stripePromise } from '../api/payments';
+import { Elements } from '@stripe/react-stripe-js';
+import { InlineOtpGate } from '../components/checkout/InlineOtpGate';
+import { StripeCheckoutForm } from '../components/checkout/StripeCheckoutForm';
+
 function generateUUID(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -21,15 +27,19 @@ function generateUUID(): string {
   });
 }
 
+type CheckoutStep = 'auth' | 'details' | 'payment' | 'processing' | 'confirmed';
+
 export default function Checkout() {
   const navigate = useNavigate();
   const { items: ctxItems, clearCart } = useCart();
+  const { user, userName } = useAuth();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
-  const [checkoutStep, setCheckoutStep] = useState<'address' | 'confirmed'>('address');
+  
+  const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>(user ? 'details' : 'auth');
 
   const [shippingForm, setShippingForm] = useState({
     name: '',
@@ -42,14 +52,47 @@ export default function Checkout() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [pinLoading, setPinLoading] = useState(false);
 
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [showMobileSummary, setShowMobileSummary] = useState(false);
+
   const idempotencyKeyRef = useRef<string>(generateUUID());
+  const paymentIdempotencyRef = useRef<string>(generateUUID());
+  const skippedAuthRef = useRef(checkoutStep !== 'auth');
 
   // Prevent accessing checkout with empty cart
   useEffect(() => {
-    if (ctxItems.length === 0 && checkoutStep !== 'confirmed') {
+    if (
+      ctxItems.length === 0 &&
+      checkoutStep !== 'confirmed' &&
+      checkoutStep !== 'payment' &&
+      checkoutStep !== 'processing'
+    ) {
       navigate('/cart');
     }
   }, [ctxItems, navigate, checkoutStep]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('hadi_saved_address');
+    if (saved) {
+      try {
+        setShippingForm(JSON.parse(saved));
+      } catch (e) {}
+    } else if (user) {
+      setShippingForm(prev => ({
+        ...prev,
+        name: userName || '',
+        phone: user.phone || '',
+      }));
+    }
+  }, [user]);
+
+  const cartItems = ctxItems.map((item: CartApiItem) => ({
+    listingId: item.listing_id,
+    quantity: item.qty,
+    price: parseFloat(item.price),
+  }));
+  const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -93,22 +136,12 @@ export default function Checkout() {
     }
   };
 
-  const handleCheckout = async () => {
+  const handleProceedToPayment = async () => {
     if (!validateForm()) return;
 
     setCheckoutError("");
     setCheckoutLoading(true);
     
-    // Process items matching API specs perfectly
-    const cartItems = ctxItems.map((item: CartApiItem) => ({
-      listingId: item.listing_id,
-      quantity: item.qty,
-      price: parseFloat(item.price)
-    }));
-
-    const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-
     try {
       const order = await createOrder(
         {
@@ -134,29 +167,39 @@ export default function Checkout() {
         idempotencyKeyRef.current,
       );
       setLastOrder(order);
-      setCheckoutError("");
-      setCheckoutStep('confirmed');
-      clearCart();
+      
+      localStorage.setItem('hadi_saved_address', JSON.stringify(shippingForm));
+      
+      const intent = await createPaymentIntent(order.id, { idempotency_key: paymentIdempotencyRef.current });
+      setClientSecret(intent.clientSecret);
+      setCheckoutStep('payment');
+      
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 409) {
           setCheckoutError("Some items are out of stock. Please refresh your cart.");
         } else if (err.status === 422 || (err.body && typeof err.body === 'string' && err.body.includes('price'))) {
           setCheckoutError("A product's price has changed since you added it. Please return to your cart and review the updated prices.");
+        } else if (err.status === 503) {
+          // Payment provider temporarily unavailable — safe to retry
+          paymentIdempotencyRef.current = generateUUID();
+          setCheckoutError("Payment processing is temporarily unavailable. Please try again in a moment.");
         } else {
           setCheckoutError(err.body || "Checkout failed. Please try again.");
         }
-        // Business errors: keep the same idempotency key (server rejected cleanly)
       } else {
-        // Fix B2: Network error — the request may not have reached the server.
-        // Regenerate the idempotency key so retry creates a fresh order attempt
-        // instead of being permanently stuck on the old key.
         idempotencyKeyRef.current = generateUUID();
+        paymentIdempotencyRef.current = generateUUID();
         setCheckoutError("Network error during checkout. Please try again.");
       }
     } finally {
       setCheckoutLoading(false);
     }
+  };
+
+  const handleOtpVerified = async (sessionToken: string, phone: string) => {
+    setShippingForm(prev => ({ ...prev, phone }));
+    setCheckoutStep('details');
   };
 
   return (
@@ -176,7 +219,77 @@ export default function Checkout() {
          <span className="text-sm text-[#c9a96e]">Checkout</span>
       </div>
 
-      <div className="relative px-4 py-8 mx-auto max-w-7xl md:px-8 md:py-12 flex justify-center">
+      {checkoutStep !== 'confirmed' && (
+        <div className="md:hidden sticky top-[57px] z-30 bg-[#0a0705]/95 backdrop-blur-md border-b border-[#c9a96e]/20 px-4 py-3 flex justify-between items-center shadow-lg">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-[#c9a96e] uppercase tracking-widest">Total to pay</span>
+            <span className="text-base text-[#e8dcc8] font-serif">
+              ₹{(subtotal + shipping).toLocaleString('en-IN')}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowMobileSummary(!showMobileSummary)}
+            className="text-xs text-white/50 underline underline-offset-2"
+          >
+            {showMobileSummary ? 'Hide items' : `View ${ctxItems.length} item${ctxItems.length > 1 ? 's' : ''}`}
+          </button>
+        </div>
+      )}
+
+      {showMobileSummary && checkoutStep !== 'confirmed' && (
+        <div className="md:hidden bg-[#0d0a07] border-b border-[#c9a96e]/10 px-4 py-3 space-y-2">
+          {ctxItems.map((item: CartApiItem) => (
+            <div key={item.listing_id} className="flex justify-between items-center text-sm">
+              <span className="text-[#e8dcc8]/80 truncate max-w-[200px]">{item.title ?? 'Product'} × {item.qty}</span>
+              <span className="text-[#c9a96e] shrink-0 ml-2">₹{(parseFloat(item.price) * item.qty).toLocaleString('en-IN')}</span>
+            </div>
+          ))}
+          <div className="pt-2 border-t border-[#c9a96e]/10 flex justify-between text-xs text-white/50">
+            <span>Shipping</span>
+            <span>{shipping === 0 ? 'FREE' : `₹${shipping}`}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="relative px-4 py-8 mx-auto max-w-7xl md:px-8 md:py-12 flex flex-col items-center">
+        {checkoutStep !== 'confirmed' && (
+          <div className="w-full max-w-2xl mx-auto mb-8 flex items-center gap-0">
+            {[
+              { key: 'auth', label: 'Identity', step: 1 },
+              { key: 'details', label: 'Delivery', step: 2 },
+              { key: 'payment', label: 'Payment', step: 3 },
+            ]
+            .filter(s => !(skippedAuthRef.current && s.key === 'auth'))
+            .map((s, idx, arr) => {
+              const stepOrder = skippedAuthRef.current ? ['details', 'payment'] : ['auth', 'details', 'payment'];
+              const currentIndex = stepOrder.indexOf(checkoutStep);
+              const isCompleted = stepOrder.indexOf(s.key) < currentIndex;
+              const isActive = s.key === checkoutStep;
+              return (
+                <div key={s.key} className="flex items-center flex-1">
+                  <div className="flex flex-col items-center flex-1">
+                    <div className={`w-7 h-7 rounded-full border flex items-center justify-center text-xs transition-all ${
+                      isCompleted
+                        ? 'bg-[#c9a96e] border-[#c9a96e] text-[#0a0705]'
+                        : isActive
+                        ? 'border-[#c9a96e] text-[#c9a96e]'
+                        : 'border-white/20 text-white/30'
+                    }`}>
+                      {isCompleted ? '✓' : s.step}
+                    </div>
+                    <span className={`text-[10px] mt-1 uppercase tracking-widest ${isActive ? 'text-[#c9a96e]' : isCompleted ? 'text-[#c9a96e]/60' : 'text-white/30'}`}>
+                      {s.label}
+                    </span>
+                  </div>
+                  {idx < arr.length - 1 && (
+                    <div className={`h-px flex-1 mx-1 transition-all ${isCompleted ? 'bg-[#c9a96e]/50' : 'bg-white/10'}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
         {checkoutStep === 'confirmed' && lastOrder ? (
           <div className="py-20 text-center flex flex-col items-center justify-center">
             <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-6 border border-green-500/20">
@@ -189,6 +302,50 @@ export default function Checkout() {
               <Link to="/product" className="px-6 py-3 bg-[#c9a96e]/10 text-[#c9a96e] border border-[#c9a96e]/20 rounded-lg hover:bg-[#c9a96e]/20 transition">Continue Shopping →</Link>
               <Link to="/profile" className="px-6 py-3 bg-[#c9a96e] text-[#0a0705] rounded-lg hover:bg-[#c9a96e]/90 transition">View All Orders →</Link>
             </div>
+          </div>
+        ) : checkoutStep === 'auth' ? (
+          <InlineOtpGate onVerified={handleOtpVerified} />
+        ) : checkoutStep === 'payment' && clientSecret ? (
+          <div className="w-full max-w-2xl">
+            <button onClick={() => {
+              paymentIdempotencyRef.current = generateUUID();
+              setCheckoutStep('details');
+              setCheckoutError('');
+              setClientSecret(null);
+            }} className="flex items-center gap-2 text-[#c9a96e]/70 hover:text-[#c9a96e] mb-6 transition text-sm">
+              ← Edit delivery details
+            </button>
+            <h2 className="text-2xl text-[#c9a96e] mb-2">Payment</h2>
+            <div className="h-px bg-[#c9a96e]/20 mb-6" />
+            {checkoutError && (
+              <Alert variant="error" className="mb-4">{checkoutError}</Alert>
+            )}
+            <Elements
+              stripe={stripePromise}
+              options={{
+                clientSecret,
+                appearance: {
+                  theme: 'night',
+                  variables: {
+                    colorPrimary: '#c9a96e',
+                    colorBackground: '#0a0705',
+                    colorText: '#e8dcc8',
+                    colorDanger: '#ef4444',
+                    fontFamily: 'Cormorant Garamond, serif',
+                    borderRadius: '8px',
+                  },
+                },
+              }}
+            >
+              <StripeCheckoutForm
+                orderTotal={subtotal + shipping}
+                onSuccess={() => {
+                  clearCart();
+                  setCheckoutStep('confirmed');
+                }}
+                onError={(msg) => setCheckoutError(msg)}
+              />
+            </Elements>
           </div>
         ) : (
           <div className="w-full max-w-2xl p-6 md:p-8 border border-[#c9a96e]/20 rounded-lg bg-[#0a0705]">
@@ -249,11 +406,11 @@ export default function Checkout() {
               {checkoutError && <Alert variant="error" className="mt-4">{checkoutError}</Alert>}
               
               <button 
-                onClick={handleCheckout} 
+                onClick={handleProceedToPayment} 
                 disabled={checkoutLoading}
                 className="w-full mt-6 px-6 py-4 bg-[#c9a96e] text-[#0a0705] rounded-lg font-medium hover:bg-[#c9a96e]/90 transition disabled:opacity-50"
               >
-                {checkoutLoading ? "Placing Order..." : "Place Order"}
+                {checkoutLoading ? "Preparing Payment..." : "Continue to Payment →"}
               </button>
             </div>
           </div>

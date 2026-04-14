@@ -69,9 +69,7 @@ function App() {
             path="/checkout"
             element={
               <ErrorBoundary>
-                <AuthGuard>
-                  <Checkout />
-                </AuthGuard>
+                <Checkout />
               </ErrorBoundary>
             }
           />
