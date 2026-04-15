@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
+import PasswordStrengthMeter from "./PasswordStrengthMeter";
 
 interface RegisterFormProps {
   formData: any;
@@ -46,7 +47,7 @@ export default function RegisterForm({
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:ring-1 focus:ring-white/20 focus:bg-white/[0.05] focus:border-transparent focus:outline-none transition-all placeholder:text-zinc-600"
+          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="John Doe"
           required
         />
@@ -62,7 +63,7 @@ export default function RegisterForm({
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:ring-1 focus:ring-white/20 focus:bg-white/[0.05] focus:border-transparent focus:outline-none transition-all placeholder:text-zinc-600"
+          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="hello@aurora.com"
           required
         />
@@ -78,7 +79,7 @@ export default function RegisterForm({
           name="phone"
           value={formData.phone}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:ring-1 focus:ring-white/20 focus:bg-white/[0.05] focus:border-transparent focus:outline-none transition-all placeholder:text-zinc-600"
+          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="+1 234 567 8900"
           required
         />
@@ -95,7 +96,7 @@ export default function RegisterForm({
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:ring-1 focus:ring-white/20 focus:bg-white/[0.05] focus:border-transparent focus:outline-none transition-all pr-10 placeholder:text-zinc-600"
+            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600"
             placeholder="Create a strong password"
             required
           />
@@ -145,6 +146,10 @@ export default function RegisterForm({
         </div>
       </div>
 
+      {/* Password Requirements */}
+      <PasswordStrengthMeter password={formData.password} />
+
+
       {/* Confirm Password */}
       <div>
         <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
@@ -156,11 +161,10 @@ export default function RegisterForm({
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className={`w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border ${
-              formData.confirmPassword && !passwordsMatch
-                ? "border-red-500/50 focus:ring-red-500/20"
-                : "border-white/10 focus:ring-white/20"
-            } focus:ring-1 focus:bg-white/[0.05] focus:border-transparent focus:outline-none transition-all pr-10 placeholder:text-zinc-600`}
+            className={`w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border ${formData.confirmPassword && !passwordsMatch
+              ? "border-red-500/50 focus:ring-red-500/20"
+              : "border-white/10 focus:border-[#c9a96e] focus:ring-[#c9a96e]/20"
+              } focus:ring-2 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600`}
             placeholder="Confirm your password"
             required
           />
@@ -223,7 +227,7 @@ export default function RegisterForm({
           name="referralCode"
           value={formData.referralCode}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:ring-1 focus:ring-white/20 focus:bg-white/[0.05] focus:border-transparent focus:outline-none transition-all placeholder:text-zinc-600"
+          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="Enter referral code"
         />
       </div>
@@ -255,38 +259,19 @@ export default function RegisterForm({
         </label>
       </div>
 
+
+
       {/* Submit Button */}
       <button
         type="submit"
         disabled={!isFormValid}
-        className={`w-full py-2.5 text-[15px] tracking-tight rounded-lg font-medium transition-all ${
-          isFormValid
-            ? "bg-white text-black hover:bg-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
-            : "bg-white/10 text-white/30 cursor-not-allowed"
-        }`}
+        className={`w-full py-3.5 text-[14px] uppercase tracking-widest rounded-lg font-medium transition-all ${isFormValid
+          ? "bg-[#c9a96e] text-black hover:bg-[#e8dcc8] shadow-[0_0_20px_rgba(201,169,110,0.2)]"
+          : "bg-white/5 text-white/30 cursor-not-allowed border border-white/10"
+          }`}
       >
         Create Account
       </button>
-
-      {/* Password Requirements */}
-      <div className="flex flex-wrap gap-2 mt-2">
-        {[
-          { met: meetsLength, label: "8+ chars" },
-          { met: meetsUppercase, label: "Uppercase" },
-          { met: meetsNumber, label: "Number" },
-          { met: meetsSymbol, label: "Symbol" },
-        ].map(({ met, label }, i) => (
-          <div
-            key={i}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium tracking-wide rounded-full transition-colors ${
-              met ? "bg-[#10b981]/10 border border-[#10b981]/20 text-[#10b981]" : "bg-white/[0.02] border border-white/10 text-zinc-500"
-            }`}
-          >
-            {met && <Check size={12} strokeWidth={2.5} />}
-            {label}
-          </div>
-        ))}
-      </div>
     </form>
   );
 }

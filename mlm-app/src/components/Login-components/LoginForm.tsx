@@ -2,18 +2,14 @@ import { useState } from "react";
 
 interface LoginFormProps {
   loginMethod: "email" | "phone";
-  setLoginMethod: (method: "email" | "phone") => void;
   formData: any;
-  setFormData: (data: any) => void;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
 }
 
 export default function LoginForm({
   loginMethod,
-  setLoginMethod,
   formData,
-  setFormData,
   handleChange,
   handleSubmit,
 }: LoginFormProps) {
@@ -32,7 +28,7 @@ export default function LoginForm({
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:ring-1 focus:ring-white/20 focus:bg-white/[0.05] focus:border-transparent focus:outline-none transition-all placeholder:text-zinc-600"
+            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
             placeholder="hello@aurora.com"
             required
           />
@@ -50,7 +46,7 @@ export default function LoginForm({
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:ring-1 focus:ring-white/20 focus:bg-white/[0.05] focus:border-transparent focus:outline-none transition-all placeholder:text-zinc-600"
+            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
             placeholder="+1 234 567 8900"
             required
           />
@@ -68,7 +64,7 @@ export default function LoginForm({
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:ring-1 focus:ring-white/20 focus:bg-white/[0.05] focus:border-transparent focus:outline-none transition-all pr-10 placeholder:text-zinc-600"
+            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600"
             placeholder="Enter your password"
             required
           />
@@ -133,55 +129,12 @@ export default function LoginForm({
       {/* Submit Button */}
       <button
         type="submit"
-        className="w-full py-2.5 text-[15px] font-medium tracking-tight text-black transition-all bg-white rounded-lg hover:bg-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
+        className="w-full py-3.5 text-[14px] uppercase tracking-widest rounded-lg font-medium transition-all bg-[#c9a96e] text-black hover:bg-[#e8dcc8] shadow-[0_0_20px_rgba(201,169,110,0.2)]"
       >
         Sign In
       </button>
 
-      {/* Divider */}
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[#333]"></div>
-        </div>
-        <div className="relative flex justify-center text-xs">
-          <span className="px-2 bg-[#0a0a0a] text-white/40">or</span>
-        </div>
-      </div>
 
-      {/* Demo Account */}
-      <div className="text-center">
-        <p className="mb-3 text-[13px] text-zinc-500">Demo Credentials</p>
-        <div className="flex justify-center gap-2 text-[13px]">
-          <button
-            type="button"
-            onClick={() => {
-              setFormData({
-                ...formData,
-                email: "demo@aurora.com",
-                password: "demo123",
-              });
-              setLoginMethod("email");
-            }}
-            className="px-3 py-1.5 rounded-md bg-white/[0.02] border border-white/10 text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors"
-          >
-            Email Demo
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setFormData({
-                ...formData,
-                phone: "+1234567890",
-                password: "demo123",
-              });
-              setLoginMethod("phone");
-            }}
-            className="px-3 py-1.5 rounded-md bg-white/[0.02] border border-white/10 text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors"
-          >
-            Phone Demo
-          </button>
-        </div>
-      </div>
     </form>
   );
 }

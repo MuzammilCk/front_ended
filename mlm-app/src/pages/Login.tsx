@@ -2,11 +2,9 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ApiError, getUserRole } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
-import LoginHeader from "../components/Login-components/LoginHeader";
 import LoginHero from "../components/Login-components/LoginHero";
 import LoginMethodToggle from "../components/Login-components/LoginMethodToggle";
 import LoginForm from "../components/Login-components/LoginForm";
-import LoginFooter from "../components/Login-components/LoginFooter";
 import { Alert } from "../components/ui/Alert";
 import { useCart } from "../context/CartContext";
 
@@ -133,9 +131,7 @@ export default function Login() {
 
           <LoginForm
             loginMethod={loginMethod}
-            setLoginMethod={setLoginMethod}
             formData={formData}
-            setFormData={setFormData}
             handleChange={handleChange}
             handleSubmit={handleSubmit}
           />
