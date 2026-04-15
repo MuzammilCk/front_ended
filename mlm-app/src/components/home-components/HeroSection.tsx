@@ -35,10 +35,8 @@ export default function HeroSection() {
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const hero = data?.hero;
-  const eyebrow = hero?.eyebrow ?? "New Collection 2025";
   const headlineLine1 = hero?.headline?.split('\n')[0] ?? "The Art";
   const headlineLine2 = hero?.headline?.split('\n')[1] ?? "of Scent.";
-  const notes = hero?.notes ?? "Dark woods · Amber · Smoke — 50 ml";
   const ctaText = hero?.cta_text ?? (isLoggedIn ? "Shop Now" : "Explore Now");
   const layer1Image = hero?.image_url ?? LAYER1_FALLBACK;
 
@@ -198,21 +196,6 @@ export default function HeroSection() {
 
       <div className="hs2-content-grid">
         <div className="hs2-left">
-          <motion.div
-            className="hs2-eyebrow"
-            initial={
-              prefersReducedMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }
-            }
-            animate={{ opacity: 1, x: 0 }}
-            transition={{
-              duration: prefersReducedMotion ? 0 : 0.8,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-          >
-            <span className="hs2-eyebrow-dot" aria-hidden />
-            <span>{eyebrow}</span>
-          </motion.div>
-
           <h1 className="hs2-headline" aria-label={`${headlineLine1} ${headlineLine2}`}>
             <motion.span
               className="hs2-hl-line1"
@@ -240,15 +223,6 @@ export default function HeroSection() {
               {headlineLine2}
             </motion.em>
           </h1>
-
-          <motion.p
-            className="hs2-notes"
-            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 1, delay: prefersReducedMotion ? 0 : 0.6 }}
-          >
-            {notes}
-          </motion.p>
 
           <motion.div
             className="hs2-cta-row"

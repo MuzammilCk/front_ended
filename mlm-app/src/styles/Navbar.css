@@ -185,6 +185,15 @@
   gap: 0.38rem;
   padding: 0.38rem 0.65rem;
   border-radius: 999px;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.nb2-search-btn:focus,
+.nb2-search-btn:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .nb2-search-kbd {
