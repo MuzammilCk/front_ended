@@ -39,64 +39,52 @@ export default function RecommendedProducts({ products }: RecommendedProductsPro
   };
 
   return (
-    <div className="mt-12">
-      <h2 className="font-display text-2xl text-[#e8dcc8]">You May Also Like</h2>
-      <div className="h-[1px] w-12 bg-[#c9a96e]/40 mt-3 mb-8" />
+    <div className="mt-12 md:mt-16">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="font-display text-2xl md:text-3xl text-[#e8dcc8]">You May Also Like</h2>
+          <div className="h-[1px] w-12 bg-[#c9a96e]/40 mt-3" />
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      {/* MNC Fix: Horizontal Snap Scroll for Mobile, Grid for Desktop */}
+      <div className="flex overflow-x-auto overscroll-x-contain scroll-px-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 snap-x snap-mandatory pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none][scrollbar-width:none]">
         {products.map((product) => (
           <div
             key={product.id}
-            className="bg-[#0d0a07] border border-[#c9a96e]/10 hover:border-[#c9a96e]/30 transition flex flex-col"
+            className="snap-start shrink-0 w-[260px] sm:w-auto bg-[#0d0a07] border border-[#c9a96e]/10 hover:border-[#c9a96e]/30 transition-colors duration-300 flex flex-col rounded-lg overflow-hidden group"
           >
-            <Link to={`/product/${product.listing_id || product.id}`} className="block aspect-[3/4] overflow-hidden relative">
+            <Link to={`/product/${product.listing_id || product.id}`} className="block aspect-[4/5] overflow-hidden relative">
               {product.image ? (
                 <LuxuryImage
                   src={product.image}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-tr from-[#0d0a07] to-[#c9a96e]/20 flex items-center justify-center">
-                  <svg
-                    className="w-12 h-12 text-[#c9a96e]/40"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M10 4v2m4-2v2m-6 4h8m-9 0V8c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v2m-9 0c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2z"
-                    />
-                  </svg>
+                <div className="w-full h-full bg-gradient-to-tr from-[#0d0a07] to-[#c9a96e]/10 flex items-center justify-center">
+                  <span className="text-[#c9a96e]/30 text-xs tracking-widest uppercase">No Image</span>
                 </div>
               )}
             </Link>
 
-            <div className="p-4 flex flex-col flex-1">
+            <div className="p-5 flex flex-col flex-1">
               <Link to={`/product/${product.listing_id || product.id}`}>
-                <h3 className="font-display text-[#e8dcc8] text-base line-clamp-1">{product.name}</h3>
+                <h3 className="font-display text-[#e8dcc8] text-lg line-clamp-1 group-hover:text-[#c9a96e] transition-colors">{product.name}</h3>
               </Link>
-              <p className="text-[10px] uppercase tracking-widest text-white/40 mt-1">{product.type}</p>
-              <p className="font-serif text-[#c9a96e] mt-2">
-                ₹ {product.price.toLocaleString("en-IN")}
-              </p>
-
-              <div className="mt-auto pt-3 flex items-center justify-between">
-                <Link
-                  to={`/product/${product.listing_id || product.id}`}
-                  className="text-[10px] uppercase tracking-widest text-white/40 hover:text-[#c9a96e] transition"
-                >
-                  View
-                </Link>
+              <p className="text-[10px] uppercase tracking-widest text-white/40 mt-1.5">{product.type}</p>
+              
+              <div className="mt-auto pt-5 flex items-center justify-between">
+                <p className="font-serif text-[#c9a96e] text-lg tabular-nums">
+                  ₹ {product.price.toLocaleString("en-IN")}
+                </p>
+                {/* MNC Fix: Minimum 44px touch target for accessibility */}
                 <button
                   onClick={() => handleAddToCart(product)}
-                  className="size-8 rounded-full border border-[#c9a96e]/30 flex items-center justify-center text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0a0705] transition"
+                  className="w-11 h-11 rounded-full border border-[#c9a96e]/30 flex items-center justify-center text-[#c9a96e] hover:bg-[#c9a96e] hover:text-[#0a0705] transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/50"
                   aria-label="Add to cart"
                 >
-                  <ShoppingBag size={14} />
+                  <ShoppingBag size={18} strokeWidth={1.5} />
                 </button>
               </div>
             </div>
