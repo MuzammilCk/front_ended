@@ -228,7 +228,7 @@ export default function Register() {
               <button
                 onClick={() => alert("Google SSO coming soon")}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-[#1a1a1a] border border-[#333] text-white hover:bg-[#222] transition-colors"
+                className="w-full flex items-center justify-center gap-3 py-2.5 text-[15px] font-medium tracking-tight rounded-lg bg-white/[0.02] border border-white/10 text-white/90 hover:bg-white/[0.06] hover:text-white transition-all shadow-sm"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -244,16 +244,16 @@ export default function Register() {
                   navigate("/");
                 }}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-transparent border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e]/10 transition-colors"
+                className="w-full flex items-center justify-center gap-3 py-2.5 text-[15px] font-medium tracking-tight rounded-lg bg-transparent border border-[#c9a96e]/50 text-[#c9a96e] hover:bg-[#c9a96e]/10 hover:border-[#c9a96e] transition-all shadow-sm"
               >
                 Continue as Guest
               </button>
             </div>
 
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex-1 h-px bg-white/10" />
-              <span className="text-xs text-white/40 uppercase tracking-wider">or register with email</span>
-              <div className="flex-1 h-px bg-white/10" />
+              <div className="flex-1 h-px bg-white/5" />
+              <span className="text-[11px] text-zinc-500 uppercase tracking-widest font-medium">or register with email</span>
+              <div className="flex-1 h-px bg-white/5" />
             </div>
 
             <RegisterForm

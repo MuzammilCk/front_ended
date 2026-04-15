@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import CartItemCard from "../components/Cart-components/CartItemCard";
 import OrderSummary from "../components/Cart-components/OrderSummary";
 import RecommendedProducts from "../components/Cart-components/RecommendedProducts";
+import { useToast } from '../hooks/useToast';
+import CartToast from '../components/ui/CartToast';
 
 import { getListings } from "../api/listings";
 import type { CartApiItem } from "../api/types";
@@ -48,7 +51,14 @@ function mapApiCartItem(item: CartApiItem): CartItem {
 }
 
 export default function Cart() {
-  const { items: ctxItems, updateQty: contextUpdateQty, removeItem: contextRemoveItem } = useCart();
+  const { items: ctxItems, updateQty: contextUpdateQty, removeItem: contextRemoveItem, lastMutationError } = useCart();
+  const { toasts, addToast, removeToast } = useToast();
+
+  useEffect(() => {
+    if (lastMutationError) {
+      addToast(lastMutationError, 'error', 5000);
+    }
+  }, [lastMutationError]);
   const cartItems = ctxItems.map(mapApiCartItem);
   const availableItems = cartItems.filter(i => i.inStock !== false);
   const unavailableItems = cartItems.filter(i => i.inStock === false);
@@ -67,31 +77,20 @@ export default function Cart() {
   const subtotal = availableItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
 
-  const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
+  const { data: recommendedData } = useQuery({
+    queryKey: ['cart-recommendations'],
+    queryFn: () => getListings({ limit: 3 }),
+    staleTime: 5 * 60 * 1000,   // 5 minutes
+    retry: 1,
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    getListings({ limit: 3 })
-      .then((result) => {
-        if (!cancelled) {
-          setRecommendedProducts(
-            result.data.map((listing: any) => ({
-              id: listing.id,
-              name: listing.title,
-              price: parseFloat(listing.price),
-              type: listing.category?.name ?? 'Parfum',
-              image: getImageUrl(listing.images?.[0]?.storage_key ?? listing.image_url),
-            }))
-          );
-        }
-      })
-      .catch(() => {
-        // Silently fail
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const recommendedProducts = (recommendedData?.data ?? []).map((listing: any) => ({
+    id: listing.id,
+    name: listing.title,
+    price: parseFloat(listing.price),
+    type: listing.category?.name ?? 'Parfum',
+    image: getImageUrl(listing.images?.[0]?.storage_key ?? listing.image_url),
+  }));
 
   const isCartValid = availableItems.length > 0;
 
@@ -191,8 +190,8 @@ export default function Cart() {
               <RecommendedProducts products={recommendedProducts} />
             </div>
 
-            {/* Desktop Only Order Summary */}
-            <div className="hidden md:block">
+            {/* Order Summary — visible on all breakpoints */}
+            <div>
                <OrderSummary
                  subtotal={subtotal}
                  onCheckout={() => navigate('/checkout')}
@@ -222,6 +221,7 @@ export default function Cart() {
           </button>
         </div>
       )}
+      <CartToast toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "../ui/Button";
 import { Alert } from "../ui/Alert";
 import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
@@ -21,18 +20,11 @@ export default function OrderSummary({
   error,
   lastOrderId,
 }: OrderSummaryProps) {
-  const [promoCode, setPromoCode] = useState("");
-  const [promoFeedback, setPromoFeedback] = useState("");
-
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const amountToFreeShipping = SHIPPING_THRESHOLD - subtotal;
   const isFreeShippingUnlocked = amountToFreeShipping <= 0;
 
   const total = subtotal + shipping;
-
-  const applyPromoCode = () => {
-    setPromoFeedback("Promo codes are not yet available.");
-  };
 
   return (
     <div className="p-6 border rounded-lg border-[#c9a96e]/10">
@@ -56,26 +48,6 @@ export default function OrderSummary({
             </div>
           </div>
         )}
-      </div>
-
-      <div className="space-y-4 text-sm mb-6 pb-6 border-b border-[#c9a96e]/10">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Promo Code"
-            className="flex-1 bg-transparent border border-[#c9a96e]/30 rounded-lg px-3 py-2 text-[#e8dcc8] placeholder-white/30 focus:outline-none focus:border-[#c9a96e]"
-            value={promoCode}
-            onChange={(e) => setPromoCode(e.target.value)}
-          />
-          <button
-            onClick={applyPromoCode}
-            disabled={!!promoFeedback || loading}
-            className="px-4 py-2 border border-[#c9a96e] text-[#c9a96e] rounded-lg hover:bg-[#c9a96e] hover:text-[#0a0705] transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Apply
-          </button>
-        </div>
-        {promoFeedback && <p className="text-xs text-white/50">{promoFeedback}</p>}
       </div>
 
       <div className="space-y-3 text-sm">

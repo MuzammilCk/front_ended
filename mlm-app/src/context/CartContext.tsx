@@ -5,6 +5,7 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useState,
   type ReactNode,
 } from 'react';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
@@ -48,6 +49,7 @@ interface CartContextProps extends CartState {
   removeItem: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
   clearCart: () => void;
+  lastMutationError: string | null;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -146,6 +148,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const authCtx = useContext(AuthContext);
   const isLoggedIn = !!authCtx?.user && authCtx.isLoggedIn;
+  const [lastMutationError, setLastMutationError] = useState<string | null>(null);
 
   // Track previous auth state to detect login events
   const prevAuthRef = useRef(false);
@@ -223,6 +226,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (context?.previousCart !== undefined) {
         queryClient.setQueryData(['server-cart'], context.previousCart);
       }
+      setLastMutationError('Could not update quantity. Please try again.');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['server-cart'] });
@@ -243,6 +247,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (context?.previousCart !== undefined) {
         queryClient.setQueryData(['server-cart'], context.previousCart);
       }
+      setLastMutationError('Could not remove item. Please try again.');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['server-cart'] });
@@ -371,6 +376,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         removeItem,
         updateQty,
         clearCart,
+        lastMutationError,
       }}
     >
       {children}

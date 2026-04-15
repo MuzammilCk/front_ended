@@ -120,16 +120,16 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
   };
 
   return (
-    <div ref={cardRef} className="p-4 border-b border-[#c9a96e]/10 flex gap-4 overflow-hidden">
+    <div ref={cardRef} className="p-4 border-b border-[#c9a96e]/10 flex items-start gap-4 overflow-hidden">
       <Link to={`/product/${item.listing_id ?? ''}`} className="shrink-0 block">
         <LuxuryImage
           src={item.image}
           alt={item.name}
-          className="object-cover w-20 h-20 rounded-lg hover:opacity-80 transition"
+          className="object-cover w-16 h-16 sm:w-20 sm:h-20 rounded-lg hover:opacity-80 transition"
         />
       </Link>
 
-      <div className="flex-1 flex flex-col justify-center">
+      <div className="min-w-0 flex-1 flex flex-col justify-center">
         <Link
           to={`/product/${item.listing_id ?? ''}`}
           className="text-[#e8dcc8] hover:text-[#c9a96e] transition line-clamp-2 leading-snug"
@@ -154,7 +154,7 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
           <p className="text-xs text-emerald-500 mt-1">In Stock</p>
         ) : null}
 
-        <div className="flex items-center gap-4 mt-3">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-2">
           <button
             onClick={moveToWishlist}
             className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white w-max transition"
@@ -175,9 +175,9 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
         </div>
       </div>
 
-      <div className="flex flex-col items-end gap-3 justify-center">
+      <div className="flex flex-col items-end gap-2 w-auto sm:min-w-[90px] justify-center">
         <p className="text-[#c9a96e] font-serif tracking-widest whitespace-nowrap">
-          INR {(item.price * item.quantity).toLocaleString('en-IN')}
+          ₹{(item.price * item.quantity).toLocaleString('en-IN')}
         </p>
 
         <div className="flex items-center justify-between gap-3 bg-[#110d0a] border border-[#c9a96e]/20 rounded-full px-2 py-1 min-w-[90px]">
