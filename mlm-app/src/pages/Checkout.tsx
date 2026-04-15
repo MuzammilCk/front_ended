@@ -13,7 +13,7 @@ import { ReservationTimer } from "../components/checkout/ReservationTimer";
 import { getImageUrl } from "../utils/imageUrl";
 
 import { useAuth } from '../hooks/useAuth';
-import { createPaymentIntent, stripePromise } from '../api/payments';
+import { createPaymentIntent, verifyPayment, stripePromise } from '../api/payments';
 import { Elements } from '@stripe/react-stripe-js';
 import { InlineOtpGate } from '../components/checkout/InlineOtpGate';
 import { StripeCheckoutForm } from '../components/checkout/StripeCheckoutForm';
@@ -80,6 +80,12 @@ export default function Checkout() {
 
     if (paymentIntentClientSecret && redirectStatus) {
       if (redirectStatus === "succeeded") {
+        // Verify with backend to ensure order transitions to PAID
+        if (lastOrder?.id) {
+          verifyPayment(lastOrder.id).catch((err) => {
+            console.warn('Payment verification on redirect failed (webhook will retry):', err);
+          });
+        }
         clearCart();
         setCheckoutStep('confirmed');
       } else {
@@ -87,7 +93,7 @@ export default function Checkout() {
         setCheckoutStep('payment');
       }
     }
-  }, [searchParams, clearCart]);
+  }, [searchParams, clearCart, lastOrder]);
 
   // Prevent accessing checkout with empty cart
   useEffect(() => {
@@ -635,6 +641,7 @@ export default function Checkout() {
                   >
                     <StripeCheckoutForm
                       orderTotal={subtotal + shipping}
+                      orderId={lastOrder?.id ?? ''}
                       onSuccess={() => { clearCart(); setCheckoutStep('confirmed'); }}
                       onError={(msg) => setCheckoutError(msg)}
                     />

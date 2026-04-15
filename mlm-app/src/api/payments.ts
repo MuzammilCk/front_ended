@@ -1,6 +1,6 @@
 // src/api/payments.ts
-// Payment intent creation.
-// Endpoint: POST /orders/:orderId/payment-intent
+// Payment intent creation + verification.
+// Endpoint: POST /payments/intent, POST /payments/verify
 // Note: The Stripe webhook endpoint is server-side only — not called from frontend.
 
 import { apiRequest } from './client';
@@ -23,6 +23,20 @@ export async function createPaymentIntent(
   return apiRequest<PaymentIntentResponse>(`/payments/intent`, {
     method: 'POST',
     body: JSON.stringify(requestBody),
+  });
+}
+
+/**
+ * Synchronous payment verification fallback.
+ * Call this after stripe.confirmPayment() succeeds to ensure
+ * the backend order transitions to PAID even if the webhook is delayed.
+ */
+export async function verifyPayment(
+  orderId: string,
+): Promise<{ status: string; synced: boolean }> {
+  return apiRequest<{ status: string; synced: boolean }>(`/payments/verify`, {
+    method: 'POST',
+    body: JSON.stringify({ order_id: orderId }),
   });
 }
 

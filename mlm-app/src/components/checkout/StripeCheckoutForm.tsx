@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useStripe, useElements, PaymentElement, ExpressCheckoutElement } from '@stripe/react-stripe-js';
 import { Shield, Lock } from 'lucide-react';
+import { verifyPayment } from '../../api/payments';
 
 interface StripeCheckoutFormProps {
   orderTotal: number;
+  orderId: string;
   onSuccess: () => void;
   onError: (message: string) => void;
 }
 
-export function StripeCheckoutForm({ orderTotal, onSuccess, onError }: StripeCheckoutFormProps) {
+export function StripeCheckoutForm({ orderTotal, orderId, onSuccess, onError }: StripeCheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -39,6 +41,16 @@ export function StripeCheckoutForm({ orderTotal, onSuccess, onError }: StripeChe
           onError("Payment failed. Please try a different card or contact support.");
         }
       } else {
+        // Payment succeeded on Stripe's side.
+        // Now verify with our backend to ensure the order transitions to PAID,
+        // even if the Stripe webhook is delayed or unreachable.
+        try {
+          await verifyPayment(orderId);
+        } catch (verifyErr) {
+          // Verification failed — the webhook will eventually catch up.
+          // Don't block the user; log and proceed to confirmation.
+          console.warn('Payment verification fallback failed (webhook will retry):', verifyErr);
+        }
         onSuccess();
       }
     } catch (err) {

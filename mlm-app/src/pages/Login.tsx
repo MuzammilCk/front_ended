@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ApiError, getUserRole } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 import LoginHeader from "../components/Login-components/LoginHeader";
@@ -84,9 +84,16 @@ export default function Login() {
       />
 
       {/* Floating content */}
-      <div className="relative z-10 min-h-screen p-6 text-white">
-        <LoginHeader />
-        <div className="max-w-md mx-auto">
+      <div className="relative z-10 min-h-screen p-6 text-white flex flex-col justify-between">
+        {/* BRAND HEADER */}
+        <header className="flex items-center justify-center w-full py-4">
+          <Link to="/" className="text-3xl tracking-widest font-display text-[#e8dcc8]">
+            HADI
+          </Link>
+        </header>
+
+        {/* MAIN CONTENT */}
+        <div className="max-w-md mx-auto w-full flex-1 flex flex-col justify-center">
           <LoginHero />
           <LoginMethodToggle loginMethod={loginMethod} setLoginMethod={setLoginMethod} />
           {apiError && <Alert variant="error" className="mb-4">{apiError}</Alert>}
@@ -133,7 +140,16 @@ export default function Login() {
             handleSubmit={handleSubmit}
           />
         </div>
-        <LoginFooter />
+
+        {/* CONSOLIDATED FOOTER */}
+        <div className="w-full text-center pb-6 mt-8">
+          <p className="text-sm text-white/50">
+            New to HADI?{" "}
+            <Link to="/register" className="text-[#c9a96e] hover:text-white transition-colors font-medium tracking-wide">
+              Create an account
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

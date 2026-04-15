@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { sendOtp, verifyOtp } from "../api/auth";
 import { ApiError } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
@@ -167,11 +167,17 @@ export default function Register() {
       />
 
       {/* Floating content */}
-      <div className="relative z-10 min-h-screen p-6 text-white">
-        <RegisterHeader />
+      <div className="relative z-10 min-h-screen p-6 text-white flex flex-col justify-between">
+        {/* BRAND HEADER */}
+        <header className="flex items-center justify-center w-full py-4">
+          <Link to="/" className="text-3xl tracking-widest font-display text-[#e8dcc8]">
+            HADI
+          </Link>
+        </header>
 
-      <div className="max-w-md mx-auto">
-        <RegisterHero />
+        {/* MAIN CONTENT */}
+        <div className="max-w-md mx-auto w-full flex-1 flex flex-col justify-center">
+          <RegisterHero />
 
         {apiError && (
           <Alert variant="error" className="anim-rise mb-4">
@@ -263,9 +269,17 @@ export default function Register() {
             />
           </>
         )}
-      </div>
+        </div>
 
-      <RegisterFooter />
+        {/* CONSOLIDATED FOOTER */}
+        <div className="w-full text-center pb-6 mt-8">
+          <p className="text-sm text-white/50">
+            Already have an account?{" "}
+            <Link to="/login" className="text-[#c9a96e] hover:text-white transition-colors font-medium tracking-wide">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
