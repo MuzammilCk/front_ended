@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { sendOtp, verifyOtp } from "../api/auth";
 import { ApiError } from "../api/client";
@@ -33,6 +33,15 @@ export default function Register() {
   const [sessionToken, setSessionToken] = useState("");
   const [apiError, setApiError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // OTP retry tracking — MNC pattern (Amazon/Flipkart)
+  const [otpAttempts, setOtpAttempts] = useState(0);
+  const [remainingAttempts, setRemainingAttempts] = useState(5);
+  // Resend cooldown timer (30s standard)
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // 409 redirect flag — shows message before navigating to login
+  const [showLoginRedirect, setShowLoginRedirect] = useState(false);
 
   const [buttonWidth, setButtonWidth] = useState<number>(400);
 
@@ -69,6 +78,51 @@ export default function Register() {
     }
   };
 
+  // Start resend cooldown timer (30 seconds — MNC standard)
+  const startResendCooldown = useCallback(() => {
+    setResendCooldown(30);
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    resendTimerRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    };
+  }, []);
+
+  // Resend OTP handler
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setApiError("");
+    setOtp("");
+    setOtpAttempts(0);
+    setRemainingAttempts(5);
+    setIsLoading(true);
+    try {
+      await sendOtp({ phone: formData.phone });
+      startResendCooldown();
+      setApiError(""); // Clear any previous errors
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setApiError(err.body || "Failed to resend OTP.");
+      } else {
+        setApiError("Network error. Please check your connection.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleVerify = async (otpValue: string) => {
     setApiError("");
     if (!otpValue.trim() || otpValue.length !== 6) {
@@ -82,11 +136,38 @@ export default function Register() {
         setApiError("OTP verification failed. Please try again.");
         return;
       }
+      // Success — proceed to signup
+      setOtpAttempts(0);
       setSessionToken(result.session_token);
       setStep("creating");
     } catch (err) {
+      // CRITICAL: Stay on OTP step — NEVER redirect on wrong OTP.
+      // Clear the OTP input so the user can retype cleanly.
+      setOtp("");
+      const newAttempts = otpAttempts + 1;
+      setOtpAttempts(newAttempts);
+
       if (err instanceof ApiError) {
-        setApiError(err.body || "Invalid or expired OTP.");
+        // Parse remaining_attempts from structured backend response
+        try {
+          // The body might be the raw message (already parsed by client.ts),
+          // or it might contain JSON with remaining_attempts
+          const bodyStr = err.body;
+          // Check if it contains structured info
+          if (bodyStr.includes('remaining')) {
+            setApiError(bodyStr);
+          } else {
+            const remaining = Math.max(0, 5 - newAttempts);
+            setRemainingAttempts(remaining);
+            if (remaining === 0) {
+              setApiError("Too many failed attempts. Please request a new OTP.");
+            } else {
+              setApiError(`Invalid OTP. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`);
+            }
+          }
+        } catch {
+          setApiError(err.body || "Invalid or expired OTP.");
+        }
       } else {
         setApiError("Network error. Please check your connection.");
       }
@@ -121,10 +202,20 @@ export default function Register() {
         await sendOtp({ phone: phoneStr });
         // Store the correctly formatted phone back in state so verification uses it
         setFormData((prev) => ({ ...prev, phone: phoneStr }));
+        setOtpAttempts(0);
+        setRemainingAttempts(5);
+        startResendCooldown();
         setStep("otp");
       } catch (err) {
         if (err instanceof ApiError) {
-          setApiError(err.body || "Failed to send OTP. Please try again.");
+          // Handle 409 — user already has an account
+          if (err.status === 409) {
+            setShowLoginRedirect(true);
+            setApiError("An account with this phone number already exists.");
+            setTimeout(() => navigate("/login"), 3000);
+          } else {
+            setApiError(err.body || "Failed to send OTP. Please try again.");
+          }
         } else {
           setApiError("Network error. Please check your connection.");
         }
@@ -210,6 +301,14 @@ export default function Register() {
         {apiError && (
           <Alert variant="error" className="anim-rise mb-4">
             {apiError}
+            {showLoginRedirect && (
+              <span className="block mt-1 text-xs">
+                Redirecting to login page…{" "}
+                <Link to="/login" className="underline text-[#c9a96e]">
+                  Go now
+                </Link>
+              </span>
+            )}
           </Alert>
         )}
 
@@ -242,11 +341,33 @@ export default function Register() {
             >
               {isLoading ? "Verifying…" : "VERIFY OTP"}
             </button>
+
+            {/* Resend OTP + cooldown timer — MNC standard (30s cooldown) */}
+            <div className="flex items-center justify-between mt-3">
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={isLoading || resendCooldown > 0}
+                className="text-xs text-[#c9a96e]/70 hover:text-[#c9a96e] transition disabled:text-white/20 disabled:cursor-not-allowed"
+              >
+                {resendCooldown > 0
+                  ? `Resend OTP in ${resendCooldown}s`
+                  : "Resend OTP"}
+              </button>
+              {otpAttempts > 0 && remainingAttempts > 0 && (
+                <span className="text-xs text-amber-400/80">
+                  {remainingAttempts} attempt{remainingAttempts !== 1 ? "s" : ""} left
+                </span>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={() => {
                 setStep("form");
                 setOtp("");
+                setOtpAttempts(0);
+                setRemainingAttempts(5);
                 setApiError("");
               }}
               className="w-full mt-2 py-2 text-xs text-white/40 hover:text-white/60 transition"
