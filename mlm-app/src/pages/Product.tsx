@@ -264,19 +264,7 @@ export default function Product() {
       {/* Main Content */}
       <div>
         <div className="px-4 py-8 text-white sm:px-6 sm:py-10 md:px-12">
-          {/* HEADER */}
-          <header className="flex items-center justify-between mb-12">
-            <Link to="/" className="text-xl tracking-wide font-display">
-              HADI
-            </Link>
-
-            <Link 
-              to="/cart"
-              className="cart-icon-target text-sm text-white/60 hover:text-[#c9a96e] transition"
-            >
-              Cart ({cartCount})
-            </Link>
-          </header>
+          {/* HEADER REMOVED: Now using Global Desktop Navbar */}
 
           {/* HERO */}
           <div className="max-w-6xl mx-auto mb-12">

@@ -89,23 +89,7 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif pb-24 md:pb-0">
       
-      {/* Navbar */}
-      <div className="sticky top-0 z-40 bg-[#0a0705]/90 backdrop-blur-xl border-b border-[#c9a96e]/10 p-4 md:px-8 flex items-center justify-between transition-colors">
-        <div className="flex items-center gap-4">
-          <Link to="/product" className="hidden md:flex items-center gap-1.5 text-[10px] font-sans uppercase tracking-widest text-[#c9a96e]/70 hover:text-[#c9a96e] transition">
-            <ArrowLeft className="w-3 h-3" /> Continue Shopping
-          </Link>
-        </div>
-        
-        <Link to="/" className="font-display text-2xl tracking-[0.2em] text-[#e8dcc8] absolute left-1/2 -translate-x-1/2">
-          HADI
-        </Link>
-        
-        <div className="flex items-center gap-2 text-sm text-[#c9a96e]">
-          <ShoppingBag className="w-4 h-4" />
-          <span className="hidden md:inline tabular-nums">{cartItems.reduce((s, i) => s + i.quantity, 0)} Items</span>
-        </div>
-      </div>
+      {/* Navbar REMOVED: Now using Global Desktop Navbar */}
 
       {/* Subtle Grain Texture */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 opacity=%221%22/%3E%3C/svg%3E')" }} />

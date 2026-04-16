@@ -4,16 +4,16 @@ import { useAuth } from "../hooks/useAuth";
 import { useWishlist } from "../context/WishlistContext";
 import { User, Heart, ShoppingBag, LogOut, Package, Wallet } from "lucide-react";
 
-interface NavbarProps {
-  cartCount?: number;
-}
+import { useCart } from "../context/CartContext";
 
-export default function Navbar({ cartCount = 0 }: NavbarProps) {
+export default function Navbar() {
   const { count: wishlistCount } = useWishlist();
   const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isLoggedIn, logout, userName } = useAuth();
 
+  const { items } = useCart();
+  const cartCount = items.reduce((sum, item) => sum + item.qty, 0);
 
   return (
     <nav className="sticky top-0 z-50 bg-[#0a0705]/95 backdrop-blur-xl border-b border-[#c9a96e]/10">
@@ -149,7 +149,7 @@ export default function Navbar({ cartCount = 0 }: NavbarProps) {
             <Link
               to="/cart"
               aria-label="Cart"
-              className="relative group inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
+              className="relative group inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40 cart-icon-target"
             >
               <ShoppingBag className="w-5 h-5 transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
               {cartCount > 0 && (
