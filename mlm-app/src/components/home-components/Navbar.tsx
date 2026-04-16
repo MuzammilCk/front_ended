@@ -278,7 +278,7 @@ export default function Navbar() {
       ];
 
   return (
-    <header className="nb2-header">
+    <header className="nb2-header hidden md:block">
       <div className={`nb2-inner${scrolled ? " nb2-inner--pill" : ""}`}>
         <Link
           ref={logoRef}
