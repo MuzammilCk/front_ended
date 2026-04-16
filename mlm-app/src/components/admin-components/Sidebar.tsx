@@ -80,6 +80,7 @@ export default function Sidebar() {
                   <NavLink
                     key={item.key}
                     to={`/admin/${item.key}`}
+                    end={item.key === 'products'}
                     className={({ isActive }) =>
                       `flex items-center gap-4 px-4 py-3 border-l-2 transition-all duration-300 w-full text-left
                       ${isActive

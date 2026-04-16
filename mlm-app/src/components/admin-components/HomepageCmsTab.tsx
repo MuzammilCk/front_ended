@@ -1,18 +1,24 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getHomepageContent } from '../../api/homepage';
+import { adminUpsertHomepageSection, adminGetListings } from '../../api/admin';
+import type { Listing } from '../../api/types';
+import { Search, GripVertical, X, Check, Plus } from 'lucide-react';
 
 const CMS_TABS = [
   { id: 'hero', label: 'Hero Section' },
+  { id: 'featured', label: 'Featured Collection' },
   { id: 'brand', label: 'Brand Statement' },
   { id: 'testimonials', label: 'Testimonials' },
   { id: 'families', label: 'Scent Families' },
 ];
 
 export default function HomepageCmsTab() {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('hero');
   const [showPreview, setShowPreview] = useState(false);
-  const [savingMsg, setSavingMsg] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   // Hero State
   const [heroHeadline, setHeroHeadline] = useState('');
@@ -26,7 +32,13 @@ export default function HomepageCmsTab() {
   const [brandBody, setBrandBody] = useState('');
   const [brandStats, setBrandStats] = useState<{ value: string; label: string }[]>([]);
 
-  // Testimonial State & Scent Family State mapped here simply for UI demonstration
+  // Featured Collection State
+  const [selectedListings, setSelectedListings] = useState<
+    { listing_id: string; family: string; badge: string | null; ml: string; notes: string; intensity: number }[]
+  >([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Testimonial State & Scent Family State
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [families, setFamilies] = useState<any[]>([]);
 
@@ -34,6 +46,27 @@ export default function HomepageCmsTab() {
     queryKey: ['homepage-content'],
     queryFn: getHomepageContent,
   });
+
+  // Fetch all active listings for the product picker
+  const { data: listingsData } = useQuery({
+    queryKey: ['admin-cms-listings'],
+    queryFn: () => adminGetListings({ limit: 200, status: 'active' }),
+    enabled: activeTab === 'featured',
+  });
+
+  const allListings: Listing[] = listingsData?.data ?? [];
+
+  const filteredListings = useMemo(() => {
+    const selectedIds = new Set(selectedListings.map(s => s.listing_id));
+    let filtered = allListings.filter(l => !selectedIds.has(l.id));
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        l => l.title.toLowerCase().includes(q) || l.sku.toLowerCase().includes(q),
+      );
+    }
+    return filtered;
+  }, [allListings, selectedListings, searchQuery]);
 
   useEffect(() => {
     if (homepageData) {
@@ -51,12 +84,127 @@ export default function HomepageCmsTab() {
       }
       if (homepageData.testimonials) setTestimonials([...homepageData.testimonials]);
       if (homepageData.scent_families) setFamilies([...homepageData.scent_families]);
+      // Load featured collection items
+      if (homepageData.featured_collection) {
+        setSelectedListings(
+          homepageData.featured_collection.map((item: any) => ({
+            listing_id: item.listing_id || item.id || '',
+            family: item.family || '',
+            badge: item.badge || null,
+            ml: item.ml || '50',
+            notes: item.notes || '',
+            intensity: item.intensity || 70,
+          })),
+        );
+      }
     }
   }, [homepageData]);
 
+  // Save mutation
+  const saveMutation = useMutation({
+    mutationFn: async ({ sectionKey, content }: { sectionKey: string; content: Record<string, any> }) => {
+      return adminUpsertHomepageSection(sectionKey, { content });
+    },
+    onSuccess: () => {
+      setSaveSuccess('Section saved successfully. Changes are live.');
+      setSaveError('');
+      // Invalidate homepage cache so the storefront reflects changes
+      void queryClient.invalidateQueries({ queryKey: ['homepage-content'] });
+      void queryClient.invalidateQueries({ queryKey: ['homepage'] });
+      setTimeout(() => setSaveSuccess(''), 4000);
+    },
+    onError: (err: any) => {
+      setSaveError(err?.message || 'Failed to save section. Please try again.');
+      setSaveSuccess('');
+    },
+  });
+
   const handleSave = () => {
-    setSavingMsg('Backend endpoint coming soon — changes will sync once deployed.');
-    setTimeout(() => setSavingMsg(''), 5000);
+    let sectionKey = '';
+    let content: Record<string, any> = {};
+
+    switch (activeTab) {
+      case 'hero':
+        sectionKey = 'hero';
+        content = {
+          headline: heroHeadline,
+          subheadline: heroSubheadline,
+          eyebrow: heroEyebrow,
+          cta_text: heroCtaText,
+          cta_link: heroCtaLink,
+        };
+        break;
+      case 'brand':
+        sectionKey = 'brand_statement';
+        content = {
+          headline: brandHeadline,
+          body: brandBody,
+          stats: brandStats,
+        };
+        break;
+      case 'featured':
+        sectionKey = 'featured_collection';
+        content = {
+          items: selectedListings.map(item => ({
+            listing_id: item.listing_id,
+            family: item.family,
+            badge: item.badge,
+            ml: item.ml,
+            notes: item.notes,
+            intensity: item.intensity,
+          })),
+        };
+        break;
+      case 'testimonials':
+        sectionKey = 'testimonials';
+        content = { items: testimonials };
+        break;
+      case 'families':
+        sectionKey = 'scent_families';
+        content = { items: families };
+        break;
+    }
+
+    if (sectionKey) {
+      saveMutation.mutate({ sectionKey, content });
+    }
+  };
+
+  const addListingToFeatured = (listing: Listing) => {
+    if (selectedListings.length >= 6) return;
+    setSelectedListings(prev => [
+      ...prev,
+      {
+        listing_id: listing.id,
+        family: listing.category?.name || 'Signature',
+        badge: null,
+        ml: '50',
+        notes: listing.description || '',
+        intensity: 70,
+      },
+    ]);
+  };
+
+  const removeFromFeatured = (listingId: string) => {
+    setSelectedListings(prev => prev.filter(s => s.listing_id !== listingId));
+  };
+
+  const updateFeaturedItem = (idx: number, field: string, value: any) => {
+    setSelectedListings(prev => {
+      const next = [...prev];
+      (next[idx] as any)[field] = value;
+      return next;
+    });
+  };
+
+  const moveItem = (idx: number, direction: -1 | 1) => {
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= selectedListings.length) return;
+    setSelectedListings(prev => {
+      const next = [...prev];
+      [next[idx], next[newIdx]] = [next[newIdx], next[idx]];
+      return next;
+    });
   };
 
   const inputCls = "bg-[#0A0705] border border-[#c9a96e]/15 text-[#e8dcc8] text-xs px-4 py-3 outline-none focus:border-[#c9a96e]/50 placeholder-muted/20 w-full transition-colors font-sans";
@@ -66,7 +214,7 @@ export default function HomepageCmsTab() {
     return (
       <div className="flex flex-col gap-8 max-w-6xl">
         <div className="flex gap-2 animate-pulse">
-           {[1,2,3,4].map(i => <div key={i} className="w-24 h-8 bg-[#c9a96e]/10 rounded-sm" />)}
+           {[1,2,3,4,5].map(i => <div key={i} className="w-24 h-8 bg-[#c9a96e]/10 rounded-sm" />)}
         </div>
         <div className="flex gap-8">
            <div className="w-[500px] h-96 bg-[#c9a96e]/5 rounded-sm animate-pulse" />
@@ -87,9 +235,14 @@ export default function HomepageCmsTab() {
          </button>
        </div>
 
-       {savingMsg && (
-         <div className="border border-emerald-500/20 bg-emerald-500/5 px-6 py-4 font-sans font-medium tracking-wide text-[11px] text-emerald-400">
-           🛈 {savingMsg}
+       {saveSuccess && (
+         <div className="border border-emerald-500/20 bg-emerald-500/5 px-6 py-4 font-sans font-medium tracking-wide text-[11px] text-emerald-400 flex items-center gap-2">
+           <Check size={14} /> {saveSuccess}
+         </div>
+       )}
+       {saveError && (
+         <div className="border border-rose-500/20 bg-rose-500/5 px-6 py-4 font-sans font-medium tracking-wide text-[11px] text-rose-400">
+           ⚠ {saveError}
          </div>
        )}
 
@@ -107,7 +260,7 @@ export default function HomepageCmsTab() {
 
        <div className="flex items-start gap-8">
          {/* Editor Form Panel */}
-         <div className={`border border-[#c9a96e]/10 bg-[#0d0a07] p-8 shrink-0 transition-all ${showPreview ? 'w-[450px]' : 'w-full max-w-3xl'} shadow-xl`}>
+         <div className={`border border-[#c9a96e]/10 bg-[#0d0a07] p-8 shrink-0 transition-all ${showPreview ? 'w-[450px]' : 'w-full max-w-3xl'} ${activeTab === 'featured' ? 'w-full max-w-full' : ''} shadow-xl`}>
            {activeTab === 'hero' && (
              <div>
                <p className="font-serif text-2xl font-light text-[#e8dcc8] mb-1">Hero Section Editor</p>
@@ -132,6 +285,114 @@ export default function HomepageCmsTab() {
                    <input className={inputCls} placeholder="e.g. /shop" value={heroCtaLink} onChange={(e) => setHeroCtaLink(e.target.value)} />
                  </div>
                </div>
+             </div>
+           )}
+
+           {activeTab === 'featured' && (
+             <div>
+               <p className="font-serif text-2xl font-light text-[#e8dcc8] mb-1">Featured Collection Editor</p>
+               <p className="font-sans text-[10px] uppercase tracking-widest text-[#c9a96e]/40 mb-8 font-medium">Select up to 6 products from your catalogue</p>
+
+               {/* Selected products */}
+               <div className="mb-8">
+                 <label className={labelCls}>Selected Products ({selectedListings.length}/6)</label>
+                 {selectedListings.length === 0 ? (
+                   <div className="border border-dashed border-white/10 p-8 text-center">
+                     <p className="font-sans text-xs text-muted/40">No products selected. Search and add products below.</p>
+                   </div>
+                 ) : (
+                   <div className="space-y-3">
+                     {selectedListings.map((item, idx) => {
+                       const listing = allListings.find(l => l.id === item.listing_id);
+                       return (
+                         <div key={item.listing_id} className="flex items-center gap-4 border border-[#c9a96e]/10 bg-[#0A0705] p-4 group hover:border-[#c9a96e]/30 transition-colors">
+                           <div className="flex flex-col gap-1 shrink-0">
+                             <button onClick={() => moveItem(idx, -1)} disabled={idx === 0} className="text-muted/30 hover:text-[#c9a96e] disabled:opacity-20 text-[10px]">▲</button>
+                             <GripVertical size={14} className="text-muted/20" />
+                             <button onClick={() => moveItem(idx, 1)} disabled={idx === selectedListings.length - 1} className="text-muted/30 hover:text-[#c9a96e] disabled:opacity-20 text-[10px]">▼</button>
+                           </div>
+                           
+                           <div className="flex-1 min-w-0">
+                             <p className="font-serif text-lg text-[#e8dcc8] truncate">{listing?.title || item.listing_id.slice(0, 8)}</p>
+                             <p className="font-sans text-[10px] text-muted/40 mt-0.5">
+                               SKU: {listing?.sku || 'N/A'} · INR {listing ? parseFloat(listing.price).toLocaleString() : '—'}
+                             </p>
+                           </div>
+
+                           {/* Editable overrides */}
+                           <div className="flex gap-2 items-center shrink-0">
+                             <div>
+                               <label className="font-sans text-[8px] uppercase tracking-widest text-muted/30 block mb-1">Family</label>
+                               <input className="bg-[#080604] border border-[#c9a96e]/10 text-[#e8dcc8] text-[10px] px-2 py-1.5 w-20 outline-none focus:border-[#c9a96e]/50" value={item.family} onChange={e => updateFeaturedItem(idx, 'family', e.target.value)} />
+                             </div>
+                             <div>
+                               <label className="font-sans text-[8px] uppercase tracking-widest text-muted/30 block mb-1">Badge</label>
+                               <select className="bg-[#080604] border border-[#c9a96e]/10 text-[#e8dcc8] text-[10px] px-2 py-1.5 w-24 outline-none" value={item.badge || ''} onChange={e => updateFeaturedItem(idx, 'badge', e.target.value || null)}>
+                                 <option value="" className="bg-[#130e08]">None</option>
+                                 <option value="New" className="bg-[#130e08]">New</option>
+                                 <option value="Bestseller" className="bg-[#130e08]">Bestseller</option>
+                                 <option value="Limited" className="bg-[#130e08]">Limited</option>
+                                 <option value="Exclusive" className="bg-[#130e08]">Exclusive</option>
+                               </select>
+                             </div>
+                             <div>
+                               <label className="font-sans text-[8px] uppercase tracking-widest text-muted/30 block mb-1">ML</label>
+                               <select className="bg-[#080604] border border-[#c9a96e]/10 text-[#e8dcc8] text-[10px] px-2 py-1.5 w-16 outline-none" value={item.ml} onChange={e => updateFeaturedItem(idx, 'ml', e.target.value)}>
+                                 {['30', '50', '75', '100'].map(v => <option key={v} value={v} className="bg-[#130e08]">{v}</option>)}
+                               </select>
+                             </div>
+                           </div>
+
+                           <button onClick={() => removeFromFeatured(item.listing_id)} className="text-rose-400/30 hover:text-rose-400 transition-colors shrink-0 p-1">
+                             <X size={16} />
+                           </button>
+                         </div>
+                       );
+                     })}
+                   </div>
+                 )}
+               </div>
+
+               {/* Product picker */}
+               {selectedListings.length < 6 && (
+                 <div>
+                   <label className={labelCls}>Add Products from Catalogue</label>
+                   <div className="relative mb-4">
+                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted/30" />
+                     <input
+                       className={`${inputCls} pl-9`}
+                       placeholder="Search by name or SKU..."
+                       value={searchQuery}
+                       onChange={e => setSearchQuery(e.target.value)}
+                     />
+                   </div>
+                   <div className="border border-[#c9a96e]/10 max-h-[300px] overflow-y-auto">
+                     {filteredListings.length === 0 ? (
+                       <p className="py-8 text-center font-sans text-xs text-muted/40">
+                         {allListings.length === 0 ? 'Loading products...' : 'No matching products found.'}
+                       </p>
+                     ) : (
+                       filteredListings.slice(0, 20).map(listing => (
+                         <div
+                           key={listing.id}
+                           className="flex items-center gap-4 px-4 py-3 border-b border-[#c9a96e]/5 last:border-0 hover:bg-[#c9a96e]/5 transition-colors cursor-pointer group"
+                           onClick={() => addListingToFeatured(listing)}
+                         >
+                           <div className="flex-1 min-w-0">
+                             <p className="font-serif text-sm text-[#e8dcc8] truncate">{listing.title}</p>
+                             <p className="font-sans text-[10px] text-muted/40">
+                               {listing.sku} · INR {parseFloat(listing.price).toLocaleString()} · {listing.category?.name || 'Uncategorized'}
+                             </p>
+                           </div>
+                           <button className="opacity-0 group-hover:opacity-100 transition-opacity bg-[#c9a96e]/10 border border-[#c9a96e]/30 text-[#c9a96e] px-3 py-1.5 font-sans text-[9px] uppercase tracking-widest flex items-center gap-1.5">
+                             <Plus size={12} /> Add
+                           </button>
+                         </div>
+                       ))
+                     )}
+                   </div>
+                 </div>
+               )}
              </div>
            )}
 
@@ -187,15 +448,23 @@ export default function HomepageCmsTab() {
            <div className="pt-8 mt-8 border-t border-[#c9a96e]/10">
               <button 
                  onClick={handleSave}
-                 className="bg-[#c9a96e] text-[#080604] px-8 py-3.5 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-[#e8c87a] transition-all rounded-sm flex items-center justify-center gap-2"
+                 disabled={saveMutation.isPending}
+                 className="bg-[#c9a96e] text-[#080604] px-8 py-3.5 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-[#e8c87a] transition-all rounded-sm flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                 <span>Save {CMS_TABS.find(t => t.id === activeTab)?.label} Node</span>
+                 {saveMutation.isPending ? (
+                   <>
+                     <div className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                     Saving...
+                   </>
+                 ) : (
+                   <span>Save {CMS_TABS.find(t => t.id === activeTab)?.label} Node</span>
+                 )}
               </button>
            </div>
          </div>
 
          {/* Live Preview Panel */}
-         {showPreview && (
+         {showPreview && activeTab !== 'featured' && (
            <div className="flex-1 bg-[#0A0705]/80 border border-[#c9a96e]/20 p-12 min-h-full flex items-center justify-center relative overflow-hidden shadow-2xl rounded-sm group">
              {/* Abstract luxury preview lines */}
              <div className="absolute top-0 right-0 w-[500px] h-[500px] border border-[#c9a96e]/5 rounded-full -translate-y-1/2 translate-x-1/4 animate-[spin_60s_linear_infinite]" />

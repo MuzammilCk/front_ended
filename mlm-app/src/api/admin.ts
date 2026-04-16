@@ -297,6 +297,75 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
   });
 }
 
+// ─── Admin Homepage CMS ──────────────────────────────────────────────────────
+
+export interface UpsertHomepageSectionPayload {
+  content: Record<string, any>;
+  media_ids?: string[];
+  is_active?: boolean;
+  sort_order?: number;
+}
+
+export async function adminGetHomepageSections(): Promise<any[]> {
+  return apiRequest<any[]>('/admin/homepage', { method: 'GET' });
+}
+
+export async function adminUpsertHomepageSection(
+  sectionKey: string,
+  payload: UpsertHomepageSectionPayload,
+): Promise<any> {
+  return apiRequest<any>(`/admin/homepage/${sectionKey}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+// ─── Admin Network Tree ─────────────────────────────────────────────────────
+
+export interface AdminDownlineNode {
+  userId: string;
+  depth: number;
+  sponsorId: string | null;
+  directCount: number;
+}
+
+export interface AdminDownlineResponse {
+  rootNode: {
+    userId: string;
+    depth: number;
+    sponsorId: string | null;
+    directCount: number;
+    totalDownline: number;
+  };
+  data: AdminDownlineNode[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export async function adminGetDownline(
+  userId: string,
+  params: { maxDepth?: number; page?: number; limit?: number } = {},
+): Promise<AdminDownlineResponse> {
+  const query = new URLSearchParams();
+  if (params.maxDepth !== undefined) query.set('maxDepth', String(params.maxDepth));
+  if (params.page !== undefined) query.set('page', String(params.page));
+  if (params.limit !== undefined) query.set('limit', String(params.limit));
+  const qs = query.toString();
+  return apiRequest<AdminDownlineResponse>(
+    `/admin/network/${userId}/downline${qs ? `?${qs}` : ''}`,
+    { method: 'GET' },
+  );
+}
+
+export async function adminGetNetworkNode(userId: string): Promise<any> {
+  return apiRequest<any>(`/admin/network/${userId}/node`, { method: 'GET' });
+}
+
+export async function adminGetUserQualification(userId: string): Promise<any> {
+  return apiRequest<any>(`/admin/network/${userId}/qualification`, { method: 'GET' });
+}
+
 // ─── Admin Audit Logs ────────────────────────────────────────────────────────
 
 export interface AuditLogParams {
