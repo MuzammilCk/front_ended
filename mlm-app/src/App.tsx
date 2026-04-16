@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Wishlist from "./pages/Wishlist";
+import MobileBottomNav from "./components/MobileBottomNav";
 
 // Admin layout + tab components
 import AdminLayout from "./components/admin-components/AdminLayout";
@@ -105,6 +106,9 @@ function App() {
             <Route path="finance/payouts" element={<PayoutsTab />} />
           </Route>
         </Routes>
+
+        {/* ── Mobile Bottom Navigation (renders on all non-admin pages) ── */}
+        <MobileBottomNav />
       </div>
     </ErrorBoundary>
   );

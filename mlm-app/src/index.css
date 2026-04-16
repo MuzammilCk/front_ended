@@ -48,6 +48,8 @@
 
 html {
   font-size: 16px;
+  overflow-y: scroll; /* Forces scrollbar track */
+  scrollbar-gutter: stable; /* Modern CSS to reserve width */
 }
 
 body {
@@ -132,3 +134,30 @@ h3 {
   }
 }
 
+/* ─── Mobile Bottom Nav Safe Spacing ─────────────────────────────────────── */
+/* Prevents page content from being hidden under the fixed MobileBottomNav.   */
+/* 64px = approximate height of bottom nav bar + 4px buffer.                  */
+/* The env() accounts for iOS home indicator.                                 */
+
+@media (max-width: 767px) {
+  body {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ─── Profile Page: Remove top padding on mobile (page has own header) ────── */
+/* Profile.tsx renders its own sticky top bar. Pages that have their own      */
+/* topbar should override the global navbar spacing.                           */
+
+/* Safe area top padding for pages that render their own sticky header */
+.page-with-own-header {
+  /* No additional top compensation needed — page handles it */
+}
+
+/* ─── Sidebar open state — prevent body scroll ───────────────────────────── */
+html.sidebar-open {
+  overflow: hidden;
+  /* On mobile, also prevent the bottom nav from being repositioned */
+  position: fixed;
+  width: 100%;
+}

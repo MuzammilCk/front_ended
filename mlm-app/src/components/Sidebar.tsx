@@ -1,3 +1,9 @@
+// mlm-app/src/components/Sidebar.tsx
+// NOTE (post-refactor): This component is preserved for potential future use.
+// As of the MobileBottomNav refactor, this Sidebar is no longer rendered on any
+// user-facing page. The MobileBottomNav (FIX-01) handles mobile navigation.
+// Do not delete — it may be reused for desktop drawer patterns in future features.
+
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
@@ -52,12 +58,12 @@ export default function Sidebar({
   // ✅ Prevent body scroll when sidebar is open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      document.documentElement.classList.add("sidebar-open");
     } else {
-      document.body.style.overflow = "unset";
+      document.documentElement.classList.remove("sidebar-open");
     }
     return () => {
-      document.body.style.overflow = "unset";
+      document.documentElement.classList.remove("sidebar-open");
     };
   }, [isOpen]);
 
@@ -77,7 +83,7 @@ export default function Sidebar({
         aria-label="Close navigation menu"
         onClick={onClose}
         className={`
-          fixed inset-0 z-40 
+          fixed inset-0 z-[55] 
           bg-black/50 backdrop-blur-sm
           transition-all duration-500 ease-out
           ${
@@ -91,7 +97,7 @@ export default function Sidebar({
       {/* Sidebar */}
       <aside
         className={`
-          fixed z-50 
+          fixed z-[60] 
           bg-[#0a0705]/95 backdrop-blur-xl
           shadow-2xl
           transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]

@@ -3,11 +3,10 @@ import { Link } from "react-router-dom";
 import { useWishlist, type WishlistItem } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
 import WishlistItemCard from "../components/wishlist-components/WishlistItemCard";
-import Sidebar from "../components/Sidebar";
+
 import { ArrowLeft, Heart } from "lucide-react";
 
 export default function Wishlist() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [movingId, setMovingId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState("");
 
@@ -53,19 +52,11 @@ export default function Wishlist() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8]">
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+    <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] pb-20 md:pb-0">
 
       {/* STICKY NAVBAR — matching other pages in the project */}
       <div className="sticky top-0 z-40 bg-[#0a0705]/95 backdrop-blur-sm border-b border-[#c9a96e]/10 px-4 py-3 flex items-center justify-between">
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="p-2 transition rounded-lg bg-white/5 hover:bg-white/10 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+        <div className="w-10"></div> {/* spacer for flex balance */}
         <div className="text-[10px] uppercase tracking-[0.3em] text-[#c9a96e]">
           MY WISHLIST
         </div>

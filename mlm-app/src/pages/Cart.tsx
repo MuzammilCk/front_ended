@@ -13,7 +13,7 @@ import { useCart } from "../context/CartContext";
 import { getImageUrl } from "../utils/imageUrl";
 
 import { ShoppingBag, ArrowLeft, ShieldCheck } from "lucide-react";
-import Sidebar from "../components/Sidebar";
+
 import { Alert } from "../components/ui/Alert";
 import { SHIPPING_THRESHOLD, SHIPPING_FEE } from "../constants/cart.constants";
 
@@ -60,7 +60,7 @@ export default function Cart() {
   const cartItems = ctxItems.map(mapApiCartItem);
   const availableItems = cartItems.filter(i => i.inStock !== false);
   const unavailableItems = cartItems.filter(i => i.inStock === false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const navigate = useNavigate();
 
   const updateQuantity = async (id: string, qty: number) => contextUpdateQty(id, qty);
@@ -87,25 +87,11 @@ export default function Cart() {
   const isCartValid = availableItems.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif pb-28 md:pb-12">
-      <Sidebar
-        cartCount={cartItems.length}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+    <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif pb-24 md:pb-0">
       
       {/* Navbar */}
       <div className="sticky top-0 z-40 bg-[#0a0705]/90 backdrop-blur-xl border-b border-[#c9a96e]/10 p-4 md:px-8 flex items-center justify-between transition-colors">
         <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen((prev) => !prev)}
-            className="p-2 -ml-2 text-white/70 hover:text-white transition rounded-lg hover:bg-white/5"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
           <Link to="/product" className="hidden md:flex items-center gap-1.5 text-[10px] font-sans uppercase tracking-widest text-[#c9a96e]/70 hover:text-[#c9a96e] transition">
             <ArrowLeft className="w-3 h-3" /> Continue Shopping
           </Link>
@@ -207,7 +193,7 @@ export default function Cart() {
 
       {/* MNC Fix: Floating Mobile Checkout Pill (Apple/Linear Style) */}
       {cartItems.length > 0 && (
-        <div className="fixed bottom-6 left-4 right-4 z-50 md:hidden animate-[slideInUp_0.4s_ease-out]">
+        <div className="fixed bottom-24 left-4 right-4 z-50 md:hidden animate-[slideInUp_0.4s_ease-out]">
           <div className="bg-[#111]/90 backdrop-blur-xl border border-[#c9a96e]/30 rounded-2xl p-4 shadow-[0_20px_40px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(201,169,110,0.2)] flex items-center justify-between">
             <div className="flex flex-col">
               <span className="text-[10px] text-white/50 uppercase tracking-widest font-sans flex items-center gap-1.5">

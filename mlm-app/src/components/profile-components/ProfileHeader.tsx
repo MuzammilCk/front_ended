@@ -26,7 +26,7 @@ export default function ProfileHeader({
                 className="object-cover w-full h-full"
               />
             ) : (
-              <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-[#c9a96e]/20 to-transparent text-[#c9a96e] text-3xl font-light tracking-widest select-none">
+              <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-[#c9a96e]/30 to-[#8b6914]/20 border border-[#c9a96e]/20 text-[#c9a96e] text-3xl font-display select-none">
                 {userData.name?.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase() || '?'}
               </div>
             )}
@@ -50,14 +50,14 @@ export default function ProfileHeader({
                   onChange={(e) =>
                     setEditForm({ ...editForm, name: e.target.value })
                   }
-                  className="px-3 py-1 text-3xl font-light bg-transparent border rounded-lg border-[#c9a96e]/30 text-[#e8dcc8] focus:outline-none focus:border-[#c9a96e]"
+                  className="w-full px-0 py-2 bg-transparent border-b border-[#c9a96e]/30 focus:border-[#c9a96e] focus:outline-none text-[#e8dcc8] placeholder:text-muted/30 transition-colors text-3xl font-light"
                 />
               ) : (
                 <h1 className="text-3xl font-light">{userData.name}</h1>
               )}
 
-              <p className="mt-1 text-sm text-muted/60">
-                Premium Member since {userData.joinedDate}
+              <p className="mt-1 text-sm text-[#c9a96e]/60 font-serif italic">
+                Connoisseur Since {userData.joinedDate.replace('Member', '')}
               </p>
             </div>
 
@@ -68,7 +68,7 @@ export default function ProfileHeader({
                 className="flex items-center gap-2 px-4 py-2 mt-4 md:mt-0 text-sm transition-colors rounded-lg text-[#c9a96e] hover:bg-[#c9a96e]/10"
               >
                 <Edit2 className="w-4 h-4" />
-                Edit Profile
+                Edit Details
               </button>
             ) : (
               <div className="flex gap-2 mt-4 md:mt-0">
@@ -96,7 +96,7 @@ export default function ProfileHeader({
                   className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg text-[#e8dcc8]/60 hover:bg-[#c9a96e]/10"
                 >
                   <X className="w-4 h-4" />
-                  Cancel
+                  Discard
                 </button>
               </div>
             )}
