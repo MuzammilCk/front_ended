@@ -59,15 +59,15 @@ export default function Navbar() {
   // GSAP animation on Cart Count change
   useEffect(() => {
     if (!cartIconRef.current || cartCount === 0) return;
-    
+
     // Scale 1 -> 1.3 -> 1 with a gold pulse ring
     const tl = gsap.timeline();
     tl.to(cartIconRef.current, { scale: 1.3, duration: 0.15, ease: "power2.out" })
       .to(cartIconRef.current, { scale: 1, duration: 0.25, ease: "bounce.out" });
 
     // Assuming we want a ring effect, we can animate box-shadow via GSAP
-    gsap.fromTo(cartIconRef.current, 
-      { boxShadow: "0 0 0 0 rgba(201, 169, 110, 0.7)" }, 
+    gsap.fromTo(cartIconRef.current,
+      { boxShadow: "0 0 0 0 rgba(201, 169, 110, 0.7)" },
       { boxShadow: "0 0 0 10px rgba(201, 169, 110, 0)", duration: 0.6, ease: "power2.out" }
     );
   }, [cartCount]);
@@ -261,21 +261,21 @@ export default function Navbar() {
   const categoryLinks =
     megaMenu === "atelier"
       ? [
-          { label: "The Story", to: "/" },
-          { label: "Our Process", to: "/" },
-          { label: "Ingredients", to: "/" },
-          { label: "Sustainability", to: "/" },
-          { label: "Press", to: "/" },
-        ]
+        { label: "The Story", to: "/" },
+        { label: "Our Process", to: "/" },
+        { label: "Ingredients", to: "/" },
+        { label: "Sustainability", to: "/" },
+        { label: "Press", to: "/" },
+      ]
       : [
-          { label: "All Fragrances", to: "/product" },
-          { label: "Woody & Resinous", to: "/product" },
-          { label: "Floral & Romantic", to: "/product" },
-          { label: "Fresh & Aquatic", to: "/product" },
-          { label: "Oriental & Spicy", to: "/product" },
-          { label: "New Arrivals", to: "/product" },
-          { label: "Bestsellers", to: "/product" },
-        ];
+        { label: "All Fragrances", to: "/product" },
+        { label: "Woody & Resinous", to: "/product" },
+        { label: "Floral & Romantic", to: "/product" },
+        { label: "Fresh & Aquatic", to: "/product" },
+        { label: "Oriental & Spicy", to: "/product" },
+        { label: "New Arrivals", to: "/product" },
+        { label: "Bestsellers", to: "/product" },
+      ];
 
   return (
     <header className="nb2-header">
@@ -283,14 +283,11 @@ export default function Navbar() {
         <Link
           ref={logoRef}
           to="/"
-          className="nb2-logo"
+          className="nb2-logo flex items-center justify-center p-2"
           onMouseMove={onLogoMove}
           onMouseLeave={onLogoLeave}
         >
-          <span className="nb2-logo-stack">
-            <span className="nb2-logo-text">HADI</span>
-            <span className="nb2-logo-sub">PERFUMES</span>
-          </span>
+          <img src="/logo.png" alt="Hadi Perfumes" className="h-10 w-auto object-contain" />
         </Link>
 
         <nav className="nb2-nav nb2-nav-desktop" role="navigation" aria-label="Primary">
@@ -341,7 +338,7 @@ export default function Navbar() {
             </Link>
           ) : (
             <div className="relative flex items-center" ref={profileDropdownRef}>
-              <button 
+              <button
                 type="button"
                 className="nb2-icon-btn"
                 aria-label="User Account"
@@ -352,7 +349,7 @@ export default function Navbar() {
 
               <AnimatePresence>
                 {profileOpen && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
@@ -377,7 +374,7 @@ export default function Navbar() {
                     </div>
 
                     <div className="py-1 border-t border-[#c9a96e]/10">
-                      <button 
+                      <button
                         onClick={() => {
                           setProfileOpen(false);
                           void logout();
@@ -499,7 +496,7 @@ export default function Navbar() {
             );
           })}
         </nav>
-        
+
         <div className="nb2-mobile-actions flex-col items-start gap-4 p-6 w-full">
           {isLoggedIn ? (
             <div className="w-full border-t border-[#c9a96e]/10 pt-4">

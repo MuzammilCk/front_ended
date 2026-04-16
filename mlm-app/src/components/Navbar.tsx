@@ -21,21 +21,17 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-6 h-6 rounded bg-gradient-to-br from-[#c9a96e] to-[#8b6914] opacity-90 group-hover:opacity-100 transition-opacity" />
-            <span className="text-base tracking-[0.3em] uppercase font-light text-[#e8dcc8] group-hover:text-[#c9a96e] transition-colors duration-300">
-              HADI
-            </span>
+            <img src="/logo.png" alt="Hadi Perfumes" className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
           </Link>
 
           {/* Desktop Navigation */}
           <div className="items-center hidden gap-8 md:flex">
             <Link
               to="/"
-              className={`text-xs tracking-widest uppercase transition-all duration-200 relative group ${
-                location.pathname === "/"
+              className={`text-xs tracking-widest uppercase transition-all duration-200 relative group ${location.pathname === "/"
                   ? "text-[#c9a96e]"
                   : "text-[#e8dcc8]/50 hover:text-[#e8dcc8]"
-              }`}
+                }`}
             >
               Home
               {location.pathname === "/" && (
@@ -44,11 +40,10 @@ export default function Navbar() {
             </Link>
             <Link
               to="/product"
-              className={`text-xs tracking-widest uppercase transition-all duration-200 relative ${
-                location.pathname === "/product" || location.pathname.startsWith("/product/")
+              className={`text-xs tracking-widest uppercase transition-all duration-200 relative ${location.pathname === "/product" || location.pathname.startsWith("/product/")
                   ? "text-[#c9a96e]"
                   : "text-[#e8dcc8]/50 hover:text-[#e8dcc8]"
-              }`}
+                }`}
             >
               Collection
               {(location.pathname === "/product" || location.pathname.startsWith("/product/")) && (
@@ -59,15 +54,15 @@ export default function Navbar() {
 
           {/* Icons Section */}
           <div className="flex items-center gap-4">
-            
+
             {/* USER ACCOUNT ICON & DROPDOWN */}
-            <div 
+            <div
               className="relative group hidden md:flex items-center"
               onMouseEnter={() => isLoggedIn && setIsProfileOpen(true)}
               onMouseLeave={() => isLoggedIn && setIsProfileOpen(false)}
             >
-              <Link 
-                to={isLoggedIn ? "/profile" : "/login"} 
+              <Link
+                to={isLoggedIn ? "/profile" : "/login"}
                 className="relative group inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
                 aria-label="User Account"
               >
@@ -79,11 +74,10 @@ export default function Navbar() {
 
               {/* THE MODERN DROPDOWN */}
               {isLoggedIn && (
-                <div className={`absolute right-0 top-full pt-4 transition-all duration-300 ${
-                  isProfileOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2 pointer-events-none"
-                }`}>
+                <div className={`absolute right-0 top-full pt-4 transition-all duration-300 ${isProfileOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2 pointer-events-none"
+                  }`}>
                   <div className="w-56 bg-[#0a0705]/95 backdrop-blur-xl border border-[#c9a96e]/20 rounded-lg shadow-2xl overflow-hidden p-2">
-                    
+
                     <div className="px-4 py-3 border-b border-[#c9a96e]/10 mb-2">
                       <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]">Welcome back</p>
                       <p className="font-display text-lg text-[#e8dcc8]">{userName || 'User'}</p>
@@ -115,7 +109,7 @@ export default function Navbar() {
                     </Link>
 
                     <div className="mt-2 pt-2 border-t border-[#c9a96e]/10">
-                      <button 
+                      <button
                         onClick={() => {
                           setIsProfileOpen(false);
                           logout();
