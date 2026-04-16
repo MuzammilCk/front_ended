@@ -51,7 +51,9 @@ export default function NotesExplorer() {
   const imageRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
 
-  const scentFamilies = data?.scent_families ?? FALLBACK_SCENT_FAMILIES;
+  const scentFamilies = Array.isArray(data?.scent_families) && data!.scent_families.length > 0 
+    ? data!.scent_families 
+    : FALLBACK_SCENT_FAMILIES;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = imageRef.current;

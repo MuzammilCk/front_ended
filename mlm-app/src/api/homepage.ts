@@ -26,7 +26,8 @@ export async function getHomepageContent(): Promise<HomepageContent> {
   };
 
   sections.forEach((section) => {
-    if (section.section_key === 'featured_collection') {
+    const arrayKeys = ['featured_collection', 'scent_families', 'testimonials', 'families'];
+    if (arrayKeys.includes(section.section_key)) {
       result[section.section_key as keyof HomepageContent] =
         section.content?.items || [];
     } else {
