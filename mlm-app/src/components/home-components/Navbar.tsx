@@ -283,11 +283,11 @@ export default function Navbar() {
         <Link
           ref={logoRef}
           to="/"
-          className="nb2-logo flex items-center justify-center p-2"
+          className="nb2-logo flex items-center justify-center"
           onMouseMove={onLogoMove}
           onMouseLeave={onLogoLeave}
         >
-          <img src="/logo.png" alt="Hadi Perfumes" className="h-8 w-auto object-contain" />
+          <img src="/logo.png" alt="Hadi Perfumes" className="h-6 w-auto object-contain" />
         </Link>
 
         <nav className="nb2-nav nb2-nav-desktop" role="navigation" aria-label="Primary">
