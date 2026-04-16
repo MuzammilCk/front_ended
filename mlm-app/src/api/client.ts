@@ -58,29 +58,44 @@ interface RefreshResponse {
   refresh_token: string;
 }
 
+let refreshTokenPromise: Promise<string | null> | null = null;
+
 async function refreshAccessToken(): Promise<string | null> {
+  // If a refresh is already in progress, wait for it to finish and reuse its result!
+  if (refreshTokenPromise) {
+    return refreshTokenPromise;
+  }
+
   const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
   if (!refreshToken) return null;
 
-  try {
-    const res = await fetch(`${BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
+  // Store the promise in the global variable before executing it
+  refreshTokenPromise = (async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
 
-    if (!res.ok) {
+      if (!res.ok) {
+        clearTokens();
+        return null;
+      }
+
+      const data = (await res.json()) as RefreshResponse;
+      setTokens(data.access_token, data.refresh_token);
+      return data.access_token;
+    } catch {
       clearTokens();
       return null;
+    } finally {
+      // CLEAR the Promise once it completes so future token expirations can refresh normally
+      refreshTokenPromise = null;
     }
+  })();
 
-    const data = (await res.json()) as RefreshResponse;
-    setTokens(data.access_token, data.refresh_token);
-    return data.access_token;
-  } catch {
-    clearTokens();
-    return null;
-  }
+  return refreshTokenPromise;
 }
 
 // ─── Error class ─────────────────────────────────────────────────────────────
