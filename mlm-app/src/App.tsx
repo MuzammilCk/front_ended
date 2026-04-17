@@ -89,7 +89,7 @@ function AppContent() {
         />
         <Route path="/wishlist" element={<ErrorBoundary><Wishlist /></ErrorBoundary>} />
         <Route
-          path="/orders/:id"
+          path="/orders/:orderId"
           element={
             <ErrorBoundary>
               <AuthGuard>
