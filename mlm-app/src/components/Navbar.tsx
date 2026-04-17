@@ -17,34 +17,33 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-[#0a0705]/95 backdrop-blur-xl border-b border-[#c9a96e]/10">
-      <div className="px-4 py-3 mx-auto max-w-7xl">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <img src="/logo.png" alt="Hadi Perfumes" className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
-          </Link>
+      <div className="flex items-center justify-between w-full max-w-[1400px] mx-auto px-[clamp(1.5rem,5vw,4rem)] py-[1.25rem]">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <img src="/logo.png" alt="Hadi Perfumes" className="h-[26px] w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="items-center hidden gap-8 md:flex">
-            <Link
-              to="/"
-              className={`text-xs tracking-widest uppercase transition-all duration-200 relative group ${location.pathname === "/"
-                  ? "text-[#c9a96e]"
-                  : "text-[#e8dcc8]/50 hover:text-[#e8dcc8]"
-                }`}
-            >
-              Home
-              {location.pathname === "/" && (
-                <span className="absolute -bottom-1 left-0 right-0 h-px bg-[#c9a96e]/60" />
-              )}
-            </Link>
-            <Link
-              to="/product"
-              className={`text-xs tracking-widest uppercase transition-all duration-200 relative ${location.pathname === "/product" || location.pathname.startsWith("/product/")
-                  ? "text-[#c9a96e]"
-                  : "text-[#e8dcc8]/50 hover:text-[#e8dcc8]"
-                }`}
-            >
+        {/* Desktop Navigation */}
+        <div className="items-center hidden gap-8 md:flex">
+          <Link
+            to="/"
+            className={`text-[0.65rem] tracking-[0.18em] font-light uppercase transition-all duration-200 relative group ${location.pathname === "/"
+                ? "text-[#c9a96e]"
+                : "text-[#e8dcc8]/50 hover:text-[#e8dcc8]"
+              }`}
+          >
+            Home
+            {location.pathname === "/" && (
+              <span className="absolute -bottom-1 left-0 right-0 h-px bg-[#c9a96e]/60" />
+            )}
+          </Link>
+          <Link
+            to="/product"
+            className={`text-[0.65rem] tracking-[0.18em] font-light uppercase transition-all duration-200 relative ${location.pathname === "/product" || location.pathname.startsWith("/product/")
+                ? "text-[#c9a96e]"
+                : "text-[#e8dcc8]/50 hover:text-[#e8dcc8]"
+              }`}
+          >
               Collection
               {(location.pathname === "/product" || location.pathname.startsWith("/product/")) && (
                 <span className="absolute -bottom-1 left-0 right-0 h-px bg-[#c9a96e]/60" />
@@ -52,21 +51,21 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Icons Section */}
-          <div className="flex items-center gap-4">
+        {/* Icons Section */}
+        <div className="flex items-center gap-4">
 
-            {/* USER ACCOUNT ICON & DROPDOWN */}
-            <div
-              className="relative group hidden md:flex items-center"
-              onMouseEnter={() => isLoggedIn && setIsProfileOpen(true)}
-              onMouseLeave={() => isLoggedIn && setIsProfileOpen(false)}
+          {/* USER ACCOUNT ICON & DROPDOWN */}
+          <div
+            className="relative group hidden md:flex items-center"
+            onMouseEnter={() => isLoggedIn && setIsProfileOpen(true)}
+            onMouseLeave={() => isLoggedIn && setIsProfileOpen(false)}
+          >
+            <Link
+              to={isLoggedIn ? "/profile" : "/login"}
+              className="relative group inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
+              aria-label="User Account"
             >
-              <Link
-                to={isLoggedIn ? "/profile" : "/login"}
-                className="relative group inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
-                aria-label="User Account"
-              >
-                <User className="w-5 h-5 transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
+              <User className="w-[18px] h-[18px] transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
                 {isLoggedIn && (
                   <span className="absolute top-2 right-2 w-2 h-2 bg-[#c9a96e] rounded-full border border-[#0a0705]"></span>
                 )}
@@ -125,34 +124,33 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Wishlist Icon */}
-            <Link
-              to="/wishlist"
-              aria-label="Wishlist"
-              className="relative group inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
-            >
-              <Heart className="w-5 h-5 transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-2 -right-2 flex items-center justify-center w-4 h-4 text-[10px] text-white bg-red-500 rounded-full">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
+          {/* Wishlist Icon */}
+          <Link
+            to="/wishlist"
+            aria-label="Wishlist"
+            className="relative group inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
+          >
+            <Heart className="w-[18px] h-[18px] transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-bold text-[#0a0705] bg-[#c9a96e] rounded-full">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
 
-            {/* Cart Icon */}
-            <Link
-              to="/cart"
-              aria-label="Cart"
-              className="relative group inline-flex items-center justify-center w-11 h-11 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40 cart-icon-target"
-            >
-              <ShoppingBag className="w-5 h-5 transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 flex items-center justify-center w-4 h-4 text-[10px] text-white bg-red-500 rounded-full">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-          </div>
+          {/* Cart Icon */}
+          <Link
+            to="/cart"
+            aria-label="Cart"
+            className="relative group inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40 cart-icon-target"
+          >
+            <ShoppingBag className="w-[18px] h-[18px] transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-bold text-[#0a0705] bg-[#c9a96e] rounded-full">
+                {cartCount}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
     </nav>

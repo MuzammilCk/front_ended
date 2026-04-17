@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Wishlist from "./pages/Wishlist";
+import OrderDetails from "./pages/OrderDetails";
 import MobileBottomNav from "./components/MobileBottomNav";
 import GlobalNavbar from "./components/Navbar";
 
@@ -87,6 +88,16 @@ function AppContent() {
           }
         />
         <Route path="/wishlist" element={<ErrorBoundary><Wishlist /></ErrorBoundary>} />
+        <Route
+          path="/orders/:id"
+          element={
+            <ErrorBoundary>
+              <AuthGuard>
+                <OrderDetails />
+              </AuthGuard>
+            </ErrorBoundary>
+          }
+        />
 
         {/* ── Admin nested routes ── */}
         <Route
