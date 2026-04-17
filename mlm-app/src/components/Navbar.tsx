@@ -66,10 +66,7 @@ export default function Navbar() {
               aria-label="User Account"
             >
               <User className="w-[18px] h-[18px] transition-colors text-white/70 group-hover:text-white" strokeWidth={1.5} />
-                {isLoggedIn && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-[#c9a96e] rounded-full border border-[#0a0705]"></span>
-                )}
-              </Link>
+            </Link>
 
               {/* THE MODERN DROPDOWN */}
               {isLoggedIn && (
