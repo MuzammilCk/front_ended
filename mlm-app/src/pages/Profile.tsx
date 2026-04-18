@@ -487,7 +487,7 @@ export default function Profile() {
 
                 {/* Nav Items */}
                 <nav className="flex flex-col gap-1">
-                  {sidebarItems.map(({ id, icon: Icon, label }) => {
+                  {sidebarItems.map(({ id, icon: Icon, label, luxury }) => {
                     const isActive = activeTab === id;
                     return (
                       <button
@@ -495,21 +495,58 @@ export default function Profile() {
                         type="button"
                         onClick={() => setActiveTab(id)}
                         className={`
-                          w-full flex items-center gap-3
+                          group relative overflow-hidden
+                          w-full flex items-center justify-between
                           px-4 py-3 rounded-xl text-left
-                          text-sm transition-all duration-500
+                          text-sm transition-all duration-500 ease-out
                           ${
                             isActive
-                              ? "text-[#c9a96e] bg-gradient-to-r from-[#c9a96e]/12 to-transparent border-l-2 border-[#c9a96e]"
-                              : "text-[#e8dcc8]/50 hover:text-[#e8dcc8] hover:bg-white/[0.03] border-l-2 border-transparent"
+                              ? "text-[#c9a96e] bg-gradient-to-r from-[#c9a96e]/10 to-transparent"
+                              : "text-[#e8dcc8]/50 hover:text-[#e8dcc8]"
                           }
                         `}
                       >
-                        <Icon
-                          className={`w-4 h-4 shrink-0 ${isActive ? "text-[#c9a96e]" : "text-[#e8dcc8]/55"}`}
-                          strokeWidth={1.5}
+                        {/* Hover Background Layer */}
+                        <div 
+                          className={`
+                            absolute inset-0 bg-gradient-to-r from-[#c9a96e]/10 to-transparent 
+                            opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out
+                            ${isActive ? "hidden" : "block"}
+                          `} 
                         />
-                        <span className="tracking-wide">{label}</span>
+                        
+                        {/* Left Animated Indicator */}
+                        <div 
+                          className={`
+                            absolute left-0 top-0 bottom-0 w-[2px] transition-all duration-500 ease-out
+                            ${isActive ? "bg-[#c9a96e] scale-y-100" : "bg-[#c9a96e] scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-100"}
+                          `}
+                        />
+
+                        <div className="relative flex items-center gap-3 transition-transform duration-500 ease-out group-hover:translate-x-1.5">
+                          <Icon
+                            className={`w-4 h-4 shrink-0 transition-all duration-500 ease-out ${
+                              isActive 
+                                ? "text-[#c9a96e]" 
+                                : "text-[#e8dcc8]/55 group-hover:text-[#c9a96e] group-hover:scale-105"
+                            }`}
+                            strokeWidth={1.5}
+                          />
+                          <span className={`tracking-wide transition-all duration-500 ${isActive ? "font-medium" : ""}`}>
+                            {label}
+                          </span>
+                        </div>
+                        
+                        {/* Luxury Sublabel (fades in on hover) */}
+                        {!isActive && (
+                          <span className="relative text-[10px] uppercase tracking-widest text-[#c9a96e]/40 opacity-0 translate-x-1 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:translate-x-0 hidden lg:block">
+                            {luxury}
+                          </span>
+                        )}
+                        {/* Chevron for Active */}
+                        {isActive && (
+                           <ChevronRight className="relative w-4 h-4 text-[#c9a96e]/50" />
+                        )}
                       </button>
                     );
                   })}
@@ -520,10 +557,24 @@ export default function Profile() {
                   <button
                     type="button"
                     onClick={logout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[#e8dcc8]/50 hover:text-red-400/80 hover:bg-red-400/5 transition-all duration-500"
+                    className="
+                      group relative overflow-hidden
+                      w-full flex items-center justify-between
+                      px-4 py-3 rounded-xl text-left
+                      text-sm text-[#e8dcc8]/50 hover:text-red-400
+                      transition-all duration-500 ease-out
+                    "
                   >
-                    <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-                    <span>Sign Out</span>
+                    {/* Hover Background Layer */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out" />
+                    
+                    {/* Left Animated Indicator */}
+                    <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-red-500 scale-y-0 opacity-0 transition-all duration-500 ease-out group-hover:scale-y-100 group-hover:opacity-100" />
+                    
+                    <div className="relative flex items-center gap-3 transition-transform duration-500 ease-out group-hover:translate-x-1.5">
+                      <LogOut className="w-4 h-4 shrink-0 transition-transform duration-500 ease-out group-hover:scale-105" strokeWidth={1.5} />
+                      <span className="tracking-wide">Sign Out</span>
+                    </div>
                   </button>
                 </div>
               </aside>
