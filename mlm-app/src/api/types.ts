@@ -41,6 +41,7 @@ export interface OnboardingStatus {
   status: string;
   kyc_status: string;
   onboarding_completed_at: string | null;
+  order_count?: number;
 }
 
 // ─── Listings ────────────────────────────────────────────────────────────────
