@@ -120,28 +120,14 @@ const OrderDetails = () => {
   return (
     <div className="min-h-screen bg-void text-zinc-100">
       <div className="max-w-3xl mx-auto px-4 section-padding sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-8">
-          <Link
-            to="/profile"
-            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-amber-400 transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            My Orders
-          </Link>
-          <span className="text-zinc-700">/</span>
-          <span className="text-sm text-zinc-500">Order Details</span>
-        </div>
-        <h1 className="text-display text-4xl text-zinc-100 mb-8">
-          Order Details
+        <Link
+          to="/profile"
+          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#c9a96e]/40 hover:text-[#c9a96e] transition-colors duration-500 mb-8"
+        >
+          ← My Collection
+        </Link>
+        <h1 className="font-display text-4xl md:text-5xl font-light text-[#e8dcc8] mb-2 leading-none">
+          Your Order
         </h1>
 
         {loading === true && (
@@ -188,42 +174,51 @@ const OrderDetails = () => {
         )}
 
         {!loading && !error && data !== null && (
-          <div className="space-y-8">
-            <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                <div className="space-y-2">
-                  <p className="text-label text-zinc-500">Order</p>
-                  <p className="text-lg font-mono font-semibold text-zinc-100">
-                    #{data.order.id.slice(0, 8).toUpperCase()}
-                  </p>
-                  <p className="text-sm text-zinc-400">
-                    Placed on{' '}
-                    {new Date(data.order.created_at).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-                <span
-                  className={`self-start text-xs font-medium px-3 py-1 rounded-full border ${
-                    ORDER_STATUS_CLS[data.order.status] ?? 'bg-zinc-800 text-zinc-400 border-zinc-700'
-                  }`}
-                >
-                  {formatStatus(data.order.status)}
-                </span>
-              </div>
+          <div className="divide-y divide-white/8">
+            <div className="py-10">
+              {/* Subtle order reference above the status */}
+              <p className="text-[10px] uppercase tracking-[0.25em] text-[#c9a96e]/40 mb-3">
+                Order #{data.order.id.slice(0, 8).toUpperCase()}
+              </p>
+
+              {/* Hero status — large and dominant */}
+              <p
+                className={`text-5xl md:text-6xl font-display font-light leading-none mb-4 ${
+                  isTerminal
+                    ? 'text-red-400/70'
+                    : data.order.status === 'delivered' || data.order.status === 'completed'
+                    ? 'text-emerald-400/80'
+                    : 'text-[#c9a96e]'
+                }`}
+              >
+                {formatStatus(data.order.status)}
+              </p>
+
+              {/* Placed date in luxury format */}
+              <p className="text-xs text-[#e8dcc8]/40">
+                Placed on{' '}
+                {(() => {
+                  try {
+                    const d = new Date(data.order.created_at);
+                    const day = d.getDate();
+                    const suffix = day === 1 || day === 21 || day === 31 ? 'st' : day === 2 || day === 22 ? 'nd' : day === 3 || day === 23 ? 'rd' : 'th';
+                    return `${day}${suffix} of ${d.toLocaleString('en-IN', { month: 'long' })}, ${d.getFullYear()}`;
+                  } catch {
+                    return new Date(data.order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+                  }
+                })()}
+              </p>
             </div>
 
             {isTerminal ? (
-              <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
+              <div className="py-10">
                 <p className="text-sm text-zinc-400 text-center">
                   {TERMINAL_MESSAGES[data.order.status] ?? 'This order is in a terminal state.'}
                 </p>
               </div>
             ) : (
-              <div className="rounded-sm border border-white/10 bg-white/5 p-8 overflow-x-auto shadow-glass">
-                <p className="text-label text-zinc-500 mb-6">
+              <div className="py-10 overflow-x-auto">
+                <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/40 mb-6">
                   Order Progress
                 </p>
                 <div className="flex items-start min-w-max">
@@ -235,7 +230,7 @@ const OrderDetails = () => {
                       <div key={step} className="flex items-start">
                         <div className="flex flex-col items-center w-20">
                           <div
-                            className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                            className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${
                               isDone
                                 ? 'bg-amber-500 border-amber-500'
                                 : isActive
@@ -287,40 +282,30 @@ const OrderDetails = () => {
               </div>
             )}
 
-            <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
-              <p className="text-label text-zinc-500 mb-6">
-                Items Ordered
+            <div className="py-10">
+              <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/40 mb-6">
+                {`Your Fragrance${data.items.length === 1 ? '' : 's'}`}
               </p>
-              <div className="space-y-4">
+              <div>
                 {data.items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex gap-4 py-3 border-b border-zinc-800 last:border-0 last:pb-0"
+                    className="flex items-baseline gap-2 py-4 border-b border-white/6 last:border-0"
                   >
-                    <div className="h-16 w-16 rounded-lg bg-zinc-800 flex-shrink-0 flex items-center justify-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6 text-zinc-700"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
+                    {/* Left: name + meta */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-zinc-100 truncate">
-                        {item.title}
+                      <p className="text-sm text-[#e8dcc8] leading-snug">{item.title}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-[#e8dcc8]/30 mt-1">
+                        Qty {item.qty}
+                        {item.sku ? ` · ${item.sku}` : ''}
                       </p>
-                      <p className="text-xs text-zinc-500 mt-0.5">SKU: {item.sku}</p>
-                      <p className="text-xs text-zinc-500">Qty: {item.qty}</p>
                     </div>
-                    <p className="text-sm font-medium text-zinc-100 flex-shrink-0">
+
+                    {/* Dot leader */}
+                    <div className="flex-shrink-0 flex-grow border-b border-dotted border-white/15 mb-1.5 min-w-[24px]" />
+
+                    {/* Right: price */}
+                    <p className="flex-shrink-0 text-sm text-[#e8dcc8] font-light">
                       {formatINR(item.line_total)}
                     </p>
                   </div>
@@ -328,9 +313,9 @@ const OrderDetails = () => {
               </div>
             </div>
 
-            <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
-              <p className="text-label text-zinc-500 mb-6">
-                Delivery Information
+            <div className="py-10">
+              <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/40 mb-6">
+                Delivered To
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
@@ -354,9 +339,9 @@ const OrderDetails = () => {
               </div>
             </div>
 
-            <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
-              <p className="text-label text-zinc-500 mb-6">
-                Payment Summary
+            <div className="py-10">
+              <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/40 mb-6">
+                Settlement
               </p>
               <div className="space-y-2.5">
                 <div className="flex justify-between text-sm">
@@ -381,7 +366,7 @@ const OrderDetails = () => {
                 )}
                 <div className="border-t border-zinc-800 pt-3 mt-3 flex justify-between">
                   <span className="text-base font-semibold text-zinc-100">Total</span>
-                  <span className="text-base font-bold text-amber-400">
+                  <span className="text-base font-bold text-[#c9a96e]">
                     {formatINR(data.order.total_amount)}
                   </span>
                 </div>
@@ -389,57 +374,30 @@ const OrderDetails = () => {
             </div>
 
             {(data.permissions?.can_cancel || data.permissions?.can_return) && (
-              <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
-                <p className="text-label text-zinc-500 mb-6">
-                  Actions
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  {data.permissions?.can_cancel && (
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={handleCancel}
-                        disabled={cancelling}
-                        className="btn-base border-red-500/40 text-red-500 hover:bg-red-500/10 hover:border-red-500/60
-                                   disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                      >
-                        {cancelling && (
-                          <svg
-                            className="animate-spin h-4 w-4"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            />
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8v8H4z"
-                            />
-                          </svg>
-                        )}
-                        {cancelling ? 'Cancelling…' : 'Cancel Order'}
-                      </button>
-                      {cancelError && (
-                        <p className="text-xs text-red-400">{cancelError}</p>
-                      )}
-                    </div>
-                  )}
-                  {data.permissions?.can_return && (
+              <div className="py-10 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                {data.permissions?.can_cancel && (
+                  <div className="flex flex-col gap-1.5">
                     <button
-                      onClick={() => navigate(`/returns/new?order_id=${data.order.id}`)}
-                      className="btn-base border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:border-amber-500/60"
+                      onClick={handleCancel}
+                      disabled={cancelling}
+                      className="text-[10px] uppercase tracking-widest text-red-400/50 hover:text-red-400 transition-colors duration-500 disabled:opacity-30 disabled:cursor-not-allowed border-b border-transparent hover:border-red-400/30 pb-0.5"
                     >
-                      Request Return
+                      {cancelling ? 'Cancelling…' : 'Cancel Order'}
                     </button>
-                  )}
-                </div>
+                    {cancelError && (
+                      <p className="text-[10px] text-red-400/70">{cancelError}</p>
+                    )}
+                  </div>
+                )}
+
+                {data.permissions?.can_return && (
+                  <button
+                    onClick={() => navigate(`/returns/new?order_id=${data.order.id}`)}
+                    className="text-[10px] uppercase tracking-widest text-[#c9a96e]/50 hover:text-[#c9a96e] transition-colors duration-500 border-b border-transparent hover:border-[#c9a96e]/30 pb-0.5"
+                  >
+                    Initiate Return
+                  </button>
+                )}
               </div>
             )}
           </div>

@@ -62,7 +62,7 @@ export function StripeCheckoutForm({ orderTotal, orderId, onSuccess, onError }: 
 
   return (
     <div className="w-full space-y-6">
-      <div className="bg-[#111] p-4 rounded-lg border border-[#c9a96e]/20">
+      <div className="mb-2">
         <ExpressCheckoutElement 
           onConfirm={() => setIsProcessing(true)}
           options={{
@@ -74,10 +74,10 @@ export function StripeCheckoutForm({ orderTotal, orderId, onSuccess, onError }: 
         />
       </div>
 
-      <div className="relative flex items-center py-2">
-        <div className="flex-grow border-t border-[#c9a96e]/20"></div>
-        <span className="flex-shrink-0 mx-4 text-white/40 text-xs uppercase tracking-widest">Or pay with card / UPI</span>
-        <div className="flex-grow border-t border-[#c9a96e]/20"></div>
+      <div className="relative flex items-center py-4">
+        <div className="flex-grow border-t border-white/8" />
+        <span className="flex-shrink-0 mx-6 text-[10px] uppercase tracking-widest text-[#e8dcc8]/30">or pay with card / upi</span>
+        <div className="flex-grow border-t border-white/8" />
       </div>
 
       <form onSubmit={handleSubmit} className="w-full">
@@ -87,9 +87,8 @@ export function StripeCheckoutForm({ orderTotal, orderId, onSuccess, onError }: 
           }} 
         />
         
-        <p className="mt-5 mb-3 text-[11px] text-white/30 text-center leading-relaxed">
-          Payments are processed securely by <span className="text-white/50">Stripe</span>. 
-          UPI approvals may take up to 5 minutes to confirm.
+        <p className="mt-5 mb-3 text-[10px] uppercase tracking-widest text-[#e8dcc8]/25 text-center">
+          Secured by Stripe · UPI approvals may take up to 5 minutes
         </p>
 
         <button

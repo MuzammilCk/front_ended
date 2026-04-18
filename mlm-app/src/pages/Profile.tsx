@@ -13,7 +13,7 @@ import type { OnboardingStatus } from "../api/types";
 import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 
-import StatsCard from "../components/profile-components/StatsCard";
+
 import ActivityList from "../components/profile-components/ActivityList";
 import InfoField from "../components/profile-components/InfoField";
 import ReferralCard from "../components/profile-components/ReferralCard";
@@ -26,7 +26,6 @@ import {
   Shield,
   Clock,
   Gift,
-  Heart,
   ShoppingBag,
   Package,
   Wallet,
@@ -78,10 +77,10 @@ function MobileMenuListItem({
       className="
         w-full flex items-center justify-between
         px-5 py-4
-        border-b border-[#c9a96e]/8
+        border-b border-white/8
         last:border-b-0
         hover:bg-[#c9a96e]/5 active:bg-[#c9a96e]/10
-        transition-colors duration-150
+        transition-colors duration-300
         group
       "
     >
@@ -128,6 +127,13 @@ function AccountPanel({
 }) {
   return (
     <div className="space-y-6">
+      {/* Prose stats summary */}
+      <p className="text-sm text-[#e8dcc8]/50 font-sans leading-relaxed mb-2">
+        {onboardingStatus?.order_count > 0
+          ? `You have collected ${onboardingStatus.order_count} fragrance${onboardingStatus.order_count === 1 ? '' : 's'} with Hadi.`
+          : `Your fragrance journey with Hadi begins here.`}
+      </p>
+
       <ProfileHeader
         userData={userData}
         editForm={editForm}
@@ -148,7 +154,7 @@ function AccountPanel({
 
 
       <div className="bg-[#0d0a07]/40 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#c9a96e]/8">
+        <div className="px-6 py-4 border-b border-white/8">
           <h2 className="text-sm uppercase tracking-widest text-[#c9a96e]/70">Personal Information</h2>
         </div>
         <div className="p-6 space-y-6">
@@ -180,7 +186,7 @@ function OrdersPanel({ activities }: { activities: any[] }) {
     <div className="space-y-6">
       <div>
         <h2 className="text-xs uppercase tracking-widest text-[#c9a96e]/70 mb-1">My Collection</h2>
-        <p className="text-2xl font-display text-[#e8dcc8]">Order History</p>
+        <p className="text-2xl font-display text-[#e8dcc8]">Your Collection</p>
       </div>
       {activities.length > 0 ? (
         <ActivityList activities={activities} />
@@ -234,7 +240,7 @@ function ProfileSkeleton() {
     <div className="flex gap-12 animate-pulse">
       {/* Left sidebar skeleton */}
       <div className="w-64 shrink-0 space-y-4">
-        <div className="h-24 rounded-2xl bg-[#c9a96e]/6 border border-[#c9a96e]/8" />
+        <div className="h-24 rounded-2xl bg-[#c9a96e]/6 border border-white/8" />
         <div className="grid grid-cols-3 gap-2">
           {[0,1,2].map(i => <div key={i} className="h-16 rounded-xl bg-white/[0.03]" />)}
         </div>
@@ -277,9 +283,9 @@ function ProfileSkeletonMobile() {
       <div className="grid grid-cols-3 gap-3">
         {[0,1,2].map(i => <div key={i} className="h-16 rounded-xl bg-white/[0.03]" />)}
       </div>
-      <div className="rounded-2xl border border-[#c9a96e]/8 overflow-hidden">
+      <div className="rounded-2xl border border-white/8 overflow-hidden">
         {[0,1,2,3,4].map(i => (
-          <div key={i} className="h-[60px] border-b border-[#c9a96e]/8 bg-[#0d0a07] last:border-b-0" />
+          <div key={i} className="h-[60px] border-b border-white/8 bg-[#0d0a07] last:border-b-0" />
         ))}
       </div>
     </div>
@@ -357,11 +363,7 @@ export default function Profile() {
     if (userData && !editForm) setEditForm(userData);
   }, [userData]);
 
-  const stats = [
-    { label: "Orders", value: ordersData ? String(ordersData.total) : "—", icon: ShoppingBag },
-    { label: "Wishlist", value: String(wishlistCount), icon: Heart },
-    { label: "Invitations", value: "—", icon: Gift },
-  ];
+
 
   const activities =
     ordersData?.data.map((order) => {
@@ -478,30 +480,9 @@ export default function Profile() {
             <div className="flex gap-8">
 
               {/* ── LEFT SIDEBAR ── */}
-              <aside className="w-64 shrink-0">
-                {/* User Card */}
-                <div className="mb-8 p-5 bg-[#0d0a07]/40 rounded-2xl">
-                  <div className="flex items-center gap-3 mb-1">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#c9a96e]/30 to-[#c9a96e]/10 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-display text-[#c9a96e]">
-                        {userData.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/50">Welcome back</p>
-                      <p className="font-display text-base text-[#e8dcc8] leading-tight">{userData.name}</p>
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-muted/50 uppercase tracking-widest mt-2 pl-[52px]">
-                    {userData.joinedDate}
-                  </p>
-                </div>
-
-                {/* Stats Row */}
-                <div className="grid grid-cols-3 gap-2 mb-6">
-                  {stats.map((s, i) => (
-                    <StatsCard key={i} {...s} compact />
-                  ))}
+              <aside className="w-56 shrink-0 pt-2">
+                <div className="mb-8 pl-4">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-[#c9a96e]/40">Hadi Perfumes</p>
                 </div>
 
                 {/* Nav Items */}
@@ -516,7 +497,7 @@ export default function Profile() {
                         className={`
                           w-full flex items-center gap-3
                           px-4 py-3 rounded-xl text-left
-                          text-sm transition-all duration-200
+                          text-sm transition-all duration-500
                           ${
                             isActive
                               ? "text-[#c9a96e] bg-gradient-to-r from-[#c9a96e]/12 to-transparent border-l-2 border-[#c9a96e]"
@@ -535,11 +516,11 @@ export default function Profile() {
                 </nav>
 
                 {/* Sign Out */}
-                <div className="mt-6 pt-6 border-t border-[#c9a96e]/8">
+                <div className="mt-6 pt-6 border-t border-white/8">
                   <button
                     type="button"
                     onClick={logout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[#e8dcc8]/50 hover:text-red-400/80 hover:bg-red-400/5 transition-all duration-200"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[#e8dcc8]/50 hover:text-red-400/80 hover:bg-red-400/5 transition-all duration-500"
                   >
                     <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} />
                     <span>Sign Out</span>
@@ -562,7 +543,7 @@ export default function Profile() {
       {/* ── MOBILE LAYOUT ── */}
       <div className="md:hidden">
         {/* Mobile top bar */}
-        <div className="sticky top-0 z-40 bg-void/95 backdrop-blur-sm border-b border-[#c9a96e]/10 px-4 py-4 flex items-center gap-4">
+        <div className="sticky top-0 z-40 bg-void/95 backdrop-blur-sm border-b border-white/8 px-4 py-4 flex items-center gap-4">
           {mobileView !== "menu" && (
             <button
               type="button"
@@ -605,12 +586,11 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {/* Stats row */}
-                <div className="grid grid-cols-3 gap-3">
-                  {stats.map((s, i) => (
-                    <StatsCard key={i} {...s} compact />
-                  ))}
-                </div>
+                <p className="text-sm text-[#e8dcc8]/50 px-1">
+                  {onboardingStatus?.order_count > 0
+                    ? `Since joining, you have collected ${onboardingStatus.order_count} fragrance${onboardingStatus.order_count === 1 ? '' : 's'}.`
+                    : `Your journey begins here.`}
+                </p>
 
                 {/* Menu list */}
                 <div className="bg-[#0d0a07]/40 rounded-2xl overflow-hidden">

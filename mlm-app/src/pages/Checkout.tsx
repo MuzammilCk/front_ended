@@ -8,7 +8,6 @@ import type { Order, CartApiItem } from "../api/types";
 import { useCart } from "../context/CartContext";
 import { Alert } from "../components/ui/Alert";
 import { SHIPPING_THRESHOLD, SHIPPING_FEE } from "../constants/cart.constants";
-import { CheckoutStepCard } from "../components/checkout/CheckoutStepCard";
 import { ReservationTimer } from "../components/checkout/ReservationTimer";
 import { getImageUrl } from "../utils/imageUrl";
 
@@ -274,7 +273,7 @@ export default function Checkout() {
     <div className="min-h-screen bg-void text-text-primary">
       {priceGuardModal?.visible && (
         <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-          <div className="bg-[#0d0a07] border border-[#c9a96e]/30 rounded-xl p-8 max-w-md w-full shadow-2xl">
+          <div className="bg-[#0d0a07] border border-white/10 rounded-xl p-8 max-w-md w-full shadow-2xl">
             <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-5">
               {/* AlertTriangle icon from lucide-react */}
               <AlertTriangle size={20} className="text-amber-400" />
@@ -302,7 +301,7 @@ export default function Checkout() {
               </button>
               <Link
                 to="/cart"
-                className="flex-1 py-3 text-center border border-[#c9a96e]/25 text-[#c9a96e] rounded-lg hover:bg-[#c9a96e]/10 transition text-sm"
+                className="flex-1 py-3 text-center border border-white/10 text-[#c9a96e] rounded-lg hover:bg-[#c9a96e]/10 transition text-sm"
                 onClick={() => setPriceGuardModal(null)}
               >
                 Return to Cart
@@ -370,7 +369,7 @@ export default function Checkout() {
             </p>
 
             {/* Order total summary */}
-            <div className="w-full bg-[#0d0a07] border border-[#c9a96e]/15 rounded-lg px-6 py-4 mb-8 text-sm">
+            <div className="w-full bg-[#0d0a07] border border-white/10 rounded-lg px-6 py-4 mb-8 text-sm">
               <div className="flex justify-between text-white/50 mb-2">
                 <span>Order total</span>
                 <span className="text-[#c9a96e]">₹{parseFloat(lastOrder.total_amount).toLocaleString('en-IN')}</span>
@@ -384,7 +383,7 @@ export default function Checkout() {
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <Link
                 to="/product"
-                className="flex-1 py-3 text-center text-sm border border-[#c9a96e]/20 text-[#c9a96e] rounded-lg hover:bg-[#c9a96e]/8 transition"
+                className="flex-1 py-3 text-center text-sm border border-white/10 text-[#c9a96e] rounded-lg hover:bg-[#c9a96e]/8 transition"
               >
                 Continue Shopping
               </Link>
@@ -399,7 +398,7 @@ export default function Checkout() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-16 items-start">
 
-            <div className="lg:col-span-7 space-y-4">
+            <div className="lg:col-span-7 space-y-12">
               <div className="lg:hidden bg-white/5 border border-white/10 rounded-sm px-4 py-3 shadow-glass flex justify-between items-center">
                 <div>
                   <p className="text-label text-sand">Order Total</p>
@@ -422,99 +421,163 @@ export default function Checkout() {
                       <span className="text-[#c9a96e] shrink-0 ml-2">₹{(parseFloat(item.price) * item.qty).toLocaleString('en-IN')}</span>
                     </div>
                   ))}
-                  <div className="pt-2 border-t border-[#c9a96e]/10 flex justify-between text-xs text-white/50">
+                  <div className="pt-2 border-t border-white/10 flex justify-between text-xs text-white/50">
                     <span>Shipping</span>
-                    <span>{shipping === 0 ? 'FREE' : `₹${shipping}`}</span>
+                    <span>{shipping === 0 ? 'Complimentary Delivery' : `₹${shipping}`}</span>
                   </div>
                 </div>
               )}
 
               {!skippedAuthRef.current && (
-                <CheckoutStepCard
-                  stepNum={1}
-                  title="Contact Information"
-                  isActive={checkoutStep === 'auth'}
-                  isCompleted={checkoutStep === 'details' || checkoutStep === 'payment' || checkoutStep === 'processing'}
-                  summaryText={user ? user.phone : null}
+                <section
+                  className={`transition-all duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
+                    checkoutStep === 'auth' ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden pointer-events-none'
+                  }`}
                 >
+                  <h2 className="font-display text-2xl text-[#e8dcc8] font-light mb-1">Identify Yourself</h2>
+                  <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/40 mb-6">Step 1 of 3</p>
                   <InlineOtpGate onVerified={handleOtpVerified} />
-                </CheckoutStepCard>
+                </section>
               )}
 
-              <CheckoutStepCard
-                stepNum={skippedAuthRef.current ? 1 : 2}
-                title="Delivery Address"
-                isActive={checkoutStep === 'details'}
-                isCompleted={checkoutStep === 'payment' || checkoutStep === 'processing'}
-                summaryText={
-                  shippingForm.line1
-                    ? `${shippingForm.name} · ${shippingForm.line1}, ${shippingForm.city} – ${shippingForm.postal_code}`
-                    : null
-                }
-                onEdit={() => {
-                  paymentIdempotencyRef.current = generateUUID();
-                  setCheckoutStep('details');
-                  setCheckoutError('');
-                  setClientSecret(null);
-                }}
+              <section
+                className={`transition-all duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
+                  checkoutStep === 'details' ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden pointer-events-none'
+                }`}
               >
+                <h2 className="font-display text-2xl text-[#e8dcc8] font-light mb-1">Delivery Destination</h2>
+                <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/40 mb-6">Step 2 of 3</p>
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm text-[#e8dcc8] mb-1">Full Name*</label>
-                      <input type="text" value={shippingForm.name} onChange={(e) => { setShippingForm({...shippingForm, name: e.target.value}); setFormErrors({...formErrors, name: ''}); }} className={`w-full bg-transparent border ${formErrors.name ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition`} />
-                      {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
+                    <div className="relative pt-4">
+                      <input
+                        type="text"
+                        id="field-name"
+                        value={shippingForm.name}
+                        onChange={(e) => { setShippingForm(prev => ({ ...prev, name: e.target.value })); setFormErrors(prev => ({ ...prev, name: '' })); }}
+                        placeholder=" "
+                        className="peer w-full bg-transparent border-b border-white/15 focus:border-[#c9a96e] text-[#e8dcc8] text-sm pb-2 pt-1 focus:outline-none transition-colors duration-500 placeholder-transparent"
+                      />
+                      <label
+                        htmlFor="field-name"
+                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                      >
+                        Full Name
+                      </label>
+                      {formErrors.name && (
+                        <p className="text-[10px] text-red-400/70 mt-1">{formErrors.name}</p>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-sm text-[#e8dcc8] mb-1">Phone Number*</label>
-                      <div className={`flex bg-transparent border ${formErrors.phone ? 'border-red-500' : 'border-[#c9a96e]/20'} focus-within:border-[#c9a96e] rounded-lg overflow-hidden transition`}>
-                        <div className="flex items-center px-4 bg-[#c9a96e]/5 border-r border-[#c9a96e]/20 text-white/50 text-sm select-none">
-                          +91
-                        </div>
-                        <input 
-                          type="tel" 
-                          value={shippingForm.phone} 
-                          onChange={(e) => { 
-                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                            setShippingForm({...shippingForm, phone: val}); 
-                            setFormErrors({...formErrors, phone: ''}); 
-                          }} 
-                          className="w-full bg-transparent p-3 text-[#e8dcc8] outline-none placeholder-white/20" 
-                          placeholder="9876543210" 
-                        />
-                      </div>
-                      {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
+                    <div className="relative pt-4">
+                      <input
+                        type="tel"
+                        id="field-phone"
+                        value={shippingForm.phone}
+                        onChange={(e) => { 
+                          const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          setShippingForm(prev => ({ ...prev, phone: val })); 
+                          setFormErrors(prev => ({ ...prev, phone: '' })); 
+                        }}
+                        placeholder=" "
+                        className="peer w-full pl-8 bg-transparent border-b border-white/15 focus:border-[#c9a96e] text-[#e8dcc8] text-sm pb-2 pt-1 focus:outline-none transition-colors duration-500 placeholder-transparent"
+                      />
+                      <span className="absolute left-0 top-5 text-white/50 text-sm select-none peer-focus:text-[#c9a96e] transition-colors">+91</span>
+                      <label
+                        htmlFor="field-phone"
+                        className="absolute left-8 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:left-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:left-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                      >
+                        Phone Number
+                      </label>
+                      {formErrors.phone && (
+                        <p className="text-[10px] text-red-400/70 mt-1">{formErrors.phone}</p>
+                      )}
                     </div>
                   </div>
                   
                   <h3 className="text-lg font-serif text-[#e8dcc8] mt-4 mb-2">Delivery Address</h3>
                   
-                  <div>
-                    <label className="block text-sm text-[#e8dcc8] mb-1">Line 1 / Street*</label>
-                    <input type="text" value={shippingForm.line1} onChange={(e) => { setShippingForm({...shippingForm, line1: e.target.value}); setFormErrors({...formErrors, line1: ''}); }} className={`w-full bg-transparent border ${formErrors.line1 ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition`} />
-                    {formErrors.line1 && <p className="text-red-500 text-xs mt-1">{formErrors.line1}</p>}
+                  <div className="relative pt-4 gap-6">
+                    <input
+                      type="text"
+                      id="field-line1"
+                      value={shippingForm.line1}
+                      onChange={(e) => { setShippingForm(prev => ({ ...prev, line1: e.target.value })); setFormErrors(prev => ({ ...prev, line1: '' })); }}
+                      placeholder=" "
+                      className="peer w-full bg-transparent border-b border-white/15 focus:border-[#c9a96e] text-[#e8dcc8] text-sm pb-2 pt-1 focus:outline-none transition-colors duration-500 placeholder-transparent"
+                    />
+                    <label
+                      htmlFor="field-line1"
+                      className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                    >
+                      Line 1 / Street
+                    </label>
+                    {formErrors.line1 && (
+                      <p className="text-[10px] text-red-400/70 mt-1">{formErrors.line1}</p>
+                    )}
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <label className="block text-sm text-[#e8dcc8] mb-1">PIN Code*</label>
-                      <div className="relative">
-                        <input type="text" value={shippingForm.postal_code} onChange={(e) => handlePinChange(e.target.value)} maxLength={6} className={`w-full bg-transparent border ${formErrors.postal_code ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition`} />
-                        {pinLoading && (
-                          <div className="absolute right-3 top-4 w-4 h-4 rounded-full border-2 border-[#c9a96e]/30 border-t-[#c9a96e] animate-spin" />
-                        )}
-                      </div>
-                      {formErrors.postal_code && <p className="text-red-500 text-xs mt-1">{formErrors.postal_code}</p>}
+                    <div className="relative pt-4">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        id="field-pin"
+                        value={shippingForm.postal_code}
+                        onChange={(e) => handlePinChange(e.target.value)}
+                        placeholder=" "
+                        className="peer w-full bg-transparent border-b border-white/15 focus:border-[#c9a96e] text-[#e8dcc8] text-sm pb-2 pt-1 focus:outline-none transition-colors duration-500 placeholder-transparent"
+                      />
+                      <label
+                        htmlFor="field-pin"
+                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                      >
+                        PIN Code
+                      </label>
+                      {pinLoading && (
+                        <div className="absolute right-0 top-5 w-4 h-4 rounded-full border-2 border-white/10 border-t-[#c9a96e] animate-spin" />
+                      )}
+                      {formErrors.postal_code && (
+                        <p className="text-[10px] text-red-400/70 mt-1">{formErrors.postal_code}</p>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-sm text-[#e8dcc8] mb-1">City*</label>
-                      <input type="text" value={shippingForm.city} onChange={(e) => { setShippingForm({...shippingForm, city: e.target.value}); setFormErrors({...formErrors, city: ''}); }} className={`w-full bg-transparent border ${formErrors.city ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition`} />
-                      {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
+                    <div className="relative pt-4">
+                      <input
+                        type="text"
+                        id="field-city"
+                        value={shippingForm.city}
+                        onChange={(e) => { setShippingForm(prev => ({ ...prev, city: e.target.value })); setFormErrors(prev => ({ ...prev, city: '' })); }}
+                        placeholder=" "
+                        className="peer w-full bg-transparent border-b border-white/15 focus:border-[#c9a96e] text-[#e8dcc8] text-sm pb-2 pt-1 focus:outline-none transition-colors duration-500 placeholder-transparent"
+                      />
+                      <label
+                        htmlFor="field-city"
+                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                      >
+                        City
+                      </label>
+                      {formErrors.city && (
+                        <p className="text-[10px] text-red-400/70 mt-1">{formErrors.city}</p>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-sm text-[#e8dcc8] mb-1">State*</label>
-                      <input type="text" value={shippingForm.state} onChange={(e) => { setShippingForm({...shippingForm, state: e.target.value}); setFormErrors({...formErrors, state: ''}); }} className={`w-full bg-transparent border ${formErrors.state ? 'border-red-500' : 'border-[#c9a96e]/20'} focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition`} />
-                      {formErrors.state && <p className="text-red-500 text-xs mt-1">{formErrors.state}</p>}
+                    <div className="relative pt-4">
+                      <input
+                        type="text"
+                        id="field-state"
+                        value={shippingForm.state}
+                        onChange={(e) => { setShippingForm(prev => ({ ...prev, state: e.target.value })); setFormErrors(prev => ({ ...prev, state: '' })); }}
+                        placeholder=" "
+                        className="peer w-full bg-transparent border-b border-white/15 focus:border-[#c9a96e] text-[#e8dcc8] text-sm pb-2 pt-1 focus:outline-none transition-colors duration-500 placeholder-transparent"
+                      />
+                      <label
+                        htmlFor="field-state"
+                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                      >
+                        State
+                      </label>
+                      {formErrors.state && (
+                        <p className="text-[10px] text-red-400/70 mt-1">{formErrors.state}</p>
+                      )}
                     </div>
                   </div>
                   
@@ -525,7 +588,7 @@ export default function Checkout() {
                         className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
                           billingSameAsShipping
                             ? 'bg-[#c9a96e] border-[#c9a96e]'
-                            : 'bg-transparent border-[#c9a96e]/30 group-hover:border-[#c9a96e]/60'
+                            : 'bg-transparent border-white/10 group-hover:border-[#c9a96e]/60'
                         }`}
                         onClick={() => setBillingSameAsShipping(!billingSameAsShipping)}
                       >
@@ -546,7 +609,7 @@ export default function Checkout() {
 
                   {/* Billing form — only shown when toggle is OFF */}
                   {!billingSameAsShipping && (
-                    <div className="mt-4 p-4 border border-[#c9a96e]/15 rounded-lg bg-[#080503] space-y-4">
+                    <div className="mt-4 p-4 border border-white/10 rounded-lg bg-[#080503] space-y-4">
                       <p className="text-xs text-[#c9a96e] uppercase tracking-widest mb-2">Billing Address</p>
                       <div>
                         <label className="block text-sm text-[#e8dcc8] mb-1">Address Line 1*</label>
@@ -554,7 +617,7 @@ export default function Checkout() {
                           type="text"
                           value={billingForm.line1}
                           onChange={(e) => setBillingForm(prev => ({ ...prev, line1: e.target.value }))}
-                          className="w-full bg-transparent border border-[#c9a96e]/20 focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition"
+                          className="w-full bg-transparent border border-white/10 focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition"
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -565,7 +628,7 @@ export default function Checkout() {
                             value={billingForm.postal_code}
                             onChange={(e) => setBillingForm(prev => ({ ...prev, postal_code: e.target.value }))}
                             maxLength={6}
-                            className="w-full bg-transparent border border-[#c9a96e]/20 focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition"
+                            className="w-full bg-transparent border border-white/10 focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition"
                           />
                         </div>
                         <div>
@@ -574,7 +637,7 @@ export default function Checkout() {
                             type="text"
                             value={billingForm.city}
                             onChange={(e) => setBillingForm(prev => ({ ...prev, city: e.target.value }))}
-                            className="w-full bg-transparent border border-[#c9a96e]/20 focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition"
+                            className="w-full bg-transparent border border-white/10 focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition"
                           />
                         </div>
                         <div>
@@ -583,7 +646,7 @@ export default function Checkout() {
                             type="text"
                             value={billingForm.state}
                             onChange={(e) => setBillingForm(prev => ({ ...prev, state: e.target.value }))}
-                            className="w-full bg-transparent border border-[#c9a96e]/20 focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition"
+                            className="w-full bg-transparent border border-white/10 focus:border-[#c9a96e] rounded-lg p-3 text-[#e8dcc8] outline-none transition"
                           />
                         </div>
                       </div>
@@ -600,14 +663,15 @@ export default function Checkout() {
                     {checkoutLoading ? "Preparing Payment..." : "Continue to Payment →"}
                   </button>
                 </div>
-              </CheckoutStepCard>
+              </section>
 
-              <CheckoutStepCard
-                stepNum={skippedAuthRef.current ? 2 : 3}
-                title="Payment"
-                isActive={checkoutStep === 'payment' || checkoutStep === 'processing'}
-                isCompleted={false}
+              <section
+                className={`transition-all duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
+                  checkoutStep === 'payment' ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden pointer-events-none'
+                }`}
               >
+                <h2 className="font-display text-2xl text-[#e8dcc8] font-light mb-1">Complete Payment</h2>
+                <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/40 mb-6">Step 3 of 3</p>
                 {checkoutError && <Alert variant="error" className="mb-4">{checkoutError}</Alert>}
                 {checkoutLoading ? (
                   <div className="space-y-3 animate-pulse" aria-label="Loading payment gateway">
@@ -625,16 +689,47 @@ export default function Checkout() {
                   <Elements
                     stripe={stripePromise}
                     options={{
-                      clientSecret,
+                      clientSecret: clientSecret!,
                       appearance: {
                         theme: 'night',
                         variables: {
                           colorPrimary: '#c9a96e',
-                          colorBackground: '#0d0a07',
+                          colorBackground: '#0a0705',
                           colorText: '#e8dcc8',
-                          colorDanger: '#ef4444',
-                          fontFamily: 'Cormorant Garamond, serif',
-                          borderRadius: '6px',
+                          colorDanger: '#f87171',
+                          fontFamily: '"Jost", sans-serif',
+                          spacingUnit: '4px',
+                          borderRadius: '0px',
+                          colorIconCardError: '#f87171',
+                        },
+                        rules: {
+                          '.Input': {
+                            border: 'none',
+                            borderBottom: '1px solid rgba(255,255,255,0.15)',
+                            boxShadow: 'none',
+                            backgroundColor: 'transparent',
+                            color: '#e8dcc8',
+                            padding: '8px 0',
+                          },
+                          '.Input:focus': {
+                            borderBottom: '1px solid #c9a96e',
+                            boxShadow: 'none',
+                            outline: 'none',
+                          },
+                          '.Label': {
+                            color: 'rgba(232,220,200,0.4)',
+                            fontSize: '10px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.1em',
+                          },
+                          '.Tab': {
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            backgroundColor: 'transparent',
+                          },
+                          '.Tab--selected': {
+                            border: '1px solid rgba(201,169,110,0.4)',
+                            backgroundColor: 'rgba(201,169,110,0.05)',
+                          },
                         },
                       },
                     }}
@@ -647,19 +742,19 @@ export default function Checkout() {
                     />
                   </Elements>
                 ) : null}
-              </CheckoutStepCard>
+              </section>
 
             </div>
 
             <aside className="hidden lg:block lg:col-span-5">
-              <div className="sticky top-[73px] bg-white/5 border border-white/10 rounded-sm shadow-glass p-8 space-y-6">
+              <div className="bg-void/60 backdrop-blur-sm border-l border-white/10 px-8 py-6 sticky top-0 self-start space-y-6">
 
                 {/* Reservation timer — only show when step is details, payment, or processing */}
                 {(checkoutStep === 'details' || checkoutStep === 'payment' || checkoutStep === 'processing') && (
                   <ReservationTimer ttlSeconds={900} />
                 )}
 
-                <h3 className="font-serif text-lg text-[#c9a96e] tracking-wide">Order Summary</h3>
+                <h3 className="font-serif text-lg text-[#c9a96e] tracking-wide">Your Selection</h3>
 
                 {/* Cart items list — scrollable if many items */}
                 <div className="space-y-4 max-h-[38vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#c9a96e]/20">
@@ -670,7 +765,7 @@ export default function Checkout() {
                     return (
                       <div key={item.listing_id} className="flex gap-3 items-start">
                         {/* Product thumbnail */}
-                        <div className="w-14 h-14 shrink-0 bg-[#1a1410] border border-[#c9a96e]/10 rounded overflow-hidden">
+                        <div className="w-14 h-14 shrink-0 bg-[#1a1410] border border-white/10 rounded overflow-hidden">
                           {imgSrc ? (
                             <img src={imgSrc} alt={item.title ?? ''} className="w-full h-full object-cover" />
                           ) : (
@@ -690,23 +785,23 @@ export default function Checkout() {
                 </div>
 
                 {/* Totals */}
-                <div className="space-y-2 text-sm border-t border-[#c9a96e]/15 pt-4">
+                <div className="space-y-2 text-sm border-t border-white/10 pt-4">
                   <div className="flex justify-between text-white/50">
                     <span>Subtotal</span>
                     <span>₹{subtotal.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between text-white/50">
                     <span>Shipping</span>
-                    <span>{shipping === 0 ? <span className="text-emerald-400 text-xs uppercase tracking-wider">Free</span> : `₹${shipping}`}</span>
+                    <span>{shipping === 0 ? <span className="text-emerald-400 text-xs uppercase tracking-wider">Complimentary Delivery</span> : `₹${shipping}`}</span>
                   </div>
-                  <div className="flex justify-between font-serif text-base text-[#e8dcc8] border-t border-[#c9a96e]/15 pt-3 mt-1">
+                  <div className="flex justify-between font-serif text-base text-[#e8dcc8] border-t border-white/10 pt-3 mt-1">
                     <span>Total</span>
                     <span className="text-[#c9a96e]">₹{(subtotal + shipping).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
 
                 {/* Trust badges */}
-                <div className="flex flex-col gap-1.5 pt-2 border-t border-[#c9a96e]/10">
+                <div className="flex flex-col gap-1.5 pt-2 border-t border-white/10">
                   <p className="text-[10px] text-white/25 uppercase tracking-widest mb-1">Guaranteed</p>
                   <p className="text-[11px] text-white/40">🔒 256-bit SSL encryption</p>
                   <p className="text-[11px] text-white/40">↩ 14-day free returns</p>

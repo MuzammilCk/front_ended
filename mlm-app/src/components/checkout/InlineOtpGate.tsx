@@ -67,31 +67,38 @@ export function InlineOtpGate({ onVerified }: InlineOtpGateProps) {
   };
 
   return (
-    <div className="w-full border border-[#c9a96e]/20 rounded-lg p-6 bg-[#0a0705]">
-      <h2 className="text-xl text-[#c9a96e] font-serif mb-2">Sign in to continue</h2>
-      <p className="text-white/50 text-sm mb-6">Enter your phone number to receive a one-time password.</p>
+    <div className="w-full">
+      <h2 className="font-display text-2xl text-[#e8dcc8] font-light mb-2">One moment</h2>
+      <p className="text-[10px] uppercase tracking-widest text-[#e8dcc8]/40 mb-8">Enter your mobile to receive a verification code</p>
 
-      {error && <Alert variant="error" className="mb-4">{error}</Alert>}
+      {error && <Alert variant="error" className="mb-6">{error}</Alert>}
 
       {step === 'phone' ? (
         <form onSubmit={handleSendOtp} className="space-y-4">
-          <div>
+          <div className="relative pt-4 mb-6">
             <input
               type="tel"
+              id="otp-phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="10-digit mobile number"
-              className="w-full px-4 py-3 bg-[#0a0705] border border-[#c9a96e] rounded-lg text-[#e8dcc8] placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-[#c9a96e] transition-colors"
+              placeholder=" "
               disabled={loading}
               maxLength={15}
+              className="peer w-full bg-transparent border-b border-white/15 focus:border-[#c9a96e] text-[#e8dcc8] text-sm pb-2 pt-1 focus:outline-none transition-colors duration-500 placeholder-transparent"
             />
+            <label
+              htmlFor="otp-phone"
+              className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+            >
+              Mobile Number
+            </label>
           </div>
           <button
             type="submit"
             disabled={loading || !phone}
-            className="w-full py-3 bg-[#c9a96e] text-black font-semibold rounded-lg hover:bg-[#d4b67e] transition-colors disabled:opacity-50"
+            className="w-full py-3 bg-[#c9a96e] text-[#0a0705] text-xs uppercase tracking-widest font-medium hover:bg-[#d4b97e] transition-colors duration-500 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {loading ? 'Sending...' : 'Send OTP'}
+            {loading ? 'Sending…' : 'Send Code'}
           </button>
         </form>
       ) : (
@@ -107,17 +114,17 @@ export function InlineOtpGate({ onVerified }: InlineOtpGateProps) {
             type="button"
             onClick={() => handleVerifyOtp(otp)}
             disabled={loading || otp.length < 6}
-            className="w-full py-3 bg-[#c9a96e] text-black font-semibold rounded-lg hover:bg-[#d4b67e] transition-colors disabled:opacity-50 mt-4"
+            className="w-full py-3 mt-4 bg-[#c9a96e] text-[#0a0705] text-xs uppercase tracking-widest font-medium hover:bg-[#d4b97e] transition-colors duration-500 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {loading ? 'Verifying...' : 'Verify OTP'}
+            {loading ? 'Verifying…' : 'Verify Code'}
           </button>
           <button
-             type="button"
-             onClick={() => { setStep('phone'); setOtp(''); setError(null); }}
-             className="w-full py-2 text-sm text-[#c9a96e] hover:underline"
-             disabled={loading}
+            type="button"
+            onClick={() => { setStep('phone'); setOtp(''); setError(null); }}
+            disabled={loading}
+            className="w-full pt-2 text-[10px] uppercase tracking-widest text-[#c9a96e]/40 hover:text-[#c9a96e] transition-colors duration-500"
           >
-            Change Phone Number
+            Change number
           </button>
         </div>
       )}
