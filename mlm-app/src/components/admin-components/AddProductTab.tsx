@@ -103,6 +103,7 @@ export default function AddProductTab() {
         description: form.description || form.notes,
         price: Number(form.price),
         quantity: Number(form.quantity),
+        intensity: Number(form.intensity),
         category_id: form.categoryId || undefined,
         condition: form.condition,
         status: 'active',

@@ -116,7 +116,7 @@ export default function ReturnsTab() {
           </div>
 
           <div className="relative w-full md:w-64">
-             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted/30" />
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted/50" />
              <input 
                type="text" 
                placeholder="Search id, order, user..." 
@@ -193,7 +193,7 @@ export default function ReturnsTab() {
                            <button onClick={() => handleAction(ret.id, 'complete')} disabled={updateMutation.isPending} className="px-3 py-1.5 border border-emerald-500/20 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 text-[9px] uppercase tracking-widest transition-colors rounded-sm">Mark Complete</button>
                          )}
                          {['rejected', 'completed'].includes(ret.status) && (
-                           <span className="text-[10px] text-muted/30 uppercase tracking-widest">No Actions</span>
+                           <span className="text-[10px] text-muted/50 uppercase tracking-widest">No Actions</span>
                          )}
                        </div>
                      </td>

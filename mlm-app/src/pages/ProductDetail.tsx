@@ -231,7 +231,7 @@ export default function ProductDetail() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-white/20 text-xs tracking-widest uppercase">No image</span>
+                      <span className="text-white/50 text-xs tracking-widest uppercase">No image</span>
                     </div>
                   )}
                   {listing.status !== 'active' && (
@@ -361,7 +361,7 @@ export default function ProductDetail() {
                     <div className="flex items-center border border-[#2a2a2a]">
                       <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="px-3 py-3 text-white/50 hover:text-white hover:bg-white/5 transition"
+                        className="w-11 h-11 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 transition"
                         aria-label="Decrease quantity"
                       >
                         <Minus className="w-3 h-3" />
@@ -372,7 +372,7 @@ export default function ProductDetail() {
                       <button
                         onClick={() => setQuantity(Math.min(quantity + 1, Math.min(listing.quantity, MAX_QTY_PER_ITEM)))}
                         disabled={quantity >= Math.min(listing.quantity, MAX_QTY_PER_ITEM)}
-                        className="px-3 py-3 text-white/50 hover:text-white hover:bg-white/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="w-11 h-11 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
                         aria-label="Increase quantity"
                       >
                         <Plus className="w-3 h-3" />

@@ -124,7 +124,7 @@ export default function ProductsTab() {
     }),
     columnHelper.accessor('name', {
       header: 'Product',
-      cell: info => <span className="font-serif text-lg font-light text-[#e8dcc8]">{info.getValue()}</span>,
+      cell: info => <span className="font-serif text-lg font-light text-[#e8dcc8] whitespace-nowrap">{info.getValue()}</span>,
       enableSorting: true,
     }),
     columnHelper.accessor('type', {
@@ -152,7 +152,7 @@ export default function ProductsTab() {
         <span className={`font-sans text-[10px] tracking-wide uppercase px-2 py-0.5 border rounded-sm
           ${info.getValue()
             ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-            : 'bg-white/5 text-muted/30 border-white/10'
+            : 'bg-white/5 text-muted/50 border-white/10'
           }`}>
           {info.getValue() ? 'Active' : 'Hidden'}
         </span>
@@ -246,7 +246,7 @@ export default function ProductsTab() {
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted/30" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted/50" />
           <input
             className={`w-full pl-9 pr-4 ${inputCls}`}
             placeholder="Search fragrances..."
@@ -316,7 +316,8 @@ export default function ProductsTab() {
                   <th
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    className={`px-5 py-4 text-[10px] tracking-[0.22em] uppercase text-muted/20 font-normal
+                    className={`px-5 py-4 text-[10px] tracking-[0.22em] uppercase text-muted/45 font-normal whitespace-nowrap
+                      ${header.id === 'name' ? 'sticky left-0 z-10 bg-[#0d0a07]' : ''}
                       ${header.column.getCanSort() ? 'cursor-pointer hover:text-[#c9a96e]/70 select-none transition-colors' : ''}
                     `}
                   >
@@ -355,7 +356,10 @@ export default function ProductsTab() {
               table.getRowModel().rows.map(row => (
                 <tr key={row.id} className="border-b border-[#c9a96e]/4 hover:bg-[#c9a96e]/5 transition-colors last:border-0">
                   {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className="px-5 py-4 align-middle">
+                    <td 
+                      key={cell.id} 
+                      className={`px-5 py-4 align-middle ${cell.column.id === 'name' ? 'sticky left-0 z-10 bg-[#0d0a07] group-hover:bg-[#110d0a]' : ''}`}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}

@@ -22,6 +22,7 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
   const [ml, setMl] = useState('50');
   const [badge, setBadge] = useState('');
   const [notes, setNotes] = useState('');
+  const [intensity, setIntensity] = useState(70);
   const [active, setActive] = useState(true);
   
   const [images, setImages] = useState<Listing['images']>([]);
@@ -41,6 +42,7 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
       setType(listing.category?.name || 'Eau de Parfum');
       setFamily(listing.category?.name || 'Woody');
       setNotes(listing.description || '');
+      setIntensity(listing.intensity ?? 70);
       setActive(listing.status === 'active');
       setImages([...listing.images].sort((a,b) => a.sort_order - b.sort_order));
     }
@@ -53,6 +55,7 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
     price !== String(listing.price) || 
     active !== (listing.status === 'active') ||
     notes !== (listing.description || '') ||
+    intensity !== (listing.intensity ?? 70) ||
     type !== (listing.category?.name || 'Eau de Parfum') ||
     family !== (listing.category?.name || 'Woody');
 
@@ -65,6 +68,7 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
         price: Number(price),
         status: active ? 'active' : 'paused',
         description: notes,
+        intensity,
       });
       onSave();
       onClose();
@@ -187,6 +191,13 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
             <label className={labelCls}>Scent Notes</label>
             <textarea className={`${inputCls} min-h-[80px] resize-none`} value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
+          <div>
+            <label className={labelCls}>Intensity — {intensity}%</label>
+            <input type="range" min="10" max="100" className="w-full mt-2 accent-[#c9a96e]" value={intensity} onChange={(e) => setIntensity(Number(e.target.value))} />
+            <div className="flex justify-between text-[8px] text-muted/40 uppercase tracking-widest mt-1">
+              <span>Soft</span><span>Moderate</span><span>Intense</span>
+            </div>
+          </div>
 
           <div className="col-span-2 pt-6 border-t border-[#c9a96e]/10 mt-2">
             <label className={labelCls}>Media Gallery</label>
@@ -247,7 +258,7 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
                 ) : (
                   <div>
                     <p className="text-[#c9a96e]/40 text-2xl font-light">+</p>
-                    <p className="font-sans text-[9px] uppercase tracking-widest text-muted/30 mt-2">Add Media</p>
+                    <p className="font-sans text-[9px] uppercase tracking-widest text-muted/50 mt-2">Add Media</p>
                   </div>
                 )}
                 <input
@@ -261,7 +272,7 @@ export default function EditProductModal({ listing, onClose, onSave }: EditProdu
                 />
               </div>
             </div>
-            {images.length > 1 && <p className="text-[10px] text-muted/30 mt-3 font-sans font-medium">Tip: Drag images to adjust their display order on the storefront.</p>}
+            {images.length > 1 && <p className="text-[10px] text-muted/50 mt-3 font-sans font-medium">Tip: Drag images to adjust their display order on the storefront.</p>}
           </div>
         </div>
 

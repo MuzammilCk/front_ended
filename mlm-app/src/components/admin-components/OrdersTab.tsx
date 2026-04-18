@@ -45,7 +45,7 @@ function OrderStatusStepper({ currentStatus, orderId, onStatusChange }: { curren
               ${idx > currentIdx ? 'bg-[#0A0705] border-white/20 group-hover:border-[#c9a96e]/50' : ''}
             `} />
             <span className={`font-sans text-[9px] uppercase tracking-widest transition-colors mt-1
-              ${idx === currentIdx ? 'text-[#c9a96e]' : 'text-muted/30'}
+              ${idx === currentIdx ? 'text-[#c9a96e]' : 'text-muted/50'}
               ${idx > currentIdx ? 'group-hover:text-muted/60' : ''}
             `}>
               {step}
@@ -232,7 +232,7 @@ export default function OrdersTab() {
           
           <div className="flex items-center gap-3">
              <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className={inputCls} />
-             <span className="text-muted/30">—</span>
+             <span className="text-muted/50">—</span>
              <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className={inputCls} />
              {(fromDate || toDate) && (
                <button onClick={() => { setFromDate(''); setToDate(''); }} className="text-[10px] text-muted/40 hover:text-rose-400 uppercase tracking-widest font-sans ml-2">Clear Date</button>
@@ -274,7 +274,7 @@ export default function OrdersTab() {
             />
            </div>
           {["Order ID", "Customer", "Amount", "Date", "Pipeline Status"].map(h => (
-            <span key={h} className="text-[10px] tracking-[0.2em] uppercase text-muted/20 font-sans">{h}</span>
+            <span key={h} className="text-[10px] tracking-[0.2em] uppercase text-muted/45 font-sans">{h}</span>
           ))}
         </div>
         
@@ -332,7 +332,7 @@ export default function OrdersTab() {
         </div>
         <div className="grid grid-cols-4 py-3 px-6 border-b border-[#c9a96e]/5">
           {["Month", "Orders", "Revenue", "Volume"].map(h => (
-            <span key={h} className="text-[10px] tracking-[0.2em] font-sans uppercase text-muted/20">{h}</span>
+            <span key={h} className="text-[10px] tracking-[0.2em] font-sans uppercase text-muted/45">{h}</span>
           ))}
         </div>
         {monthlyArray.map((m, i) => (
@@ -367,7 +367,7 @@ export default function OrdersTab() {
                  <>
                    {/* 1. VISUAL STATUS STEPPER IN ORDER DRAWER */}
                    <div>
-                     <p className="text-[10px] font-sans tracking-[0.2em] uppercase text-muted/30 mb-5">Fulfillment Pipeline</p>
+                     <p className="text-[10px] font-sans tracking-[0.2em] uppercase text-muted/50 mb-5">Fulfillment Pipeline</p>
                      <OrderStatusStepper 
                         currentStatus={ordersList.find((o: Order) => o.id === selectedOrder.id)?.status || selectedOrder.status}
                         orderId={selectedOrder.id}
@@ -377,7 +377,7 @@ export default function OrdersTab() {
 
                    {/* Items */}
                    <div>
-                      <p className="text-[10px] font-sans tracking-[0.2em] uppercase text-muted/30 mb-3">Manifest</p>
+                      <p className="text-[10px] font-sans tracking-[0.2em] uppercase text-muted/50 mb-3">Manifest</p>
                       <div className="space-y-3">
                          {(orderDetails.items || []).map((item: any) => (
                            <div key={item.id} className="flex justify-between items-start pb-3 border-b border-white/5">
@@ -407,7 +407,7 @@ export default function OrdersTab() {
 
                    {/* Customer Data */}
                    <div>
-                      <p className="text-[10px] tracking-[0.2em] uppercase text-muted/30 mb-3 font-sans">Logistics</p>
+                      <p className="text-[10px] tracking-[0.2em] uppercase text-muted/50 mb-3 font-sans">Logistics</p>
                       <div className="space-y-3 text-xs text-muted/60 font-sans">
                         {orderDetails.order?.contact && (
                           <div className="bg-[#130e08] p-4 border border-white/5">

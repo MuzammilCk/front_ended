@@ -334,10 +334,10 @@ export default function Checkout() {
                 const isActive = s.key === checkoutStep;
                 return (
                   <React.Fragment key={s.key}>
-                    <span className={isCompleted ? 'text-[#c9a96e]/50 line-through' : isActive ? 'text-[#c9a96e]' : 'text-white/20'}>
+                    <span className={isCompleted ? 'text-[#c9a96e]/50 line-through' : isActive ? 'text-[#c9a96e]' : 'text-white/50'}>
                       {s.label}
                     </span>
-                    {idx < arr.length - 1 && <span className="text-white/15">›</span>}
+                    {idx < arr.length - 1 && <span className="text-white/40">›</span>}
                   </React.Fragment>
                 );
               })}

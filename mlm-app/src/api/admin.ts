@@ -31,6 +31,7 @@ export interface CreateListingPayload {
   condition?: string;
   authenticity_status?: string;
   status?: string;
+  intensity?: number;
   media_ids?: string[];
   media_keys?: string[];
 }
@@ -43,6 +44,7 @@ export interface UpdateListingPayload {
   condition?: string;
   authenticity_status?: string;
   status?: string;
+  intensity?: number;
   media_ids?: string[];
 }
 

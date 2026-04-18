@@ -14,7 +14,7 @@ export default function StarRating({ rating, reviews }) {
               ? "fill-[#c9a96e] text-[#c9a96e]"
               : i === fullStars && hasHalfStar
               ? "text-[#c9a96e]"
-              : "text-muted/30"
+              : "text-muted/50"
           }`}
         />
       ))}

@@ -163,7 +163,7 @@ export default function Topbar() {
               value={search}
               onValueChange={setSearch}
               placeholder="Search products, orders, or commands..." 
-              className="flex-1 bg-transparent text-[#e8dcc8] text-sm outline-none placeholder:text-muted/30"
+              className="flex-1 bg-transparent text-[#e8dcc8] text-sm outline-none placeholder:text-muted/50"
             />
             <button onClick={() => setOpen(false)} className="text-muted/40 hover:text-white p-1">
                <X className="w-4 h-4" />

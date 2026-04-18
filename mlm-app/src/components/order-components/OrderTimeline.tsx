@@ -106,7 +106,7 @@ export default function OrderTimeline({ status }: { status: string }) {
                 data-timeline-label
                 className={`
                   mt-3 text-[10px] uppercase tracking-[0.15em] text-center
-                  ${isCurrent ? 'text-[#c9a96e] font-medium' : isPast ? 'text-[#e8dcc8]/70' : 'text-[#e8dcc8]/30'}
+                  ${isCurrent ? 'text-[#c9a96e] font-medium' : isPast ? 'text-[#e8dcc8]/70' : 'text-[#e8dcc8]/50'}
                 `}
               >
                 {step.label}
@@ -149,7 +149,7 @@ export default function OrderTimeline({ status }: { status: string }) {
                     data-timeline-label
                     className={`
                       text-[11px] uppercase tracking-[0.1em]
-                      ${isCurrent ? 'text-[#c9a96e] font-medium' : isPast ? 'text-[#e8dcc8]/80' : 'text-[#e8dcc8]/30'}
+                      ${isCurrent ? 'text-[#c9a96e] font-medium' : isPast ? 'text-[#e8dcc8]/80' : 'text-[#e8dcc8]/50'}
                     `}
                   >
                     {step.label}

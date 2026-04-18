@@ -44,12 +44,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     <>
       <div 
         ref={overlayRef}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] invisible opacity-0"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] invisible opacity-0"
         onClick={onClose}
       />
       <div 
         ref={drawerRef}
-        className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0a0705] border-l border-[#2a2a2a] z-[101] shadow-2xl flex flex-col translate-x-full"
+        className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0a0705] border-l border-[#2a2a2a] z-[61] shadow-2xl flex flex-col translate-x-full"
       >
         <div className="flex items-center justify-between p-6 border-b border-[#2a2a2a]">
           <div className="flex items-center gap-3">

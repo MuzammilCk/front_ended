@@ -70,7 +70,7 @@ export default function Sidebar() {
       <nav className="flex-1 overflow-y-auto py-6 flex flex-col gap-8 px-4">
         {NAV_GROUPS.map(group => (
           <div key={group.label}>
-            <p className="text-[9px] tracking-[0.25em] uppercase text-muted/20 mb-3 px-4">
+            <p className="text-[9px] tracking-[0.25em] uppercase text-muted/45 mb-3 px-4">
               — {group.label} —
             </p>
             <div className="flex flex-col gap-1">
@@ -85,13 +85,13 @@ export default function Sidebar() {
                       `flex items-center gap-4 px-4 py-3 border-l-2 transition-all duration-300 w-full text-left
                       ${isActive
                         ? 'border-[#c9a96e] bg-[#c9a96e]/5 text-[#e8dcc8]'
-                        : 'border-transparent text-muted/30 hover:border-[#c9a96e]/30 hover:text-[#e8dcc8] hover:bg-white/[0.02]'
+                        : 'border-transparent text-muted/50 hover:border-[#c9a96e]/30 hover:text-[#e8dcc8] hover:bg-white/[0.02]'
                       }`
                     }
                   >
                     {({ isActive }) => (
                       <>
-                        <Icon className={`w-4 h-4 ${isActive ? 'text-[#c9a96e]' : 'text-muted/30'}`} />
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-[#c9a96e]' : 'text-muted/50'}`} />
                         <span className="text-[11px] tracking-[0.2em] uppercase flex-1">
                           {item.label}
                         </span>
@@ -119,7 +119,7 @@ export default function Sidebar() {
             </span>
           </div>
         </div>
-        <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-muted/30 pt-2 border-t border-white/5">
+        <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-muted/50 pt-2 border-t border-white/5">
           <span>v2.0</span>
           <RouterLink to="/" className="hover:text-[#c9a96e] transition-colors">
             Storefront ↗

@@ -249,9 +249,9 @@ export default function NetworkTab() {
            
            <div className="flex-1 p-4 overflow-y-auto">
              {!treeData ? (
-               <div className="h-full flex flex-col items-center justify-center text-muted/30">
+               <div className="h-full flex flex-col items-center justify-center text-muted/50">
                   <Network className="w-16 h-16 mb-4 opacity-20" />
-                  <p className="font-serif text-xl text-[#e8dcc8]/40">No Reference Node Loaded</p>
+                  <p className="font-serif text-xl text-[#e8dcc8]/55">No Reference Node Loaded</p>
                   <p className="font-sans text-xs mt-2 uppercase tracking-widest">Execute a query to visualize the downline graph</p>
                </div>
              ) : (
@@ -307,7 +307,7 @@ export default function NetworkTab() {
           <div className="flex-1 border border-[#c9a96e]/10 bg-[#0d0a07] p-8 shadow-xl">
             <div className="flex items-center justify-between mb-8 border-b border-[#c9a96e]/5 pb-5">
               <p className="font-serif text-2xl font-light text-[#e8dcc8]">Execution Log</p>
-              <p className="font-sans text-[10px] uppercase font-medium tracking-[0.2em] text-muted/30">{total} documented alterations</p>
+              <p className="font-sans text-[10px] uppercase font-medium tracking-[0.2em] text-muted/50">{total} documented alterations</p>
             </div>
             
             <div className="space-y-6">

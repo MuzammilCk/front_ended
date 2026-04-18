@@ -242,7 +242,7 @@ export default function PayoutsTab() {
              <button onClick={() => setLedgerUser(null)} className="absolute top-8 right-8 text-muted/40 hover:text-rose-400 hover:scale-110 transition-transform">✕</button>
              
              <p className="font-serif text-3xl font-light text-[#e8dcc8] mb-1">Entity Ledger</p>
-             <p className="font-mono text-[10px] text-muted/30 mb-8 bg-white/5 px-2 py-1 w-fit border border-white/5 truncate" title={ledgerUser}>{ledgerUser}</p>
+             <p className="font-mono text-[10px] text-muted/50 mb-8 bg-white/5 px-2 py-1 w-fit border border-white/5 truncate" title={ledgerUser}>{ledgerUser}</p>
 
              <div className="flex-1 overflow-y-auto space-y-4 pr-2">
                 <div className="grid grid-cols-[3fr_2fr] gap-4 mb-2 pb-2 border-b border-[#c9a96e]/10">

@@ -105,9 +105,9 @@ export default function DisputesTab() {
         </div>
         <div className="flex gap-4 text-xs font-sans bg-[#0d0a07] border border-[#c9a96e]/10 px-6 py-3 rounded-sm shadow-xl">
           <span className="text-amber-400 font-medium tracking-wide">{openCount} Open</span>
-          <span className="text-white/20">|</span>
+          <span className="text-white/50">|</span>
           <span className="text-sky-400 font-medium tracking-wide">{inReviewCount} In Review</span>
-          <span className="text-white/20">|</span>
+          <span className="text-white/50">|</span>
           <span className="text-rose-400 font-medium tracking-wide">{escalatedCount} Escalated</span>
         </div>
       </div>
@@ -140,7 +140,7 @@ export default function DisputesTab() {
                 >
                    <div className="flex justify-between items-start">
                      <p className="font-serif text-lg text-[#e8dcc8] leading-none tracking-tight truncate pr-2" title={dispute.id}>{dispute.id.split('-')[0]}-{dispute.id.split('-')[1]?.slice(0,4)}...</p>
-                     <span className="font-sans text-[9px] text-muted/30 uppercase tabular-nums shrink-0">
+                     <span className="font-sans text-[9px] text-muted/50 uppercase tabular-nums shrink-0">
                        {new Date(dispute.created_at).toLocaleDateString(undefined, { month:'short', day:'numeric' })}
                      </span>
                    </div>
@@ -178,7 +178,7 @@ export default function DisputesTab() {
 
               {disputes.filter(d => d.status === col.id).length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center p-8 pointer-events-none">
-                  <p className="font-sans text-[10px] uppercase tracking-widest font-medium text-muted/20 text-center border border-dashed border-white/5 rounded-sm p-4 w-full">Drop Target</p>
+                  <p className="font-sans text-[10px] uppercase tracking-widest font-medium text-muted/45 text-center border border-dashed border-white/5 rounded-sm p-4 w-full">Drop Target</p>
                 </div>
               )}
             </div>

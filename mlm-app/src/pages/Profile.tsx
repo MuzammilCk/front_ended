@@ -96,7 +96,7 @@ function MobileMenuListItem({
           )}
         </div>
       </div>
-      <ChevronRight className="w-4 h-4 text-[#e8dcc8]/30 group-hover:text-[#c9a96e]/60 transition-colors" />
+      <ChevronRight className="w-4 h-4 text-[#e8dcc8]/50 group-hover:text-[#c9a96e]/60 transition-colors" />
     </button>
   );
 }
@@ -188,7 +188,7 @@ function OrdersPanel({ activities }: { activities: any[] }) {
         <div className="py-16 text-center rounded-2xl bg-[#0d0a07]/40">
           <ShoppingBag className="w-12 h-12 mx-auto text-[#c9a96e]/30 mb-4" />
           <p className="text-[#e8dcc8] mb-2 text-lg font-display">Your story with Hadi hasn't begun yet.</p>
-          <p className="text-[#e8dcc8]/40 text-xs tracking-widest uppercase mb-6">Explore the collection below</p>
+          <p className="text-[#e8dcc8]/55 text-xs tracking-widest uppercase mb-6">Explore the collection below</p>
           <Link
             to="/product"
             className="inline-block px-6 py-3 bg-[#c9a96e] text-[#0a0705] rounded-lg tracking-widest text-xs uppercase font-medium hover:bg-[#c9a96e]/90 transition"
@@ -492,7 +492,7 @@ export default function Profile() {
                       <p className="font-display text-base text-[#e8dcc8] leading-tight">{userData.name}</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-muted/30 uppercase tracking-widest mt-2 pl-[52px]">
+                  <p className="text-[10px] text-muted/50 uppercase tracking-widest mt-2 pl-[52px]">
                     {userData.joinedDate}
                   </p>
                 </div>
@@ -525,7 +525,7 @@ export default function Profile() {
                         `}
                       >
                         <Icon
-                          className={`w-4 h-4 shrink-0 ${isActive ? "text-[#c9a96e]" : "text-[#e8dcc8]/40"}`}
+                          className={`w-4 h-4 shrink-0 ${isActive ? "text-[#c9a96e]" : "text-[#e8dcc8]/55"}`}
                           strokeWidth={1.5}
                         />
                         <span className="tracking-wide">{label}</span>
@@ -539,7 +539,7 @@ export default function Profile() {
                   <button
                     type="button"
                     onClick={logout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[#e8dcc8]/30 hover:text-red-400/80 hover:bg-red-400/5 transition-all duration-200"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[#e8dcc8]/50 hover:text-red-400/80 hover:bg-red-400/5 transition-all duration-200"
                   >
                     <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} />
                     <span>Sign Out</span>

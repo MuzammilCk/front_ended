@@ -28,7 +28,7 @@ export default function StatCard({ label, value, sub, trend, color = 'gold', onC
       <p className={`font-serif text-[32px] leading-none font-light mt-4 mb-3 ${COLOR_MAP[color]}`}>{value}</p>
       
       <div className="flex items-center justify-between mt-auto">
-        {sub && <p className="font-sans text-[10px] text-muted/30">{sub}</p>}
+        {sub && <p className="font-sans text-[10px] text-muted/50">{sub}</p>}
         
         {trend !== undefined && (
           <div className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm font-sans text-[9px] font-medium uppercase tracking-widest

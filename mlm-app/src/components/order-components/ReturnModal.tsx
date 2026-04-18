@@ -158,7 +158,7 @@ export default function ReturnModal({
           {/* Detail textarea */}
           <div>
             <label className="block text-[10px] uppercase tracking-widest text-[#c9a96e]/60 mb-2">
-              Additional Details <span className="text-[#e8dcc8]/30">(Optional)</span>
+              Additional Details <span className="text-[#e8dcc8]/50">(Optional)</span>
             </label>
             <textarea
               value={reasonDetail}
@@ -211,7 +211,7 @@ export default function ReturnModal({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-[#e8dcc8] truncate">{item.title}</p>
-                      <p className="text-[10px] text-[#e8dcc8]/40 mt-0.5">
+                      <p className="text-[10px] text-[#e8dcc8]/55 mt-0.5">
                         Qty: {item.qty} · {item.currency} {parseFloat(item.line_total).toLocaleString('en-IN', { minimumFractionDigits: 0 })}
                       </p>
                     </div>

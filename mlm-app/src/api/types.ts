@@ -74,6 +74,7 @@ export interface Listing {
   status: string;
   condition: string | null;
   authenticity_status: string | null;
+  intensity: number | null;
   images: ListingImage[];
   category: ProductCategory | null;
   /** Joined from inventory_items — only present in admin queries */

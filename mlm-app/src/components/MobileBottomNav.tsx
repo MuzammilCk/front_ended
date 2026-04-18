@@ -87,7 +87,7 @@ export default function MobileBottomNav() {
                   className={`w-[22px] h-[22px] transition-all duration-200 ${
                     isActive
                       ? "text-[#c9a96e]"
-                      : "text-[#e8dcc8]/40"
+                      : "text-[#e8dcc8]/55"
                   }`}
                   strokeWidth={isActive ? 2 : 1.5}
                 />
@@ -105,7 +105,7 @@ export default function MobileBottomNav() {
                 className={`text-[9px] tracking-widest font-medium uppercase transition-all duration-200 mt-0.5 ${
                   isActive
                     ? "text-[#c9a96e]"
-                    : "text-[#e8dcc8]/30"
+                    : "text-[#e8dcc8]/50"
                 }`}
               >
                 {label}

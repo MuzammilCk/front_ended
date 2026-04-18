@@ -84,19 +84,20 @@ export default function InventoryTab() {
          </div>
        )}
 
-       <div className="border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#100c08] shadow-lg">
-         <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1.5fr] py-3 px-6 border-b border-[#c9a96e]/5">
+       <div className="border border-[#c9a96e]/10 bg-gradient-to-br from-[#0d0a07] to-[#100c08] shadow-lg overflow-x-auto">
+         <div className="min-w-[800px]">
+           <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1.5fr] py-3 px-6 border-b border-[#c9a96e]/5">
            {["Product Name", "Current Stock", "Status", "Price", "Actions"].map(h => (
-             <span key={h} className="text-[10px] font-sans tracking-[0.2em] uppercase text-muted/20">
+             <span key={h} className="text-[10px] font-sans tracking-[0.2em] uppercase text-muted/45">
                {h}
              </span>
            ))}
          </div>
          
-         {contextLoading ? (
-           // 3. SKELETON LOADER
-           Array(5).fill(null).map((_, i) => (
-             <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_1.5fr] py-5 px-6 border-b border-[#c9a96e]/4 animate-pulse gap-4">
+           {contextLoading ? (
+             // 3. SKELETON LOADER
+             Array(5).fill(null).map((_, i) => (
+               <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_1.5fr] py-5 px-6 border-b border-[#c9a96e]/4 animate-pulse gap-4">
                <div className="h-4 w-48 bg-[#c9a96e]/8 rounded-sm" />
                <div className="h-4 w-16 bg-[#c9a96e]/8 rounded-sm" />
                <div className="h-4 w-12 bg-[#c9a96e]/8 rounded-sm" />
@@ -216,7 +217,8 @@ export default function InventoryTab() {
                )}
              </div>
            ))
-         )}
+           )}
+         </div>
        </div>
     </div>
   );

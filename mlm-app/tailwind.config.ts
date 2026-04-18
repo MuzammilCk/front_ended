@@ -8,6 +8,7 @@ export default {
     extend: {
       colors: {
         muted: '#ddcca8',
+        subtle: '#5a4d42',
         gold: '#b8924a',
         void: '#0a0705',
         sand: '#c9a96e',

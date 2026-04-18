@@ -118,7 +118,7 @@ export default function AuditLogTab() {
              Export CSV
           </button>
         </div>
-        <span className="text-[10px] font-sans tracking-[0.15em] uppercase text-muted/30 font-medium">
+        <span className="text-[10px] font-sans tracking-[0.15em] uppercase text-muted/50 font-medium">
           {total} total entries
         </span>
       </div>
@@ -190,7 +190,7 @@ export default function AuditLogTab() {
                   </span>
                   
                   <span className="font-sans text-xs font-mono text-muted/50 tracking-tight">
-                    {log.entity_type} <span className="text-muted/30">/</span> {log.entity_id.slice(-8)}
+                    {log.entity_type} <span className="text-muted/50">/</span> {log.entity_id.slice(-8)}
                   </span>
                   
                   <div className="flex items-center justify-between gap-4">

@@ -50,7 +50,7 @@ export default function ProfileHeader({
                   onChange={(e) =>
                     setEditForm({ ...editForm, name: e.target.value })
                   }
-                  className="w-full px-0 py-2 bg-transparent border-b border-[#c9a96e]/30 focus:border-[#c9a96e] focus:outline-none text-[#e8dcc8] placeholder:text-muted/30 transition-colors text-3xl font-light"
+                  className="w-full px-0 py-2 bg-transparent border-b border-[#c9a96e]/30 focus:border-[#c9a96e] focus:outline-none text-[#e8dcc8] placeholder:text-muted/50 transition-colors text-3xl font-light"
                 />
               ) : (
                 <h1 className="text-3xl font-light">{userData.name}</h1>

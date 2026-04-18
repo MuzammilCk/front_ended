@@ -307,9 +307,9 @@ export default function HomepageCmsTab() {
                        return (
                          <div key={item.listing_id} className="flex items-center gap-4 border border-[#c9a96e]/10 bg-[#0A0705] p-4 group hover:border-[#c9a96e]/30 transition-colors">
                            <div className="flex flex-col gap-1 shrink-0">
-                             <button onClick={() => moveItem(idx, -1)} disabled={idx === 0} className="text-muted/30 hover:text-[#c9a96e] disabled:opacity-20 text-[10px]">▲</button>
-                             <GripVertical size={14} className="text-muted/20" />
-                             <button onClick={() => moveItem(idx, 1)} disabled={idx === selectedListings.length - 1} className="text-muted/30 hover:text-[#c9a96e] disabled:opacity-20 text-[10px]">▼</button>
+                             <button onClick={() => moveItem(idx, -1)} disabled={idx === 0} className="text-muted/50 hover:text-[#c9a96e] disabled:opacity-20 text-[10px]">▲</button>
+                             <GripVertical size={14} className="text-muted/45" />
+                             <button onClick={() => moveItem(idx, 1)} disabled={idx === selectedListings.length - 1} className="text-muted/50 hover:text-[#c9a96e] disabled:opacity-20 text-[10px]">▼</button>
                            </div>
                            
                            <div className="flex-1 min-w-0">
@@ -322,11 +322,11 @@ export default function HomepageCmsTab() {
                            {/* Editable overrides */}
                            <div className="flex gap-2 items-center shrink-0">
                              <div>
-                               <label className="font-sans text-[8px] uppercase tracking-widest text-muted/30 block mb-1">Family</label>
+                               <label className="font-sans text-[8px] uppercase tracking-widest text-muted/50 block mb-1">Family</label>
                                <input className="bg-[#080604] border border-[#c9a96e]/10 text-[#e8dcc8] text-[10px] px-2 py-1.5 w-20 outline-none focus:border-[#c9a96e]/50" value={item.family} onChange={e => updateFeaturedItem(idx, 'family', e.target.value)} />
                              </div>
                              <div>
-                               <label className="font-sans text-[8px] uppercase tracking-widest text-muted/30 block mb-1">Badge</label>
+                               <label className="font-sans text-[8px] uppercase tracking-widest text-muted/50 block mb-1">Badge</label>
                                <select className="bg-[#080604] border border-[#c9a96e]/10 text-[#e8dcc8] text-[10px] px-2 py-1.5 w-24 outline-none" value={item.badge || ''} onChange={e => updateFeaturedItem(idx, 'badge', e.target.value || null)}>
                                  <option value="" className="bg-[#130e08]">None</option>
                                  <option value="New" className="bg-[#130e08]">New</option>
@@ -336,7 +336,7 @@ export default function HomepageCmsTab() {
                                </select>
                              </div>
                              <div>
-                               <label className="font-sans text-[8px] uppercase tracking-widest text-muted/30 block mb-1">ML</label>
+                               <label className="font-sans text-[8px] uppercase tracking-widest text-muted/50 block mb-1">ML</label>
                                <select className="bg-[#080604] border border-[#c9a96e]/10 text-[#e8dcc8] text-[10px] px-2 py-1.5 w-16 outline-none" value={item.ml} onChange={e => updateFeaturedItem(idx, 'ml', e.target.value)}>
                                  {['30', '50', '75', '100'].map(v => <option key={v} value={v} className="bg-[#130e08]">{v}</option>)}
                                </select>
@@ -358,7 +358,7 @@ export default function HomepageCmsTab() {
                  <div>
                    <label className={labelCls}>Add Products from Catalogue</label>
                    <div className="relative mb-4">
-                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted/30" />
+                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted/50" />
                      <input
                        className={`${inputCls} pl-9`}
                        placeholder="Search by name or SKU..."

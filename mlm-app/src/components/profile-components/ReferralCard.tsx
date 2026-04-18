@@ -90,7 +90,7 @@ export default function ReferralCard({ code }: { code: string }) {
         </div>
 
         <div className="pt-6 mt-6 space-y-4 border-t border-[#c9a96e]/10">
-          <h3 className="text-xs text-[#e8dcc8]/40 mt-1 uppercase tracking-widest">Invite your inner circle to HADI</h3>
+          <h3 className="text-xs text-[#e8dcc8]/55 mt-1 uppercase tracking-widest">Invite your inner circle to HADI</h3>
           <ul className="space-y-4">
             <li className="flex items-start gap-3">
               <div className="p-1.5 rounded-lg bg-[#c9a96e]/10">

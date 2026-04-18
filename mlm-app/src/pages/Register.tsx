@@ -348,7 +348,7 @@ export default function Register() {
                 type="button"
                 onClick={handleResendOtp}
                 disabled={isLoading || resendCooldown > 0}
-                className="text-xs text-[#c9a96e]/70 hover:text-[#c9a96e] transition disabled:text-white/20 disabled:cursor-not-allowed"
+                className="text-xs text-[#c9a96e]/70 hover:text-[#c9a96e] transition disabled:text-white/50 disabled:cursor-not-allowed"
               >
                 {resendCooldown > 0
                   ? `Resend OTP in ${resendCooldown}s`

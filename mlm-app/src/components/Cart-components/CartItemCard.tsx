@@ -114,14 +114,14 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
           </p>
 
           {/* MNC Fix: Expanded touch targets (min 44px) for quantity controls */}
-          <div className="flex items-center justify-between bg-[#110d0a] border border-[#c9a96e]/20 rounded-full p-1 w-[120px]">
-            <button onClick={handleMinus} disabled={isRemoving} className="text-white/60 hover:text-white hover:bg-sand/10 transition rounded-full w-9 h-9 flex items-center justify-center">
+          <div className="flex items-center justify-between bg-[#110d0a] border border-[#c9a96e]/20 rounded-full p-1 w-[140px]">
+            <button onClick={handleMinus} disabled={isRemoving} className="text-white/60 hover:text-white hover:bg-sand/10 transition rounded-full w-11 h-11 flex items-center justify-center">
               <Minus className="w-4 h-4" />
             </button>
             <span ref={qtyRef} className="text-sm font-medium w-6 text-center select-none text-text-primary tabular-nums">
               {item.quantity}
             </span>
-            <button onClick={handlePlus} disabled={isRemoving || isOutOfStock || isAtMax} className="text-white/60 hover:text-white hover:bg-sand/10 transition rounded-full w-9 h-9 flex items-center justify-center disabled:opacity-30">
+            <button onClick={handlePlus} disabled={isRemoving || isOutOfStock || isAtMax} className="text-white/60 hover:text-white hover:bg-sand/10 transition rounded-full w-11 h-11 flex items-center justify-center disabled:opacity-30">
               <Plus className="w-4 h-4" />
             </button>
           </div>

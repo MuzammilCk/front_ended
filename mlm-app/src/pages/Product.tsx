@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import * as Slider from "@radix-ui/react-slider";
 import gsap from "gsap";
@@ -107,12 +107,30 @@ export default function Product() {
     };
   }, [apiListings]);
 
-  // Data Fetching
-  const fetchListings = async (pageNum: number) => {
+  // ─── Intensity label → numeric range mapping (MNC faceted filter pattern) ──
+  const INTENSITY_RANGES: Record<string, { min?: number; max?: number }> = {
+    'Soft': { min: 10, max: 39 },
+    'Moderate': { min: 40, max: 69 },
+    'Intense': { min: 70, max: 100 },
+  };
+
+  // Data Fetching — passes all filters to server (MNC e-commerce pattern)
+  const fetchListings = useCallback(async (pageNum: number) => {
     setIsLoading(true);
     setLoadError('');
     try {
-      const result = await getListings({ limit: 12, page: pageNum });
+      const selectedCat = categories.find(c => c.name === activeFamily);
+      const intRange = INTENSITY_RANGES[intensityFilter];
+      const result = await getListings({
+        limit: 12,
+        page: pageNum,
+        q: search || undefined,
+        category_id: selectedCat?.id,
+        min_price: priceMin > 0 ? priceMin : undefined,
+        max_price: priceMax < 15000 ? priceMax : undefined,
+        intensity_min: intRange?.min,
+        intensity_max: intRange?.max,
+      });
       if (pageNum === 1) {
         setApiListings(result.data);
       } else {
@@ -124,14 +142,19 @@ export default function Product() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [categories, activeFamily, search, intensityFilter, priceMin, priceMax]);
 
+  // Fetch categories once on mount
   useEffect(() => {
-    fetchListings(1);
-    setPage(1);
-
     getCategories().then(setCategories).catch(() => {});
   }, []);
+
+  // Re-fetch when any filter changes (server-side filtering)
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    void fetchListings(1);
+  }, [fetchListings]);
 
   // Infinite Scroll Observer
   useEffect(() => {
@@ -221,13 +244,9 @@ export default function Product() {
     });
   };
 
-  // Map backend Listing → UI-compatible shape
+  // Map backend Listing → UI-compatible shape (intensity now comes from DB, not text)
   const displayProducts = useMemo(() => {
-    return apiListings.map((listing) => {
-      let intensityStr = "Moderate";
-      if (listing.description?.toLowerCase().includes('intense') || listing.category?.name === 'Oud') intensityStr = "Intense";
-      else if (listing.description?.toLowerCase().includes('soft') || listing.category?.name === 'Floral') intensityStr = "Soft";
-
+    const mapped = apiListings.map((listing) => {
       return {
         id: listing.id,
         name: listing.title,
@@ -237,26 +256,17 @@ export default function Product() {
         price: parseFloat(listing.price),
         badge: listing.status === 'active' ? null : listing.status,
         image: listing.images.length > 0 ? (getImageUrl(listing.images[0].storage_key) || null) : null,
-        intensity: intensityStr
+        intensity: listing.intensity ?? 70,
       };
     });
-  }, [apiListings]);
 
-  const filtered = useMemo(() => {
-    let result = displayProducts.filter((p) => {
-      const matchesFamily = activeFamily === 'All' || p.family === activeFamily;
-      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
-      const matchesIntensity = intensityFilter === 'All' || p.intensity === intensityFilter;
-      const matchesPrice = p.price >= priceMin && p.price <= priceMax;
-      return matchesFamily && matchesSearch && matchesIntensity && matchesPrice;
-    });
+    // Client-side sort only (server handles all filtering)
+    if (activeSort === 'price-asc') mapped.sort((a, b) => a.price - b.price);
+    if (activeSort === 'price-desc') mapped.sort((a, b) => b.price - a.price);
+    if (activeSort === 'best-sellers') mapped.sort((a, b) => a.name.localeCompare(b.name));
 
-    if (activeSort === 'price-asc') result.sort((a, b) => a.price - b.price);
-    if (activeSort === 'price-desc') result.sort((a, b) => b.price - a.price);
-    if (activeSort === 'best-sellers') result.sort((a, b) => a.name.localeCompare(b.name)); // simple mock
-
-    return result;
-  }, [displayProducts, activeFamily, search, intensityFilter, priceMin, priceMax, activeSort]);
+    return mapped;
+  }, [apiListings, activeSort]);
 
   return (
     <div className="min-h-screen bg-void text-text-primary pb-20 md:pb-0">
@@ -385,7 +395,7 @@ export default function Product() {
 
           {/* PRODUCT GRID */}
           <div className="max-w-6xl mx-auto grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3">
-            {filtered.map((item) => (
+            {displayProducts.map((item) => (
               <div 
                 key={item.id} 
                 className="product-card relative overflow-hidden group border border-[#2a2a2a]/30 hover:border-[#c9a96e]/40 transition-colors bg-[#050505]"
@@ -504,7 +514,7 @@ export default function Product() {
           )}
 
           {/* EMPTY STATE */}
-          {!isLoading && filtered.length === 0 && (
+          {!isLoading && displayProducts.length === 0 && (
              <div className="py-20 text-center text-white/50 w-full">
                No fragrances match your criteria
              </div>
