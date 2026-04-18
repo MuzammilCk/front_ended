@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { type CredentialResponse } from "@react-oauth/google";
+import ResponsiveGoogleLogin from "../components/ui/ResponsiveGoogleLogin";
 import { ApiError, getUserRole } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 import { googleLogin } from "../api/auth";
@@ -112,7 +113,21 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-layout">
+    <div className="auth-layout relative">
+      {/* Dynamic Back Button */}
+      <button
+        onClick={() => {
+          if (window.history.length > 2) {
+            navigate(-1);
+          } else {
+            navigate("/");
+          }
+        }}
+        className="absolute top-6 left-6 md:top-8 md:left-8 z-50 flex items-center gap-2 text-xs md:text-sm tracking-widest uppercase text-white/50 hover:text-white transition-colors"
+      >
+        <span aria-hidden="true">&larr;</span> Back
+      </button>
+
       {/* LEFT — Editorial Image Panel (desktop only) */}
       <div className="auth-editorial">
         <img
@@ -153,13 +168,10 @@ export default function Login() {
           </div>
 
           {/* Google SSO — Full width */}
-          <div className="w-full flex justify-center mb-4">
-            <GoogleLogin
+          <div className="w-full mb-4">
+            <ResponsiveGoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => setApiError("Google Sign-In was unsuccessful. Try again.")}
-              theme="filled_black"
-              shape="rectangular"
-              width="440"
               text="continue_with"
             />
           </div>

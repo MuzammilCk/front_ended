@@ -35,11 +35,12 @@ function AppContent() {
   const isHome = location.pathname === "/";
   const isAdmin = location.pathname.startsWith("/admin");
   const isCheckout = location.pathname.startsWith("/checkout");
+  const isAuth = location.pathname === "/login" || location.pathname === "/register";
 
   return (
     <>
-      {/* ── Global Desktop Navbar (hidden on Home, Admin, and Checkout) ── */}
-      {!isHome && !isAdmin && !isCheckout && (
+      {/* ── Global Desktop Navbar (hidden on Home, Admin, Checkout, and Auth pages) ── */}
+      {!isHome && !isAdmin && !isCheckout && !isAuth && (
         <div className="hidden md:block">
           <GlobalNavbar />
         </div>
@@ -128,7 +129,7 @@ function AppContent() {
         </Route>
       </Routes>
 
-      <MobileBottomNav />
+      {!isAuth && <MobileBottomNav />}
     </>
   );
 }

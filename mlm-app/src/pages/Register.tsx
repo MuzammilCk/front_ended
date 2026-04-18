@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { sendOtp, verifyOtp } from "../api/auth";
 import { ApiError } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
-import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { type CredentialResponse } from "@react-oauth/google";
+import ResponsiveGoogleLogin from "../components/ui/ResponsiveGoogleLogin";
 import { jwtDecode } from "jwt-decode";
 import RegisterForm from "../components/Register-components/RegisterForm";
 import OTPInput from "../components/ui/OTPInput";
@@ -414,7 +415,21 @@ export default function Register() {
   const currentHeading = stepHeadings[registerStep] || stepHeadings[1];
 
   return (
-    <div className="auth-layout">
+    <div className="auth-layout relative">
+      {/* Dynamic Back Button */}
+      <button
+        onClick={() => {
+          if (window.history.length > 2) {
+            navigate(-1);
+          } else {
+            navigate("/");
+          }
+        }}
+        className="absolute top-6 left-6 md:top-8 md:left-8 z-50 flex items-center gap-2 text-xs md:text-sm tracking-widest uppercase text-white/50 hover:text-white transition-colors"
+      >
+        <span aria-hidden="true">&larr;</span> Back
+      </button>
+
       {/* LEFT — Editorial Image Panel (desktop only) */}
       <div className="auth-editorial">
         <img
@@ -479,15 +494,12 @@ export default function Register() {
           {/* Google SSO — only on Step 1 */}
           {flowStep === "form" && registerStep === 1 && (
             <>
-              <div className="w-full flex justify-center mb-4">
-                <GoogleLogin
+              <div className="w-full mb-4">
+                <ResponsiveGoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={() => {
                     setApiError("Google Sign-In was unsuccessful. Try again.");
                   }}
-                  theme="filled_black"
-                  shape="rectangular"
-                  width="440"
                   text="continue_with"
                 />
               </div>
