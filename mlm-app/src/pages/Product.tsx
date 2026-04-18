@@ -259,20 +259,20 @@ export default function Product() {
   }, [displayProducts, activeFamily, search, intensityFilter, priceMin, priceMax, activeSort]);
 
   return (
-    <div className="min-h-screen bg-black pb-20 md:pb-0">
+    <div className="min-h-screen bg-void text-text-primary pb-20 md:pb-0">
 
       {/* Main Content */}
       <div>
-        <div className="px-4 py-8 text-white sm:px-6 sm:py-10 md:px-12">
+        <div className="px-4 section-padding text-white sm:px-6 md:px-12">
           {/* HEADER REMOVED: Now using Global Desktop Navbar */}
 
           {/* HERO */}
           <div className="max-w-6xl mx-auto mb-12">
-            <div className="mb-6">
-              <h1 className="text-3xl md:text-4xl font-display text-[#e8dcc8] mb-2">
+            <div className="mb-8">
+              <h1 className="text-display text-4xl md:text-5xl text-text-primary mb-4">
                 Discover Your Signature Scent
               </h1>
-              <p className="max-w-md text-sm text-white/50">
+              <p className="max-w-md text-base font-light text-zinc-400">
                 Explore a curated collection of refined fragrances crafted for every mood.
               </p>
             </div>
@@ -307,7 +307,7 @@ export default function Product() {
               
               {/* Family */}
               <div className="flex-1">
-                <p className="text-[10px] uppercase tracking-widest text-white/40 mb-3">Family</p>
+                <p className="text-label text-zinc-400 mb-4">Family</p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => updateSearchParam("family", "All")}
@@ -335,7 +335,7 @@ export default function Product() {
 
               {/* Intensity */}
               <div className="flex-shrink-0">
-                 <p className="text-[10px] uppercase tracking-widest text-white/40 mb-3">Intensity</p>
+                 <p className="text-label text-zinc-400 mb-4">Intensity</p>
                  <div className="flex bg-[#0c0c0c] border border-[#2a2a2a] rounded-full p-1">
                     {["All", "Soft", "Moderate", "Intense"].map((intense) => (
                       <button
@@ -351,7 +351,7 @@ export default function Product() {
 
               {/* Price Range */}
               <div className="flex-shrink-0 w-full lg:w-48">
-                 <p className="text-[10px] uppercase tracking-widest text-white/40 mb-3 flex justify-between">
+                 <p className="text-label text-zinc-400 mb-4 flex justify-between">
                    <span>Price Range</span>
                    <span className="text-[#c9a96e]">INR {priceMin} - {priceMax}</span>
                  </p>
@@ -414,7 +414,7 @@ export default function Product() {
                   {/* BADGE */}
                   {item.badge && (
                     <div className="absolute top-4 left-4 z-30">
-                      <span className="px-3 py-1 text-[10px] tracking-widest text-[#c9a96e] bg-black/50 backdrop-blur-sm border border-[#c9a96e44]">
+                      <span className="px-3 py-1 text-[10px] tracking-widest text-[#c9a96e] bg-void/80 backdrop-blur-sm border border-sand/30 shadow-glass">
                         {item.badge}
                       </span>
                     </div>
@@ -451,11 +451,11 @@ export default function Product() {
 
                   {/* CONTENT */}
                   <div className="absolute left-0 w-full px-6 text-center bottom-6 z-30 pointer-events-none">
-                    <p className="text-[10px] tracking-[0.3em] text-[#c9a96e66] mb-2 drop-shadow-md">
+                    <p className="text-label text-sand/60 mb-3 drop-shadow-md">
                       {item.type}
                     </p>
 
-                    <h2 className="text-2xl font-display text-[#e8dcc8] mb-2 drop-shadow-md pointer-events-auto">
+                    <h2 className="text-display text-3xl text-text-primary mb-2 drop-shadow-md pointer-events-auto">
                       <Link to={`/product/${item.id}`} className="hover:text-white transition-colors">{item.name}</Link>
                     </h2>
 

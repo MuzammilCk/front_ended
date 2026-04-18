@@ -52,15 +52,15 @@ export default function Wishlist() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] pb-20 md:pb-0">
+    <div className="min-h-screen bg-void text-[#e8dcc8] pb-20 md:pb-0">
 
       {/* STICKY NAVBAR — matching other pages in the project */}
-      <div className="sticky top-0 z-40 bg-[#0a0705]/95 backdrop-blur-sm border-b border-[#c9a96e]/10 px-4 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-40 bg-void/95 backdrop-blur-sm border-b border-[#c9a96e]/10 px-4 py-3 flex items-center justify-between">
         <div className="w-10"></div> {/* spacer for flex balance */}
-        <div className="text-[10px] uppercase tracking-[0.3em] text-[#c9a96e]">
+        <div className="text-label text-sand">
           MY WISHLIST
         </div>
-        <div className="text-[10px] uppercase tracking-widest text-white/40">
+        <div className="text-label text-white/40">
           {wishlistCount} Items
         </div>
       </div>
@@ -68,26 +68,26 @@ export default function Wishlist() {
       {/* TOAST NOTIFICATION */}
       {toastMessage && (
         <div
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 rounded-full bg-[#0a0705]/90 backdrop-blur border border-[#c9a96e]/40 px-6 py-3 text-[10px] uppercase tracking-[0.2em] text-[#c9a96e] shadow-2xl"
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 rounded-sm bg-void/90 backdrop-blur border border-sand/40 p-4 text-label text-sand shadow-glass"
           style={{ animation: 'slideInDown 0.3s ease-out' }}
         >
           {toastMessage}
         </div>
       )}
 
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-8 md:py-12">
+      <div className="max-w-[1400px] mx-auto px-4 md:px-8 section-padding">
         {/* PAGE HEADER */}
         <div className="flex items-center justify-between mb-10">
           <Link
             to="/product"
-            className="flex items-center gap-2 text-xs tracking-widest uppercase text-[#c9a96e]/70 hover:text-[#c9a96e] transition-colors"
+            className="flex items-center gap-2 text-label text-sand/70 hover:text-sand transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Back to Shop</span>
           </Link>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-display text-[#e8dcc8]">My Wishlist</h1>
-            <p className="text-xs tracking-widest text-white/40 mt-1 text-right">
+          <div className="text-right">
+            <h1 className="text-display text-4xl text-text-primary">My Wishlist</h1>
+            <p className="text-label text-white/40 mt-1">
               {wishlistCount} {wishlistCount === 1 ? 'item' : 'items'}
             </p>
           </div>
@@ -99,7 +99,7 @@ export default function Wishlist() {
             <div className="w-28 h-28 mb-8 flex items-center justify-center rounded-full bg-[#c9a96e]/5 border border-[#c9a96e]/20">
               <Heart className="w-16 h-16 text-[#c9a96e]/40" strokeWidth={1} />
             </div>
-            <h2 className="text-3xl font-display text-[#e8dcc8] mb-4">
+            <h2 className="text-display text-3xl text-text-primary mb-4">
               Your wishlist is empty.
             </h2>
             <p className="text-white/50 font-sans font-light mb-10 max-w-sm">
@@ -107,7 +107,7 @@ export default function Wishlist() {
             </p>
             <Link
               to="/product"
-              className="bg-[#c9a96e] text-black px-10 py-4 text-xs tracking-[0.2em] uppercase hover:bg-[#e8dcc8] transition-colors"
+              className="btn-primary px-10"
             >
               Discover Fragrances
             </Link>

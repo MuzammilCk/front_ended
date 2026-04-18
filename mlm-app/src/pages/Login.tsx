@@ -155,15 +155,15 @@ export default function Login() {
                 navigate("/");
               }}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 py-2.5 text-[15px] font-medium tracking-tight rounded-lg bg-transparent border border-[#c9a96e]/50 text-[#c9a96e] hover:bg-[#c9a96e]/10 hover:border-[#c9a96e] transition-all shadow-sm"
+              className="w-full btn-secondary px-0 border border-sand/50 text-sand hover:text-white"
             >
               Continue as Guest
             </button>
           </div>
 
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-4 mb-6">
             <div className="flex-1 h-px bg-white/5" />
-            <span className="text-[11px] text-zinc-500 uppercase tracking-widest font-medium">or with {loginMethod}</span>
+            <span className="text-label text-zinc-500">or with {loginMethod}</span>
             <div className="flex-1 h-px bg-white/5" />
           </div>
 

@@ -73,7 +73,7 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
   const handlePlus = () => { if (!isAtMax) updateQuantity(item.id, item.quantity + 1); };
 
   return (
-    <div ref={cardRef} className="p-4 sm:p-6 border-b border-[#c9a96e]/10 flex flex-col sm:flex-row items-start gap-4 sm:gap-6 overflow-hidden bg-[#0a0705] hover:bg-[#c9a96e]/[0.02] transition-colors">
+    <div ref={cardRef} className="p-4 sm:p-6 border-b border-sand/10 flex flex-col sm:flex-row items-start gap-4 sm:gap-6 overflow-hidden bg-void hover:bg-sand/[0.02] transition-colors">
       <div className="flex w-full sm:w-auto gap-4">
         <Link to={`/product/${item.listing_id ?? ''}`} className="shrink-0 block">
           <LuxuryImage
@@ -85,17 +85,17 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
 
         <div className="flex-1 flex flex-col justify-center sm:hidden">
            {/* Mobile Top Info */}
-           <Link to={`/product/${item.listing_id ?? ''}`} className="text-[#e8dcc8] font-display text-lg leading-tight mb-1">{item.name}</Link>
-           <p className="text-[10px] text-white/50 uppercase tracking-widest">{item.type}</p>
-           <p className="text-[#c9a96e] font-serif text-lg mt-2 tabular-nums">₹{(item.price * item.quantity).toLocaleString('en-IN')}</p>
+           <Link to={`/product/${item.listing_id ?? ''}`} className="text-text-primary text-display text-lg leading-tight mb-1">{item.name}</Link>
+           <p className="text-label text-white/50">{item.type}</p>
+           <p className="text-sand font-serif text-lg mt-2 tabular-nums">₹{(item.price * item.quantity).toLocaleString('en-IN')}</p>
         </div>
       </div>
 
       <div className="flex-1 w-full flex flex-col sm:flex-row justify-between gap-4">
         <div className="hidden sm:flex flex-col justify-center max-w-sm">
           {/* Desktop Info */}
-          <Link to={`/product/${item.listing_id ?? ''}`} className="text-[#e8dcc8] font-display text-xl hover:text-[#c9a96e] transition leading-snug">{item.name}</Link>
-          <p className="text-[10px] text-white/50 uppercase tracking-widest mt-1.5">{item.type}</p>
+          <Link to={`/product/${item.listing_id ?? ''}`} className="text-text-primary text-display text-xl hover:text-sand transition leading-snug">{item.name}</Link>
+          <p className="text-label text-white/50 mt-1.5">{item.type}</p>
           {item.notes && <p className="text-xs text-white/40 italic line-clamp-1 mt-1.5">{item.notes}</p>}
           
           {isOutOfStock ? (
@@ -108,20 +108,20 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
         </div>
 
         {/* Controls */}
-        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-4 w-full sm:w-auto border-t sm:border-t-0 border-[#c9a96e]/10 pt-4 sm:pt-0">
-          <p className="hidden sm:block text-[#c9a96e] font-serif text-xl tracking-wide tabular-nums">
+        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-4 w-full sm:w-auto border-t sm:border-t-0 border-sand/10 pt-4 sm:pt-0">
+          <p className="hidden sm:block text-sand font-serif text-xl tracking-wide tabular-nums">
             ₹{(item.price * item.quantity).toLocaleString('en-IN')}
           </p>
 
           {/* MNC Fix: Expanded touch targets (min 44px) for quantity controls */}
           <div className="flex items-center justify-between bg-[#110d0a] border border-[#c9a96e]/20 rounded-full p-1 w-[120px]">
-            <button onClick={handleMinus} disabled={isRemoving} className="text-white/60 hover:text-white hover:bg-[#c9a96e]/10 transition rounded-full w-9 h-9 flex items-center justify-center">
+            <button onClick={handleMinus} disabled={isRemoving} className="text-white/60 hover:text-white hover:bg-sand/10 transition rounded-full w-9 h-9 flex items-center justify-center">
               <Minus className="w-4 h-4" />
             </button>
-            <span ref={qtyRef} className="text-sm font-medium w-6 text-center select-none text-[#e8dcc8] tabular-nums">
+            <span ref={qtyRef} className="text-sm font-medium w-6 text-center select-none text-text-primary tabular-nums">
               {item.quantity}
             </span>
-            <button onClick={handlePlus} disabled={isRemoving || isOutOfStock || isAtMax} className="text-white/60 hover:text-white hover:bg-[#c9a96e]/10 transition rounded-full w-9 h-9 flex items-center justify-center disabled:opacity-30">
+            <button onClick={handlePlus} disabled={isRemoving || isOutOfStock || isAtMax} className="text-white/60 hover:text-white hover:bg-sand/10 transition rounded-full w-9 h-9 flex items-center justify-center disabled:opacity-30">
               <Plus className="w-4 h-4" />
             </button>
           </div>
@@ -132,11 +132,11 @@ export default function CartItemCard({ item, updateQuantity, removeItem }: CartI
       <div className="w-full flex items-center gap-6 sm:mt-4 sm:w-auto">
         <button onClick={moveToWishlist} disabled={isRemoving} className="flex items-center gap-2 text-xs text-white/50 hover:text-white transition group py-2">
           <Heart className="w-4 h-4 group-hover:fill-white/20 transition-all" />
-          <span className="hidden sm:inline tracking-wider uppercase text-[10px]">Wishlist</span>
+          <span className="hidden sm:inline text-label">Wishlist</span>
         </button>
         <button onClick={handleRemove} disabled={isRemoving} className="flex items-center gap-2 text-xs text-rose-500/60 hover:text-rose-400 transition group py-2">
           <Trash2 className="w-4 h-4" />
-          <span className="hidden sm:inline tracking-wider uppercase text-[10px]">Remove</span>
+          <span className="hidden sm:inline text-label">Remove</span>
         </button>
       </div>
     </div>

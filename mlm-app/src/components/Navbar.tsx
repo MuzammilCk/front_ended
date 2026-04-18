@@ -20,14 +20,15 @@ export default function Navbar() {
       <div className="flex items-center justify-between w-full max-w-[1400px] mx-auto px-[clamp(1.5rem,5vw,4rem)] py-[1.25rem]">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <img src="/logo.png" alt="Hadi Perfumes" className="h-[26px] w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+          <img src="/logo.png" alt="Hadi Perfumes" className="h-[26px] w-auto object-contain scale-[1.5] origin-left transform transition-transform duration-300 group-hover:scale-[1.65]" />
         </Link>
 
         {/* Desktop Navigation */}
         <div className="items-center hidden gap-8 md:flex">
           <Link
             to="/"
-            className={`text-[0.65rem] tracking-[0.18em] font-light uppercase transition-all duration-200 relative group ${location.pathname === "/"
+            className={`text-label transition-all duration-200 relative group ${
+                location.pathname === "/"
                 ? "text-[#c9a96e]"
                 : "text-[#e8dcc8]/50 hover:text-[#e8dcc8]"
               }`}
@@ -39,7 +40,8 @@ export default function Navbar() {
           </Link>
           <Link
             to="/product"
-            className={`text-[0.65rem] tracking-[0.18em] font-light uppercase transition-all duration-200 relative ${location.pathname === "/product" || location.pathname.startsWith("/product/")
+            className={`text-label transition-all duration-200 relative ${
+                location.pathname === "/product" || location.pathname.startsWith("/product/")
                 ? "text-[#c9a96e]"
                 : "text-[#e8dcc8]/50 hover:text-[#e8dcc8]"
               }`}
@@ -75,8 +77,8 @@ export default function Navbar() {
                   <div className="w-56 bg-[#0a0705]/95 backdrop-blur-xl border border-[#c9a96e]/20 rounded-lg shadow-2xl overflow-hidden p-2">
 
                     <div className="px-4 py-3 border-b border-[#c9a96e]/10 mb-2">
-                      <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]">Welcome back</p>
-                      <p className="font-display text-lg text-[#e8dcc8]">{userName || 'User'}</p>
+                      <p className="text-label text-[#c9a96e] mb-1">Welcome back</p>
+                      <p className="font-display text-lg text-[#e8dcc8] tracking-wider">{userName || 'User'}</p>
                     </div>
 
                     <Link

@@ -35,11 +35,9 @@
 .nav-link:hover::after { width: 100%; }
 
 .hero-title {
+  /* Defers to .text-display in index.css */
   font-family: var(--font-display);
   font-size: clamp(3.5rem, 10vw, 8rem);
-  font-weight: 300;
-  line-height: 0.95;
-  letter-spacing: -0.02em;
   color: #e8dcc8;
 }
 
@@ -63,20 +61,13 @@
   box-shadow: 0 0 12px #c9a96e88;
 }
 
-.btn-primary {
-  letter-spacing: 0.25em;
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  font-weight: 400;
-  border: 1px solid #c9a96e66;
-  color: #c9a96e;
-  padding: 0.85rem 2.5rem;
+/* btn-primary mechanics moved to index.css base button classes for consistency */
+.btn-primary-home-specific {
   position: relative;
   overflow: hidden;
-  transition: color 0.4s, border-color 0.4s;
 }
 
-.btn-primary::before {
+.btn-primary-home-specific::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -85,10 +76,9 @@
   transition: transform 0.4s cubic-bezier(0.77, 0, 0.18, 1);
 }
 
-.btn-primary:hover { color: #0d0905; border-color: #c9a96e; }
-.btn-primary:hover::before { transform: translateX(0); }
+.btn-primary-home-specific:hover::before { transform: translateX(0); }
 
-.btn-primary span { position: relative; z-index: 1; }
+.btn-primary-home-specific span { position: relative; z-index: 1; }
 
 .img-placeholder {
   background: linear-gradient(135deg, #1a1410 0%, #2a1f15 50%, #1a1410 100%);
@@ -221,9 +211,9 @@
 
 .nb-logo-sub {
   font-family: var(--font-body);
-  font-size: 0.42rem;
-  font-weight: 300;
-  letter-spacing: 0.38em;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--sand);
   opacity: 0.7;
@@ -518,9 +508,9 @@
 
 .ft-prefooter-eyebrow {
   font-family: var(--font-body);
-  font-size: 0.6rem;
-  font-weight: 300;
-  letter-spacing: 0.28em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--sand);
   margin: 0;
@@ -602,8 +592,8 @@
 
 .ft-logo-sub {
   font-family: var(--font-body);
-  font-size: 0.42rem;
-  letter-spacing: 0.38em;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--sand);
   opacity: 0.6;
@@ -644,9 +634,9 @@
 
 .ft-col-title {
   font-family: var(--font-body);
-  font-size: 0.58rem;
-  font-weight: 400;
-  letter-spacing: 0.22em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-primary);
   margin: 0;
@@ -734,9 +724,9 @@
 .ft-legal-copy,
 .ft-legal-craft {
   font-family: var(--font-body);
-  font-size: 0.55rem;
-  font-weight: 300;
-  letter-spacing: 0.15em;
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
   color: var(--text-muted);
 }
 
@@ -1266,9 +1256,9 @@
   align-items: center;
   gap: 1rem;
   font-family: var(--font-body);
-  font-size: 0.6rem;
-  font-weight: 300;
-  letter-spacing: 0.28em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--sand);
 }
@@ -1284,9 +1274,9 @@
 .bs-headline {
   font-family: var(--font-display);
   font-size: clamp(2rem, 3.5vw, 3.25rem);
-  font-weight: 300;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
   margin: 0;
 }
@@ -1326,14 +1316,14 @@
   font-size: 1.75rem;
   font-weight: 400;
   color: var(--sand);
-  letter-spacing: -0.01em;
-  line-height: 1;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 
 .bs-stat-label {
   font-family: var(--font-body);
-  font-size: 0.58rem;
-  font-weight: 300;
+  font-size: 0.65rem;
+  font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -1345,13 +1335,13 @@
   gap: 0.75rem;
   width: fit-content;
   font-family: var(--font-body);
-  font-size: 0.6rem;
-  font-weight: 400;
-  letter-spacing: 0.22em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-primary);
   border: 0.5px solid color-mix(in srgb, var(--sand) 40%, transparent);
-  padding: 0.85rem 2rem;
+  padding: 0.75rem 1.5rem;
   background: transparent;
   cursor: pointer;
   transition:
@@ -1425,9 +1415,9 @@
   align-items: center;
   gap: 1rem;
   font-family: var(--font-body);
-  font-size: 0.6rem;
-  font-weight: 300;
-  letter-spacing: 0.28em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--sand);
   margin-bottom: 0.85rem;
@@ -1444,8 +1434,9 @@
 .fp-headline {
   font-family: var(--font-display);
   font-size: clamp(2rem, 4vw, 3.25rem);
-  font-weight: 300;
-  line-height: 1.1;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
   margin: 0;
 }
@@ -1583,9 +1574,9 @@
 
 .fp-card-family {
   font-family: var(--font-body);
-  font-size: 0.5rem;
-  font-weight: 300;
-  letter-spacing: 0.22em;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--sand);
   opacity: 0.7;
@@ -1602,10 +1593,11 @@
 .fp-card-name {
   font-family: var(--font-display);
   font-size: 1.3rem;
-  font-weight: 300;
+  font-weight: 400;
+  line-height: 1.05;
   color: var(--text-primary);
   margin: 0 0 0.75rem;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
 }
 
 .fp-card-price-row {

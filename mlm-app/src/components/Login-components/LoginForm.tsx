@@ -16,11 +16,11 @@ export default function LoginForm({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+    <form onSubmit={handleSubmit} className="space-y-6 backdrop-blur-xl bg-white/5 border border-white/10 rounded-sm p-8 shadow-glass">
       {/* Email Field */}
       {loginMethod === "email" && (
         <div>
-          <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
+          <label className="block mb-2 text-label text-zinc-400">
             Email Address
           </label>
           <input
@@ -28,7 +28,7 @@ export default function LoginForm({
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
+            className="w-full px-4 py-3 text-[15px] rounded-sm bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-1 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
             placeholder="hello@aurora.com"
             required
           />
@@ -38,7 +38,7 @@ export default function LoginForm({
       {/* Phone Field */}
       {loginMethod === "phone" && (
         <div>
-          <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
+          <label className="block mb-2 text-label text-zinc-400">
             Phone Number
           </label>
           <input
@@ -46,7 +46,7 @@ export default function LoginForm({
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
+            className="w-full px-4 py-3 text-[15px] rounded-sm bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-1 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
             placeholder="+1 234 567 8900"
             required
           />
@@ -55,7 +55,7 @@ export default function LoginForm({
 
       {/* Password Field */}
       <div>
-        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
+        <label className="block mb-2 text-label text-zinc-400">
           Password
         </label>
         <div className="relative">
@@ -64,7 +64,7 @@ export default function LoginForm({
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600"
+            className="w-full px-4 py-3 text-[15px] rounded-sm bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-1 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600"
             placeholder="Enter your password"
             required
           />
@@ -129,7 +129,7 @@ export default function LoginForm({
       {/* Submit Button */}
       <button
         type="submit"
-        className="w-full py-3.5 text-[14px] uppercase tracking-widest rounded-lg font-medium transition-all bg-[#c9a96e] text-black hover:bg-[#e8dcc8] shadow-[0_0_20px_rgba(201,169,110,0.2)]"
+        className="w-full btn-primary"
       >
         Sign In
       </button>

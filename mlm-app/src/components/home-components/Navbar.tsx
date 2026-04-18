@@ -275,7 +275,7 @@ export default function Navbar() {
           onMouseMove={onLogoMove}
           onMouseLeave={onLogoLeave}
         >
-          <img src="/logo.png" alt="Hadi Perfumes" className="h-[26px] w-auto object-contain" />
+          <img src="/logo.png" alt="Hadi Perfumes" className="h-[26px] w-auto object-contain scale-150 transform origin-center" />
         </Link>
 
         <nav className="nb2-nav nb2-nav-desktop" role="navigation" aria-label="Primary">

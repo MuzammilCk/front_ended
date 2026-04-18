@@ -87,32 +87,32 @@ export default function Cart() {
   const isCartValid = availableItems.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8] font-serif pb-24 md:pb-0">
+    <div className="min-h-screen bg-void text-text-primary font-serif pb-24 md:pb-0">
       
       {/* Navbar REMOVED: Now using Global Desktop Navbar */}
 
       {/* Subtle Grain Texture */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 opacity=%221%22/%3E%3C/svg%3E')" }} />
 
-      <main className="relative z-10 px-4 py-8 mx-auto max-w-[1400px] md:px-8 md:py-12">
+      <main className="relative z-10 px-4 section-padding mx-auto max-w-7xl md:px-8">
         <div className="mb-8 md:mb-12">
-          <h1 className="text-4xl md:text-5xl font-light font-display text-[#e8dcc8] tracking-tight">
+          <h1 className="text-display text-4xl md:text-5xl text-text-primary">
             Shopping <span className="text-[#c9a96e] italic">Cart</span>
           </h1>
         </div>
 
         {cartItems.length === 0 ? (
-          <div className="py-32 text-center flex flex-col items-center justify-center border border-[#c9a96e]/10 rounded-2xl bg-[#0d0a07]">
-            <div className="w-20 h-20 rounded-full bg-[#c9a96e]/5 flex items-center justify-center mb-6">
-              <ShoppingBag className="w-8 h-8 text-[#c9a96e]/40" />
+          <div className="py-32 text-center flex flex-col items-center justify-center border border-white/10 rounded-sm bg-white/5 shadow-glass">
+            <div className="w-20 h-20 rounded-full bg-sand/10 flex items-center justify-center mb-6">
+              <ShoppingBag className="w-8 h-8 text-sand/60" />
             </div>
-            <h2 className="mb-3 text-2xl font-display text-[#e8dcc8]">Your cart is empty</h2>
+            <h2 className="mb-4 text-display text-3xl text-text-primary">Your cart is empty</h2>
             <p className="text-white/40 font-sans font-light mb-8 max-w-sm">
               Discover your signature scent from our exclusive collection.
             </p>
             <Link
               to="/product"
-              className="px-8 py-3.5 bg-[#c9a96e] text-[#0a0705] text-xs font-medium uppercase tracking-widest rounded-lg hover:bg-[#e8c87a] transition-all shadow-[0_0_20px_rgba(201,169,110,0.15)]"
+              className="btn-primary px-8"
             >
               Explore Collection
             </Link>
@@ -121,7 +121,7 @@ export default function Cart() {
           <div className="grid gap-8 lg:gap-12 xl:grid-cols-12 items-start">
             {/* Left Column: Cart Items */}
             <div className="xl:col-span-8 flex flex-col gap-8">
-              <div className="border border-[#c9a96e]/15 rounded-xl overflow-hidden shadow-2xl bg-[#0d0a07]">
+              <div className="border border-white/10 rounded-sm overflow-hidden shadow-glass bg-white/5">
                 {availableItems.map((item) => (
                   <CartItemCard
                     key={item.id}
@@ -133,9 +133,9 @@ export default function Cart() {
               </div>
 
                {unavailableItems.length > 0 && (
-                <div className="border border-rose-500/20 rounded-xl overflow-hidden bg-[#0d0a07]">
+                <div className="border border-rose-500/20 rounded-sm overflow-hidden bg-white/5">
                   <div className="px-6 py-4 bg-rose-500/5 border-b border-rose-500/10">
-                    <p className="text-xs uppercase tracking-[0.2em] font-medium text-rose-400">
+                    <p className="text-label text-rose-400">
                       Currently Unavailable
                     </p>
                   </div>
@@ -190,7 +190,7 @@ export default function Cart() {
             <button 
               onClick={() => navigate('/checkout')}
               disabled={!isCartValid}
-              className="px-8 py-3.5 bg-[#c9a96e] text-[#0a0705] tracking-widest uppercase font-medium text-xs rounded-xl hover:bg-[#e8c87a] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(201,169,110,0.2)]"
+              className="btn-primary"
             >
               Checkout
             </button>

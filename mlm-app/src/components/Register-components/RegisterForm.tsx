@@ -36,10 +36,10 @@ export default function RegisterForm({
     agreeToTerms;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+    <form onSubmit={handleSubmit} className="space-y-6 backdrop-blur-xl bg-white/5 border border-white/10 rounded-sm p-8 shadow-glass">
       {/* Full Name */}
       <div>
-        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
+        <label className="block mb-2 text-label text-zinc-400">
           Full Name
         </label>
         <input
@@ -47,7 +47,7 @@ export default function RegisterForm({
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
+          className="w-full px-4 py-3 text-[15px] rounded-sm bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-1 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="John Doe"
           required
         />
@@ -55,7 +55,7 @@ export default function RegisterForm({
 
       {/* Email Address */}
       <div>
-        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
+        <label className="block mb-2 text-label text-zinc-400">
           Email Address
         </label>
         <input
@@ -63,7 +63,7 @@ export default function RegisterForm({
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
+          className="w-full px-4 py-3 text-[15px] rounded-sm bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-1 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="hello@aurora.com"
           required
         />
@@ -71,7 +71,7 @@ export default function RegisterForm({
 
       {/* Phone Number */}
       <div>
-        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
+        <label className="block mb-2 text-label text-zinc-400">
           Phone Number
         </label>
         <input
@@ -79,7 +79,7 @@ export default function RegisterForm({
           name="phone"
           value={formData.phone}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
+          className="w-full px-4 py-3 text-[15px] rounded-sm bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-1 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="+1 234 567 8900"
           required
         />
@@ -87,7 +87,7 @@ export default function RegisterForm({
 
       {/* Password */}
       <div>
-        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
+        <label className="block mb-2 text-label text-zinc-400">
           Password
         </label>
         <div className="relative">
@@ -96,7 +96,7 @@ export default function RegisterForm({
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600"
+            className="w-full px-4 py-3 text-[15px] rounded-sm bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-1 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600"
             placeholder="Create a strong password"
             required
           />
@@ -152,7 +152,7 @@ export default function RegisterForm({
 
       {/* Confirm Password */}
       <div>
-        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
+        <label className="block mb-2 text-label text-zinc-400">
           Confirm Password
         </label>
         <div className="relative">
@@ -161,10 +161,10 @@ export default function RegisterForm({
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className={`w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border ${formData.confirmPassword && !passwordsMatch
+            className={`w-full px-4 py-3 text-[15px] rounded-sm bg-white/[0.02] border ${formData.confirmPassword && !passwordsMatch
               ? "border-red-500/50 focus:ring-red-500/20"
               : "border-white/10 focus:border-[#c9a96e] focus:ring-[#c9a96e]/20"
-              } focus:ring-2 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600`}
+              } focus:ring-1 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600`}
             placeholder="Confirm your password"
             required
           />
@@ -219,7 +219,7 @@ export default function RegisterForm({
 
       {/* Referral Code (Required) */}
       <div>
-        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
+        <label className="block mb-2 text-label text-zinc-400">
           Referral Code <span className="text-xs text-[#c9a96e]">(Required)</span>
         </label>
         <input
@@ -227,7 +227,7 @@ export default function RegisterForm({
           name="referralCode"
           value={formData.referralCode}
           onChange={handleChange}
-          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
+          className="w-full px-4 py-3 text-[15px] rounded-sm bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-1 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="Enter referral code"
         />
       </div>
@@ -265,8 +265,8 @@ export default function RegisterForm({
       <button
         type="submit"
         disabled={!isFormValid}
-        className={`w-full py-3.5 text-[14px] uppercase tracking-widest rounded-lg font-medium transition-all ${isFormValid
-          ? "bg-[#c9a96e] text-black hover:bg-[#e8dcc8] shadow-[0_0_20px_rgba(201,169,110,0.2)]"
+        className={`w-full py-3.5 text-[14px] uppercase tracking-widest rounded-sm font-medium transition-all ${isFormValid
+          ? "btn-primary hover:text-white"
           : "bg-white/5 text-white/30 cursor-not-allowed border border-white/10"
           }`}
       >

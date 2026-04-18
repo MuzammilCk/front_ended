@@ -102,7 +102,7 @@ export default function MobileBottomNav() {
 
               {/* Label */}
               <span
-                className={`text-[9px] tracking-widest uppercase transition-all duration-200 ${
+                className={`text-[9px] tracking-widest font-medium uppercase transition-all duration-200 mt-0.5 ${
                   isActive
                     ? "text-[#c9a96e]"
                     : "text-[#e8dcc8]/30"

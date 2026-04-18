@@ -271,7 +271,7 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8]" style={{ fontFamily: 'Jost, sans-serif' }}>
+    <div className="min-h-screen bg-void text-text-primary">
       {priceGuardModal?.visible && (
         <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
           <div className="bg-[#0d0a07] border border-[#c9a96e]/30 rounded-xl p-8 max-w-md w-full shadow-2xl">
@@ -312,9 +312,9 @@ export default function Checkout() {
         </div>
       )}
 
-      <header className="sticky top-0 z-50 border-b border-[#c9a96e]/10 bg-[#0a0705]/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 border-b border-sand/10 bg-void/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          <Link to="/cart" className="font-serif text-2xl tracking-[0.25em] text-[#e8dcc8] hover:text-[#c9a96e] transition">
+          <Link to="/cart" className="font-serif text-2xl tracking-[0.25em] text-text-primary hover:text-sand transition">
             HADI
           </Link>
           {checkoutStep !== 'confirmed' && (
@@ -350,7 +350,7 @@ export default function Checkout() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+      <main className="max-w-7xl mx-auto px-4 md:px-8 section-padding">
         {checkoutStep === 'confirmed' && lastOrder ? (
           <div className="max-w-lg mx-auto py-20 text-center flex flex-col items-center">
             {/* Animated checkmark ring */}
@@ -400,10 +400,10 @@ export default function Checkout() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-16 items-start">
 
             <div className="lg:col-span-7 space-y-4">
-              <div className="lg:hidden bg-[#0d0a07] border border-[#c9a96e]/15 rounded-lg px-4 py-3 flex justify-between items-center">
+              <div className="lg:hidden bg-white/5 border border-white/10 rounded-sm px-4 py-3 shadow-glass flex justify-between items-center">
                 <div>
-                  <p className="text-[10px] text-[#c9a96e] uppercase tracking-widest">Order Total</p>
-                  <p className="text-[#e8dcc8] font-serif text-lg">₹{(subtotal + shipping).toLocaleString('en-IN')}</p>
+                  <p className="text-label text-sand">Order Total</p>
+                  <p className="text-text-primary font-serif text-lg">₹{(subtotal + shipping).toLocaleString('en-IN')}</p>
                 </div>
                 <button
                   type="button"
@@ -415,7 +415,7 @@ export default function Checkout() {
               </div>
 
               {showMobileSummary && (
-                <div className="lg:hidden bg-[#0d0a07] border border-[#c9a96e]/15 rounded-lg p-4 space-y-3 -mt-2">
+                <div className="lg:hidden bg-white/5 border border-white/10 rounded-sm p-4 shadow-glass space-y-3 -mt-2">
                   {ctxItems.map((item: CartApiItem) => (
                     <div key={item.listing_id} className="flex justify-between items-center text-sm">
                       <span className="text-[#e8dcc8]/80 truncate max-w-[200px]">{item.title ?? 'Product'} × {item.qty}</span>
@@ -595,7 +595,7 @@ export default function Checkout() {
                   <button 
                     onClick={handleProceedToPayment} 
                     disabled={checkoutLoading}
-                    className="w-full mt-6 px-6 py-4 bg-[#c9a96e] text-[#0a0705] rounded-lg font-medium hover:bg-[#c9a96e]/90 transition disabled:opacity-50"
+                    className="btn-primary w-full mt-6 px-6 py-4 disabled:opacity-50"
                   >
                     {checkoutLoading ? "Preparing Payment..." : "Continue to Payment →"}
                   </button>
@@ -652,7 +652,7 @@ export default function Checkout() {
             </div>
 
             <aside className="hidden lg:block lg:col-span-5">
-              <div className="sticky top-[73px] bg-[#0d0a07] border border-[#c9a96e]/20 rounded-lg p-6 space-y-6">
+              <div className="sticky top-[73px] bg-white/5 border border-white/10 rounded-sm shadow-glass p-8 space-y-6">
 
                 {/* Reservation timer — only show when step is details, payment, or processing */}
                 {(checkoutStep === 'details' || checkoutStep === 'payment' || checkoutStep === 'processing') && (

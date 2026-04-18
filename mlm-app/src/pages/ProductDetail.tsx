@@ -29,7 +29,7 @@ function Accordion({ title, children, defaultOpen = false }: AccordionProps) {
         className="flex justify-between items-center w-full py-5 text-left
                    transition-colors hover:text-[#c9a96e] focus:outline-none"
       >
-        <span className="font-sans text-xs tracking-widest uppercase text-[#e8dcc8]">
+        <span className="text-label text-text-primary">
           {title}
         </span>
         <ChevronDown
@@ -133,7 +133,7 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative pt-16">
+    <div className="min-h-screen bg-void text-text-primary relative pt-16">
       <CartDrawer isOpen={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />
       {/* Sidebar */}
       <Sidebar
@@ -142,8 +142,8 @@ export default function ProductDetail() {
       />
 
       {/* Top bar */}
-      <nav className="fixed top-0 w-full z-40 bg-[#0a0705]/80 backdrop-blur-xl
-                      border-b border-[#c9a96e]/10">
+      <nav className="fixed top-0 w-full z-40 bg-void/80 backdrop-blur-xl
+                      border-b border-sand/10">
         <div className="max-w-[1600px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
 
           {/* Left: Hamburger + Back */}
@@ -160,8 +160,8 @@ export default function ProductDetail() {
             </button>
             <Link
               to="/product"
-              className="hidden md:flex items-center gap-1.5 text-[10px] font-sans
-                         uppercase tracking-widest text-[#c9a96e]/70 hover:text-[#c9a96e] transition"
+              className="hidden md:flex items-center gap-1.5 text-label
+                         text-sand/70 hover:text-sand transition"
             >
               <ArrowLeft className="w-3 h-3" /> Collection
             </Link>
@@ -179,15 +179,14 @@ export default function ProductDetail() {
           {/* Right: Cart count */}
           <button
             onClick={() => setCartDrawerOpen(true)}
-            className="font-sans text-xs uppercase tracking-widest text-white/70
-                       hover:text-white transition"
+            className="text-label text-white/70 hover:text-white transition"
           >
             Cart ({items.reduce((acc, i) => acc + i.qty, 0)})
           </button>
         </div>
       </nav>
 
-      <div className="px-4 py-20 sm:px-6 md:px-12 max-w-7xl mx-auto">
+      <div className="px-4 section-padding sm:px-6 md:px-12 max-w-7xl mx-auto">
 
         {/* Loading */}
         {isLoading && (
@@ -264,20 +263,19 @@ export default function ProductDetail() {
               <div className="lg:sticky lg:top-16 p-6 md:p-10 lg:h-[calc(100vh-64px)] lg:overflow-y-auto">
 
                 {/* Breadcrumb */}
-                <div className="flex items-center gap-2 text-[10px] font-sans uppercase
-                                tracking-[0.2em] text-white/40 mb-8">
-                  <Link to="/" className="hover:text-[#c9a96e] transition">Home</Link>
+                <div className="flex items-center gap-2 text-label text-white/40 mb-8">
+                  <Link to="/" className="hover:text-sand transition">Home</Link>
                   <span className="opacity-40">/</span>
-                  <Link to="/product" className="hover:text-[#c9a96e] transition">
+                  <Link to="/product" className="hover:text-sand transition">
                     {listing.category?.name || 'Collection'}
                   </Link>
                   <span className="opacity-40">/</span>
-                  <span className="text-[#c9a96e] truncate max-w-[120px]">{listing.sku}</span>
+                  <span className="text-sand truncate max-w-[120px]">{listing.sku}</span>
                 </div>
 
                 {/* Title + Price */}
                 <div className="mb-8">
-                  <h1 className="font-display text-4xl md:text-5xl text-[#e8dcc8] leading-[1.1] mb-4">
+                  <h1 className="text-display text-4xl md:text-5xl text-text-primary mb-4">
                     {listing.title}
                   </h1>
                   <p className="font-sans text-2xl text-[#c9a96e] font-light tracking-wide">
@@ -350,18 +348,16 @@ export default function ProductDetail() {
                 <div className="flex items-end gap-4 mb-6">
                   {/* Volume badge (static — could be made dynamic later) */}
                   <div className="flex-1">
-                    <span className="block text-[10px] font-sans uppercase tracking-widest
-                                     text-white/50 mb-2">Volume</span>
-                    <div className="border border-[#c9a96e]/30 px-4 py-3 text-xs text-center
-                                    font-sans tracking-widest bg-[#c9a96e]/5 text-[#c9a96e]">
+                    <span className="block text-label text-white/50 mb-2">Volume</span>
+                    <div className="border border-sand/30 px-4 py-3 text-center
+                                    text-label bg-sand/5 text-sand">
                       50 ML
                     </div>
                   </div>
 
                   {/* Quantity stepper */}
                   <div>
-                    <span className="block text-[10px] font-sans uppercase tracking-widest
-                                     text-white/50 mb-2">Quantity</span>
+                    <span className="block text-label text-white/50 mb-2">Quantity</span>
                     <div className="flex items-center border border-[#2a2a2a]">
                       <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -396,13 +392,12 @@ export default function ProductDetail() {
                   type="button"
                   onClick={handleAddToCart}
                   disabled={isAdding || listing.status !== 'active'}
-                  className={`w-full py-4 font-sans text-xs uppercase tracking-[0.2em] font-medium
-                    transition-all duration-300
+                  className={`w-full btn-primary px-0 text-sm py-4
                     ${listing.status !== 'active'
-                      ? 'bg-[#2a2a2a] text-white/30 cursor-not-allowed'
+                      ? 'bg-[#2a2a2a] text-white/30 cursor-not-allowed border-none'
                       : isAdding
                         ? 'bg-[#e8c87a] text-black scale-[0.98] cursor-not-allowed'
-                        : 'bg-[#c9a96e] text-[#0a0705] hover:bg-[#e8c87a] active:scale-[0.98]'}`}
+                        : ''}`}
                 >
                   {isAdding ? 'Adding...' : listing.status !== 'active' ? listing.status.replace('_', ' ') : 'Add to Bag'}
                 </button>

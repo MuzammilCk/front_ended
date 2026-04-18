@@ -231,7 +231,7 @@ function ReferralsPanel({ code }: { code: string }) {
 
 function ProfileSkeleton() {
   return (
-    <div className="flex gap-8 animate-pulse">
+    <div className="flex gap-12 animate-pulse">
       {/* Left sidebar skeleton */}
       <div className="w-64 shrink-0 space-y-4">
         <div className="h-24 rounded-2xl bg-[#c9a96e]/6 border border-[#c9a96e]/8" />
@@ -465,12 +465,12 @@ export default function Profile() {
   const isLoading = meLoading;
 
   return (
-    <div className="min-h-screen bg-[#0a0705] text-[#e8dcc8]">
+    <div className="min-h-screen bg-void text-[#e8dcc8]">
 
       {/* ── DESKTOP LAYOUT ── */}
       <div className="hidden md:block">
         {/* Desktop Navbar is handled globally — no local hamburger needed */}
-        <div className="max-w-6xl mx-auto px-8 py-12">
+        <div className="max-w-6xl mx-auto px-8 section-padding">
 
           {isLoading ? (
             <ProfileSkeleton />
@@ -562,7 +562,7 @@ export default function Profile() {
       {/* ── MOBILE LAYOUT ── */}
       <div className="md:hidden">
         {/* Mobile top bar */}
-        <div className="sticky top-0 z-40 bg-[#0a0705]/95 backdrop-blur-sm border-b border-[#c9a96e]/10 px-4 py-4 flex items-center gap-4">
+        <div className="sticky top-0 z-40 bg-void/95 backdrop-blur-sm border-b border-[#c9a96e]/10 px-4 py-4 flex items-center gap-4">
           {mobileView !== "menu" && (
             <button
               type="button"

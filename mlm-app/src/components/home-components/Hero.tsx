@@ -33,17 +33,17 @@ export default function Hero() {
         <div>
           <div className="flex items-center gap-3 mb-8 fade-up">
             <div className="glow-dot" />
-            <span className="text-[#c9a96e] text-xs tracking-[0.3em] uppercase font-light">
+            <span className="text-label text-[#c9a96e]">
               New Collection 2025
             </span>
           </div>
 
-          <h1 className="mb-8 hero-title fade-up delay-1">
+          <h1 className="mb-8 text-display hero-title fade-up delay-1 text-[#e8dcc8]">
             The Art <br /><em>of Scent</em>
           </h1>
 
           <div className="flex items-center gap-6 fade-up delay-2">
-            <button className="btn-primary">
+            <button className="btn-primary btn-primary-home-specific">
               <span>Explore Now</span>
             </button>
             <Link to="/product" className="flex items-center gap-2 nav-link">
@@ -61,7 +61,7 @@ export default function Hero() {
       </div>
 
       <div className="absolute flex flex-col items-center gap-2 -translate-x-1/2 bottom-8 left-1/2 opacity-40">
-        <span className="text-xs tracking-[0.2em] uppercase text-muted">
+        <span className="text-label text-muted">
           Scroll
         </span>
         <div className="w-px h-12 bg-gradient-to-b from-[#c9a96e] to-transparent" />

@@ -370,7 +370,7 @@ export default function Register() {
                 setRemainingAttempts(5);
                 setApiError("");
               }}
-              className="w-full mt-2 py-2 text-xs text-white/40 hover:text-white/60 transition"
+              className="w-full mt-4 py-2 text-label text-white/40 hover:text-white/60 transition"
             >
               ← Change phone number
             </button>
@@ -398,15 +398,15 @@ export default function Register() {
                   navigate("/");
                 }}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-2.5 text-[15px] font-medium tracking-tight rounded-lg bg-transparent border border-[#c9a96e]/50 text-[#c9a96e] hover:bg-[#c9a96e]/10 hover:border-[#c9a96e] transition-all shadow-sm"
+                className="w-full btn-secondary px-0 border border-sand/50 text-sand hover:text-white"
               >
                 Continue as Guest
               </button>
             </div>
 
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-4 mb-6">
               <div className="flex-1 h-px bg-white/5" />
-              <span className="text-[11px] text-zinc-500 uppercase tracking-widest font-medium">or register with email</span>
+              <span className="text-label text-zinc-500">or register with email</span>
               <div className="flex-1 h-px bg-white/5" />
             </div>
 

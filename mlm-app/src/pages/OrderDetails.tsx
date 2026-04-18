@@ -118,8 +118,8 @@ const OrderDetails = () => {
     : -1;
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
-      <div className="max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-void text-zinc-100">
+      <div className="max-w-3xl mx-auto px-4 section-padding sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-8">
           <Link
             to="/profile"
@@ -140,18 +140,18 @@ const OrderDetails = () => {
           <span className="text-zinc-700">/</span>
           <span className="text-sm text-zinc-500">Order Details</span>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-100 mb-6">
+        <h1 className="text-display text-4xl text-zinc-100 mb-8">
           Order Details
         </h1>
 
         {loading === true && (
-          <div className="space-y-4 animate-pulse">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-3">
+          <div className="space-y-6 animate-pulse">
+            <div className="rounded-sm border border-white/10 bg-white/5 p-8 space-y-3 shadow-glass">
               <div className="h-4 w-1/3 bg-zinc-800 rounded" />
               <div className="h-4 w-1/2 bg-zinc-800 rounded" />
               <div className="h-5 w-24 bg-zinc-800 rounded-full" />
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+            <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
               <div className="flex justify-between">
                 {[...Array(5)].map((_, i) => (
                   <div key={i} className="flex flex-col items-center gap-2">
@@ -161,7 +161,7 @@ const OrderDetails = () => {
                 ))}
               </div>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-4">
+            <div className="rounded-sm border border-white/10 bg-white/5 p-8 space-y-4 shadow-glass">
               {[...Array(2)].map((_, i) => (
                 <div key={i} className="flex gap-4">
                   <div className="h-16 w-16 rounded-md bg-zinc-800 flex-shrink-0" />
@@ -188,11 +188,11 @@ const OrderDetails = () => {
         )}
 
         {!loading && !error && data !== null && (
-          <div className="space-y-5">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+          <div className="space-y-8">
+            <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="text-xs text-zinc-500 uppercase tracking-widest">Order</p>
+                <div className="space-y-2">
+                  <p className="text-label text-zinc-500">Order</p>
                   <p className="text-lg font-mono font-semibold text-zinc-100">
                     #{data.order.id.slice(0, 8).toUpperCase()}
                   </p>
@@ -216,14 +216,14 @@ const OrderDetails = () => {
             </div>
 
             {isTerminal ? (
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+              <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
                 <p className="text-sm text-zinc-400 text-center">
                   {TERMINAL_MESSAGES[data.order.status] ?? 'This order is in a terminal state.'}
                 </p>
               </div>
             ) : (
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 overflow-x-auto">
-                <p className="text-xs text-zinc-500 uppercase tracking-widest mb-5">
+              <div className="rounded-sm border border-white/10 bg-white/5 p-8 overflow-x-auto shadow-glass">
+                <p className="text-label text-zinc-500 mb-6">
                   Order Progress
                 </p>
                 <div className="flex items-start min-w-max">
@@ -287,8 +287,8 @@ const OrderDetails = () => {
               </div>
             )}
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-              <p className="text-xs text-zinc-500 uppercase tracking-widest mb-5">
+            <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
+              <p className="text-label text-zinc-500 mb-6">
                 Items Ordered
               </p>
               <div className="space-y-4">
@@ -328,8 +328,8 @@ const OrderDetails = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-              <p className="text-xs text-zinc-500 uppercase tracking-widest mb-5">
+            <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
+              <p className="text-label text-zinc-500 mb-6">
                 Delivery Information
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -354,8 +354,8 @@ const OrderDetails = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-              <p className="text-xs text-zinc-500 uppercase tracking-widest mb-5">
+            <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
+              <p className="text-label text-zinc-500 mb-6">
                 Payment Summary
               </p>
               <div className="space-y-2.5">
@@ -389,18 +389,17 @@ const OrderDetails = () => {
             </div>
 
             {(data.permissions?.can_cancel || data.permissions?.can_return) && (
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-                <p className="text-xs text-zinc-500 uppercase tracking-widest mb-5">
+              <div className="rounded-sm border border-white/10 bg-white/5 p-8 shadow-glass">
+                <p className="text-label text-zinc-500 mb-6">
                   Actions
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-4">
                   {data.permissions?.can_cancel && (
                     <div className="flex flex-col gap-2">
                       <button
                         onClick={handleCancel}
                         disabled={cancelling}
-                        className="px-5 py-2.5 rounded-lg border border-red-500/40 text-red-400 text-sm font-medium
-                                   hover:bg-red-500/10 hover:border-red-500/60 transition-colors
+                        className="btn-base border-red-500/40 text-red-500 hover:bg-red-500/10 hover:border-red-500/60
                                    disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                       >
                         {cancelling && (
@@ -435,8 +434,7 @@ const OrderDetails = () => {
                   {data.permissions?.can_return && (
                     <button
                       onClick={() => navigate(`/returns/new?order_id=${data.order.id}`)}
-                      className="px-5 py-2.5 rounded-lg border border-amber-500/40 text-amber-400 text-sm font-medium
-                                 hover:bg-amber-500/10 hover:border-amber-500/60 transition-colors"
+                      className="btn-base border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:border-amber-500/60"
                     >
                       Request Return
                     </button>
