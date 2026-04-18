@@ -54,17 +54,6 @@ export default function Wishlist() {
   return (
     <div className="min-h-screen bg-void text-[#e8dcc8] pb-20 md:pb-0">
 
-      {/* STICKY NAVBAR — matching other pages in the project */}
-      <div className="sticky top-0 z-40 bg-void/95 backdrop-blur-sm border-b border-[#c9a96e]/10 px-4 py-3 flex items-center justify-between">
-        <div className="w-10"></div> {/* spacer for flex balance */}
-        <div className="text-label text-sand">
-          MY WISHLIST
-        </div>
-        <div className="text-label text-white/40">
-          {wishlistCount} Items
-        </div>
-      </div>
-
       {/* TOAST NOTIFICATION */}
       {toastMessage && (
         <div
@@ -75,7 +64,7 @@ export default function Wishlist() {
         </div>
       )}
 
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8 section-padding">
+      <div className="max-w-[1400px] mx-auto px-4 md:px-8 page-container">
         {/* PAGE HEADER */}
         <div className="flex items-center justify-between mb-10">
           <Link

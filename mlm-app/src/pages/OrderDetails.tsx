@@ -180,7 +180,7 @@ const OrderDetails = () => {
 
   return (
     <div className="min-h-screen bg-void text-zinc-100">
-      <div className="max-w-3xl mx-auto px-4 section-padding sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto px-4 page-container sm:px-6 lg:px-8">
         <Link
           to="/profile"
           className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#c9a96e]/40 hover:text-[#c9a96e] transition-colors duration-500 mb-8"

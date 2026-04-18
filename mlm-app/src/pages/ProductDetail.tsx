@@ -141,52 +141,7 @@ export default function ProductDetail() {
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      {/* Top bar */}
-      <nav className="fixed top-0 w-full z-40 bg-void/80 backdrop-blur-xl
-                      border-b border-sand/10">
-        <div className="max-w-[1600px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-
-          {/* Left: Hamburger + Back */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              aria-label="Open menu"
-              className="p-2 -ml-2 text-white/70 hover:text-white transition"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
-                      d="M4 6h16M4 12h16M4 18h16"/>
-              </svg>
-            </button>
-            <Link
-              to="/product"
-              className="hidden md:flex items-center gap-1.5 text-label
-                         text-sand/70 hover:text-sand transition"
-            >
-              <ArrowLeft className="w-3 h-3" /> Collection
-            </Link>
-          </div>
-
-          {/* Center: Brand wordmark */}
-          <Link
-            to="/"
-            className="font-display text-2xl tracking-widest text-[#e8dcc8]
-                       absolute left-1/2 -translate-x-1/2"
-          >
-            HADI
-          </Link>
-
-          {/* Right: Cart count */}
-          <button
-            onClick={() => setCartDrawerOpen(true)}
-            className="text-label text-white/70 hover:text-white transition"
-          >
-            Cart ({items.reduce((acc, i) => acc + i.qty, 0)})
-          </button>
-        </div>
-      </nav>
-
-      <div className="px-4 section-padding sm:px-6 md:px-12 max-w-7xl mx-auto">
+      <div className="px-4 page-container sm:px-6 md:px-12 max-w-7xl mx-auto">
 
         {/* Loading */}
         {isLoading && (

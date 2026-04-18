@@ -472,7 +472,7 @@ export default function Profile() {
       {/* ── DESKTOP LAYOUT ── */}
       <div className="hidden md:block">
         {/* Desktop Navbar is handled globally — no local hamburger needed */}
-        <div className="max-w-6xl mx-auto px-8 section-padding">
+        <div className="max-w-6xl mx-auto px-8 page-container">
 
           {isLoading ? (
             <ProfileSkeleton />

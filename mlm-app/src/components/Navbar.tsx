@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useWishlist } from "../context/WishlistContext";
 import { User, Heart, ShoppingBag, LogOut, Package, Wallet } from "lucide-react";
+import { AnimatePresence, motion } from "../lib/motion";
 
 import { useCart } from "../context/CartContext";
 
@@ -71,56 +72,65 @@ export default function Navbar() {
             </Link>
 
               {/* THE MODERN DROPDOWN */}
-              {isLoggedIn && (
-                <div className={`absolute right-0 top-full pt-4 transition-all duration-300 ${isProfileOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2 pointer-events-none"
-                  }`}>
-                  <div className="w-56 bg-[#0a0705]/95 backdrop-blur-xl border border-[#c9a96e]/20 rounded-lg shadow-2xl overflow-hidden p-2">
+              <AnimatePresence>
+                {isLoggedIn && isProfileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full pt-4 z-50 origin-top-right"
+                  >
+                    <div className="w-56 bg-[#0d0905]/95 backdrop-blur-xl border border-[#c9a96e]/10 rounded-sm shadow-2xl overflow-hidden py-1">
 
-                    <div className="px-4 py-3 border-b border-[#c9a96e]/10 mb-2">
-                      <p className="text-label text-[#c9a96e] mb-1">Welcome back</p>
-                      <p className="font-display text-lg text-[#e8dcc8] tracking-wider">{userName || 'User'}</p>
+                      <div className="px-4 py-3 border-b border-[#c9a96e]/10 mb-1">
+                        <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/70 mb-1">Welcome back</p>
+                        <p className="font-display text-lg text-[#e8dcc8] tracking-wider leading-tight">{userName || 'User'}</p>
+                      </div>
+
+                      <div className="py-1">
+                        <Link
+                          to="/profile"
+                          state={{ tab: "account" }}
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#e8dfd0] hover:bg-white/5 transition-colors"
+                        >
+                          <User size={16} strokeWidth={1.5} /> My Profile
+                        </Link>
+                        <Link
+                          to="/profile"
+                          state={{ tab: "orders" }}
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#e8dfd0] hover:bg-white/5 transition-colors"
+                        >
+                          <Package size={16} strokeWidth={1.5} /> My Collection
+                        </Link>
+                        <Link
+                          to="/profile"
+                          state={{ tab: "wallet" }}
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#e8dfd0] hover:bg-white/5 transition-colors"
+                        >
+                          <Wallet size={16} strokeWidth={1.5} /> Hadi Reserve
+                        </Link>
+                      </div>
+
+                      <div className="mt-1 pt-1 border-t border-[#c9a96e]/10">
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            logout();
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/50 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                        >
+                          <LogOut size={16} strokeWidth={1.5} /> Sign Out
+                        </button>
+                      </div>
+
                     </div>
-
-                    <Link
-                      to="/profile"
-                      state={{ tab: "account" }}
-                      onClick={() => setIsProfileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors"
-                    >
-                      <User className="w-4 h-4" /> My Profile
-                    </Link>
-                    <Link
-                      to="/profile"
-                      state={{ tab: "orders" }}
-                      onClick={() => setIsProfileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors"
-                    >
-                      <Package className="w-4 h-4" /> My Collection
-                    </Link>
-                    <Link
-                      to="/profile"
-                      state={{ tab: "wallet" }}
-                      onClick={() => setIsProfileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 rounded-md transition-colors"
-                    >
-                      <Wallet className="w-4 h-4" /> Hadi Reserve
-                    </Link>
-
-                    <div className="mt-2 pt-2 border-t border-[#c9a96e]/10">
-                      <button
-                        onClick={() => {
-                          setIsProfileOpen(false);
-                          logout();
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400/80 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
-                      >
-                        <LogOut className="w-4 h-4" /> Sign Out
-                      </button>
-                    </div>
-
-                  </div>
-                </div>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
           {/* Wishlist Icon */}

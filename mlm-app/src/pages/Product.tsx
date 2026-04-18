@@ -273,7 +273,7 @@ export default function Product() {
 
       {/* Main Content */}
       <div>
-        <div className="px-4 section-padding text-white sm:px-6 md:px-12">
+        <div className="px-4 page-container text-white sm:px-6 md:px-12">
           {/* HEADER REMOVED: Now using Global Desktop Navbar */}
 
           {/* HERO */}

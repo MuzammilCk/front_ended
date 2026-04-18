@@ -199,6 +199,11 @@ html.sidebar-open {
   .section-padding {
     @apply py-16 md:py-24;
   }
+
+  /* Standard Page Wrapper Padding */
+  .page-container {
+    @apply pt-8 pb-16 md:pt-12 md:pb-24;
+  }
   
   .section-margin {
     @apply my-16 md:my-24;

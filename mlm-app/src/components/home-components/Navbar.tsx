@@ -323,15 +323,19 @@ export default function Navbar() {
               <User size={18} strokeWidth={1.5} />
             </Link>
           ) : (
-            <div className="relative flex items-center" ref={profileDropdownRef}>
-              <button
-                type="button"
+            <div 
+              className="relative flex items-center" 
+              ref={profileDropdownRef}
+              onMouseEnter={() => setProfileOpen(true)}
+              onMouseLeave={() => setProfileOpen(false)}
+            >
+              <Link
+                to="/profile"
                 className="nb2-icon-btn"
                 aria-label="User Account"
-                onClick={() => setProfileOpen(!profileOpen)}
               >
                 <User size={18} strokeWidth={1.5} />
-              </button>
+              </Link>
 
               <AnimatePresence>
                 {profileOpen && (
@@ -340,32 +344,32 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-full mt-2 w-56 bg-[#0d0a07] border border-[#c9a96e]/20 rounded-lg shadow-2xl overflow-hidden text-left z-50 backdrop-blur-xl"
+                    className="absolute right-0 top-full mt-2 w-56 bg-[#0d0905]/95 backdrop-blur-xl border border-[#c9a96e]/10 rounded-sm shadow-2xl overflow-hidden text-left z-50 py-1 origin-top-right"
                   >
-                    <div className="px-4 py-3 border-b border-[#c9a96e]/10">
-                      <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/70">Welcome back</p>
-                      <p className="font-display text-[#e8dcc8] text-lg mt-0.5">{userName ?? 'User'}</p>
+                    <div className="px-4 py-3 border-b border-[#c9a96e]/10 mb-1">
+                      <p className="text-[10px] uppercase tracking-widest text-[#c9a96e]/70 mb-1">Welcome back</p>
+                      <p className="font-display text-[#e8dcc8] text-lg tracking-wider leading-tight">{userName ?? 'User'}</p>
                     </div>
 
                     <div className="py-1">
-                      <Link to="/profile" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-[#e8dcc8]/80 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 transition-colors">
+                      <Link to="/profile" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#e8dfd0] hover:bg-white/5 transition-colors">
                         <User size={16} strokeWidth={1.5} /> My Profile
                       </Link>
-                      <Link to="/cart" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-[#e8dcc8]/80 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 transition-colors">
-                        <Package size={16} strokeWidth={1.5} /> My Orders
+                      <Link to="/profile" state={{ tab: "orders" }} onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#e8dfd0] hover:bg-white/5 transition-colors">
+                        <Package size={16} strokeWidth={1.5} /> My Collection
                       </Link>
-                      <Link to="/profile" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-[#e8dcc8]/80 hover:text-[#c9a96e] hover:bg-[#c9a96e]/5 transition-colors">
-                        <Wallet size={16} strokeWidth={1.5} /> Wallet
+                      <Link to="/profile" state={{ tab: "wallet" }} onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/70 hover:text-[#e8dfd0] hover:bg-white/5 transition-colors">
+                        <Wallet size={16} strokeWidth={1.5} /> Hadi Reserve
                       </Link>
                     </div>
 
-                    <div className="py-1 border-t border-[#c9a96e]/10">
+                    <div className="mt-1 pt-1 border-t border-[#c9a96e]/10">
                       <button
                         onClick={() => {
                           setProfileOpen(false);
                           void logout();
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400/90 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#e8dcc8]/50 hover:text-red-400 hover:bg-red-400/10 transition-colors"
                       >
                         <LogOut size={16} strokeWidth={1.5} /> Sign Out
                       </button>
