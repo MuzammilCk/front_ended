@@ -460,7 +460,7 @@ export default function Checkout() {
                       />
                       <label
                         htmlFor="field-name"
-                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest"
                       >
                         Full Name
                       </label>
@@ -484,7 +484,7 @@ export default function Checkout() {
                       <span className="absolute left-0 top-5 text-white/50 text-sm select-none peer-focus:text-[#c9a96e] transition-colors">+91</span>
                       <label
                         htmlFor="field-phone"
-                        className="absolute left-8 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:left-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:left-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                        className="absolute left-8 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:left-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:left-0 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest"
                       >
                         Phone Number
                       </label>
@@ -507,7 +507,7 @@ export default function Checkout() {
                     />
                     <label
                       htmlFor="field-line1"
-                      className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                      className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest"
                     >
                       Line 1 / Street
                     </label>
@@ -530,7 +530,7 @@ export default function Checkout() {
                       />
                       <label
                         htmlFor="field-pin"
-                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest"
                       >
                         PIN Code
                       </label>
@@ -552,7 +552,7 @@ export default function Checkout() {
                       />
                       <label
                         htmlFor="field-city"
-                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest"
                       >
                         City
                       </label>
@@ -571,7 +571,7 @@ export default function Checkout() {
                       />
                       <label
                         htmlFor="field-state"
-                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:uppercase peer-not-placeholder-shown:tracking-widest"
+                        className="absolute left-0 top-4 text-sm text-[#e8dcc8]/40 transition-all duration-300 peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-[#c9a96e]/60 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest"
                       >
                         State
                       </label>

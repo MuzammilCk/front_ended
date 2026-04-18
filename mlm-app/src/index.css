@@ -4,6 +4,7 @@
 @import "@fontsource/jost/300.css";
 @import "@fontsource/jost/400.css";
 @import './styles/admin.css';
+@import './styles/Auth.css';
 
 @tailwind base;
 @tailwind components;

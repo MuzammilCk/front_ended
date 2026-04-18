@@ -5,11 +5,9 @@ import { ApiError } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-import RegisterHero from "../components/Register-components/RegisterHero";
 import RegisterForm from "../components/Register-components/RegisterForm";
-import { Alert } from "../components/ui/Alert";
 import OTPInput from "../components/ui/OTPInput";
-import { useCart } from "../context/CartContext";
+import gsap from "gsap";
 
 export default function Register() {
   const [searchParams] = useSearchParams();
@@ -27,8 +25,9 @@ export default function Register() {
 
   const navigate = useNavigate();
   const { signup } = useAuth();
-  type RegisterStep = "form" | "otp" | "creating" | "done";
-  const [step, setStep] = useState<RegisterStep>("form");
+  type FlowStep = "form" | "otp" | "creating" | "done";
+  const [flowStep, setFlowStep] = useState<FlowStep>("form");
+  const [registerStep, setRegisterStep] = useState(1); // 1, 2, or 3
   const [otp, setOtp] = useState("");
   const [sessionToken, setSessionToken] = useState("");
   const [apiError, setApiError] = useState("");
@@ -43,17 +42,113 @@ export default function Register() {
   // 409 redirect flag — shows message before navigating to login
   const [showLoginRedirect, setShowLoginRedirect] = useState(false);
 
-  const [buttonWidth, setButtonWidth] = useState<number>(400);
+  // Refs for GSAP animations
+  const editorialImageRef = useRef<HTMLImageElement>(null);
+  const formPanelRef = useRef<HTMLDivElement>(null);
+  const stepContentRef = useRef<HTMLDivElement>(null);
+  const otpContentRef = useRef<HTMLDivElement>(null);
 
+  // "Slow Reveal" animation — image scales 1.1 → 1.0, form fades in
   useEffect(() => {
-    const handleResize = () => {
-      // 48px from p-6 on the parent container (24px each side)
-      const width = Math.min(400, window.innerWidth - 48);
-      setButtonWidth(width);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    if (editorialImageRef.current) {
+      gsap.to(editorialImageRef.current, {
+        scale: 1,
+        duration: 2,
+        ease: "power2.out",
+      });
+    }
+    if (formPanelRef.current) {
+      gsap.fromTo(
+        formPanelRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
+      );
+    }
+  }, []);
+
+  // GSAP slide animation for step transitions
+  const animateStepTransition = useCallback((direction: "forward" | "backward") => {
+    if (!stepContentRef.current) return;
+    const el = stepContentRef.current;
+    const xOut = direction === "forward" ? -50 : 50;
+    const xIn = direction === "forward" ? 50 : -50;
+
+    gsap.to(el, {
+      x: xOut,
+      opacity: 0,
+      duration: 0.2,
+      ease: "power2.in",
+      onComplete: () => {
+        gsap.fromTo(
+          el,
+          { x: xIn, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.3, ease: "power2.out" }
+        );
+      },
+    });
+  }, []);
+
+  // GSAP slide animation for form ↔ OTP transitions
+  const animateToOtp = useCallback(() => {
+    const formEl = stepContentRef.current;
+    if (formEl) {
+      gsap.to(formEl, {
+        x: -50,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+        onComplete: () => {
+          setFlowStep("otp");
+          // Animate OTP in after React renders it (next tick)
+          requestAnimationFrame(() => {
+            if (otpContentRef.current) {
+              gsap.fromTo(
+                otpContentRef.current,
+                { x: 50, opacity: 0 },
+                { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" }
+              );
+            }
+          });
+        },
+      });
+    } else {
+      setFlowStep("otp");
+    }
+  }, []);
+
+  const animateBackToForm = useCallback(() => {
+    const otpEl = otpContentRef.current;
+    if (otpEl) {
+      gsap.to(otpEl, {
+        x: 50,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+        onComplete: () => {
+          setFlowStep("form");
+          setOtp("");
+          setOtpAttempts(0);
+          setRemainingAttempts(5);
+          setApiError("");
+          // Animate form back in after React renders it (next tick)
+          requestAnimationFrame(() => {
+            if (stepContentRef.current) {
+              gsap.fromTo(
+                stepContentRef.current,
+                { x: -50, opacity: 0 },
+                { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" }
+              );
+            }
+          });
+        },
+      });
+    } else {
+      setFlowStep("form");
+      setOtp("");
+      setOtpAttempts(0);
+      setRemainingAttempts(5);
+      setApiError("");
+    }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,7 +234,7 @@ export default function Register() {
       // Success — proceed to signup
       setOtpAttempts(0);
       setSessionToken(result.session_token);
-      setStep("creating");
+      setFlowStep("creating");
     } catch (err) {
       // CRITICAL: Stay on OTP step — NEVER redirect on wrong OTP.
       // Clear the OTP input so the user can retype cleanly.
@@ -150,10 +245,7 @@ export default function Register() {
       if (err instanceof ApiError) {
         // Parse remaining_attempts from structured backend response
         try {
-          // The body might be the raw message (already parsed by client.ts),
-          // or it might contain JSON with remaining_attempts
           const bodyStr = err.body;
-          // Check if it contains structured info
           if (bodyStr.includes('remaining')) {
             setApiError(bodyStr);
           } else {
@@ -176,19 +268,61 @@ export default function Register() {
     }
   };
 
+  // Step navigation with validation
+  const handleNextStep = () => {
+    setApiError("");
+    if (registerStep === 1) {
+      if (!formData.name.trim()) {
+        setApiError("Full name is required.");
+        return;
+      }
+      if (!formData.email.trim()) {
+        setApiError("Email address is required.");
+        return;
+      }
+      if (!formData.phone.trim()) {
+        setApiError("Phone number is required.");
+        return;
+      }
+      animateStepTransition("forward");
+      setTimeout(() => setRegisterStep(2), 200);
+    } else if (registerStep === 2) {
+      const pw = formData.password;
+      const valid = pw.length >= 8 && /[A-Z]/.test(pw) && /[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+      if (!valid) {
+        setApiError("Password does not meet the strength requirements.");
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setApiError("Passwords do not match.");
+        return;
+      }
+      animateStepTransition("forward");
+      setTimeout(() => setRegisterStep(3), 200);
+    }
+  };
+
+  const handlePrevStep = () => {
+    setApiError("");
+    if (registerStep > 1) {
+      animateStepTransition("backward");
+      setTimeout(() => setRegisterStep(registerStep - 1), 200);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setApiError("");
 
-    // Step 1 — phone submitted → send OTP
-    if (step === "form") {
+    // Final form step → send OTP
+    if (flowStep === "form") {
       if (!formData.phone.trim()) {
         setApiError("Phone number is required.");
         return;
       }
       // Guard: referral_code is required by the backend (@IsNotEmpty)
       if (!formData.referralCode.trim()) {
-        setApiError("A referral code is required to create an account.");
+        setApiError("An Atelier Access Code is required to create an account.");
         return;
       }
       setIsLoading(true);
@@ -205,7 +339,7 @@ export default function Register() {
         setOtpAttempts(0);
         setRemainingAttempts(5);
         startResendCooldown();
-        setStep("otp");
+        animateToOtp();
       } catch (err) {
         if (err instanceof ApiError) {
           // Handle 409 — user already has an account
@@ -225,14 +359,14 @@ export default function Register() {
       return;
     }
 
-    // Step 2 — OTP submitted → verify and get session token
-    if (step === "otp") {
+    // OTP step → verify
+    if (flowStep === "otp") {
       return handleVerify(otp);
     }
   };
 
   useEffect(() => {
-    if (step !== "creating" || !sessionToken) return;
+    if (flowStep !== "creating" || !sessionToken) return;
 
     const performSignup = async () => {
       setIsLoading(true);
@@ -251,7 +385,7 @@ export default function Register() {
           },
           sessionToken,
         );
-        setStep("done");
+        setFlowStep("done");
         navigate("/product");
       } catch (err) {
         if (err instanceof ApiError) {
@@ -261,126 +395,91 @@ export default function Register() {
         } else {
           setApiError("Network error. Please check your connection.");
         }
-        setStep("form");
+        setFlowStep("form");
       } finally {
         setIsLoading(false);
       }
     };
 
     void performSignup();
-  }, [step, sessionToken, formData, signup, navigate]);
+  }, [flowStep, sessionToken, formData, signup, navigate]);
+
+  // Step headings
+  const stepHeadings: Record<number, { title: string; subtitle: string }> = {
+    1: { title: "Create Account", subtitle: "Join HADI and discover your signature scent" },
+    2: { title: "Secure Your Account", subtitle: "Create a strong password to protect your account" },
+    3: { title: "Almost There", subtitle: "Enter your exclusive access code to complete registration" },
+  };
+
+  const currentHeading = stepHeadings[registerStep] || stepHeadings[1];
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black">
-      <div 
-        className="absolute inset-0 w-full h-full"
-        style={{ 
-          backgroundImage: "url('/assets/auth-bg.webp')", 
-          backgroundSize: "cover", 
-          backgroundPosition: "center" 
-        }} 
-      />
-      <div 
-        className="absolute inset-0" 
-        style={{ backgroundImage: "linear-gradient(135deg, #0a0705ee, #1a140fee)" }} 
-      />
+    <div className="auth-layout">
+      {/* LEFT — Editorial Image Panel (desktop only) */}
+      <div className="auth-editorial">
+        <img
+          ref={editorialImageRef}
+          src="/assets/auth-bg.png"
+          alt="Luxury perfume editorial"
+          className="auth-editorial__image"
+        />
+        <div className="auth-editorial__overlay" />
+        <div className="auth-editorial__quote">
+          "Fragrance is the voice of inanimate things."
+          <span className="auth-editorial__quote-attribution">
+            — Mary Webb
+          </span>
+        </div>
+      </div>
 
-      {/* Floating content */}
-      <div className="relative z-10 min-h-screen p-6 text-white flex flex-col justify-between">
-        {/* BRAND HEADER */}
-        <header className="flex items-center justify-center w-full py-4">
-          <Link to="/" className="text-3xl tracking-widest font-display text-[#e8dcc8]">
-            HADI
+
+
+      {/* RIGHT — Form Panel */}
+      <div className="auth-form-panel">
+        <div ref={formPanelRef} className="auth-form-wrapper" style={{ opacity: 0 }}>
+          {/* Brand mark */}
+          <Link to="/" className="block text-center mb-8">
+            <span className="text-3xl tracking-widest font-display text-[#e8dcc8]">
+              HADI
+            </span>
           </Link>
-        </header>
 
-        {/* MAIN CONTENT */}
-        <div className="max-w-[400px] mx-auto w-full flex-1 flex flex-col justify-center">
-          <RegisterHero />
-
-        {apiError && (
-          <Alert variant="error" className="anim-rise mb-4">
-            {apiError}
-            {showLoginRedirect && (
-              <span className="block mt-1 text-xs">
-                Redirecting to login page…{" "}
-                <Link to="/login" className="underline text-[#c9a96e]">
-                  Go now
-                </Link>
-              </span>
-            )}
-          </Alert>
-        )}
-
-        {isLoading && (
-          <Alert variant="info" className="anim-rise mb-4 text-center">
-            {step === "creating" ? "Creating your account…" : "Please wait…"}
-          </Alert>
-        )}
-
-        {step === "otp" && (
-          <div className="mb-6 px-4 py-5 rounded-lg bg-white/5 border border-[#c9a96e]/20">
-            <p className="text-sm text-white/70 mb-3">
-              Enter the 6-digit OTP sent to{" "}
-              <span className="text-[#c9a96e]">{formData.phone}</span>
-            </p>
-            <OTPInput 
-              value={otp} 
-              onChange={setOtp} 
-              disabled={isLoading}
-              onComplete={(val) => {
-                setOtp(val);
-                void handleVerify(val);
-              }}
-            />
-            <button
-              type="button"
-              onClick={(e) => handleSubmit(e as unknown as React.FormEvent)}
-              disabled={isLoading}
-              className="w-full mt-3 py-2.5 text-sm tracking-widest border border-[#c9a96e] text-[#c9a96e] rounded-lg hover:bg-[#c9a96e] hover:text-black transition disabled:opacity-50"
-            >
-              {isLoading ? "Verifying…" : "VERIFY OTP"}
-            </button>
-
-            {/* Resend OTP + cooldown timer — MNC standard (30s cooldown) */}
-            <div className="flex items-center justify-between mt-3">
-              <button
-                type="button"
-                onClick={handleResendOtp}
-                disabled={isLoading || resendCooldown > 0}
-                className="text-xs text-[#c9a96e]/70 hover:text-[#c9a96e] transition disabled:text-white/50 disabled:cursor-not-allowed"
-              >
-                {resendCooldown > 0
-                  ? `Resend OTP in ${resendCooldown}s`
-                  : "Resend OTP"}
-              </button>
-              {otpAttempts > 0 && remainingAttempts > 0 && (
-                <span className="text-xs text-amber-400/80">
-                  {remainingAttempts} attempt{remainingAttempts !== 1 ? "s" : ""} left
-                </span>
-              )}
+          {/* Step dots indicator — 4 steps: Identity → Security → Access Code → Verify */}
+          {(flowStep === "form" || flowStep === "otp") && (
+            <div className="auth-step-dots">
+              {[1, 2, 3, 4].map((s) => {
+                const activeStep = flowStep === "otp" ? 4 : registerStep;
+                return (
+                  <div
+                    key={s}
+                    className={`auth-step-dot ${s === activeStep
+                      ? "auth-step-dot--active"
+                      : s < activeStep
+                        ? "auth-step-dot--completed"
+                        : ""
+                      }`}
+                  />
+                );
+              })}
             </div>
+          )}
 
-            <button
-              type="button"
-              onClick={() => {
-                setStep("form");
-                setOtp("");
-                setOtpAttempts(0);
-                setRemainingAttempts(5);
-                setApiError("");
-              }}
-              className="w-full mt-4 py-2 text-label text-white/40 hover:text-white/60 transition"
-            >
-              ← Change phone number
-            </button>
-          </div>
-        )}
+          {/* Heading — changes per step */}
+          {flowStep === "form" && (
+            <div className="text-center mb-8">
+              <h1 className="text-display text-3xl text-white/90 mb-2">
+                {currentHeading.title}
+              </h1>
+              <p className="text-sm text-[var(--text-muted)]">
+                {currentHeading.subtitle}
+              </p>
+            </div>
+          )}
 
-        {step === "form" && (
-          <>
-            <div className="mb-6 space-y-3 flex flex-col items-center">
-              <div className="w-full flex justify-center rounded-lg">
+          {/* Google SSO — only on Step 1 */}
+          {flowStep === "form" && registerStep === 1 && (
+            <>
+              <div className="w-full flex justify-center mb-4">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={() => {
@@ -388,45 +487,131 @@ export default function Register() {
                   }}
                   theme="filled_black"
                   shape="rectangular"
-                  width={String(buttonWidth)}
+                  width="440"
                   text="continue_with"
                 />
               </div>
-              
+
+              <div className="auth-divider">
+                <div className="auth-divider__line" />
+                <span className="auth-divider__text">or</span>
+                <div className="auth-divider__line" />
+              </div>
+            </>
+          )}
+
+          {/* Error Alert */}
+          {apiError && (
+            <div className="auth-error-toast" key={apiError}>
+              {apiError}
+              {showLoginRedirect && (
+                <span className="block mt-1 text-xs">
+                  Redirecting to login page…{" "}
+                  <Link to="/login" className="underline text-[#c9a96e]">
+                    Go now
+                  </Link>
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Loading indicator for account creation */}
+          {isLoading && flowStep === "creating" && (
+            <div className="text-center py-8">
+              <div className="auth-btn-spinner mx-auto mb-4" style={{ borderColor: "rgba(201,169,110,0.3)", borderTopColor: "#c9a96e", width: "2rem", height: "2rem" }} />
+              <p className="text-sm text-[var(--text-muted)]">Creating your account…</p>
+            </div>
+          )}
+
+          {/* OTP Step */}
+          {flowStep === "otp" && (
+            <div ref={otpContentRef} style={{ opacity: 0 }}>
+              <div className="text-center mb-6">
+                <h1 className="text-display text-3xl text-white/90 mb-2">
+                  Verify Phone
+                </h1>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                  Enter the 6-digit OTP sent to{" "}
+                  <span className="text-[#c9a96e]">{formData.phone}</span>
+                </p>
+              </div>
+
+              <div className="auth-input-group" style={{ marginBottom: "1.5rem", padding: "1.25rem 1rem", borderRadius: "0.5rem", background: "#130e08", border: "1px solid rgba(201, 169, 110, 0.2)" }}>
+                <OTPInput
+                  value={otp}
+                  onChange={setOtp}
+                  disabled={isLoading}
+                  onComplete={(val) => {
+                    setOtp(val);
+                    void handleVerify(val);
+                  }}
+                />
+              </div>
+
               <button
-                onClick={() => {
-                  navigate("/");
-                }}
+                type="button"
+                onClick={(e) => handleSubmit(e as unknown as React.FormEvent)}
                 disabled={isLoading}
-                className="w-full btn-secondary px-0 border border-sand/50 text-sand hover:text-white"
+                className="auth-btn-primary"
               >
-                Continue as Guest
+                {isLoading ? <div className="auth-btn-spinner" /> : "VERIFY OTP"}
+              </button>
+
+              {/* Resend OTP + cooldown timer */}
+              <div className="flex items-center justify-between mt-4">
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={isLoading || resendCooldown > 0}
+                  className="text-xs hover:text-[#c9a96e] transition disabled:cursor-not-allowed"
+                  style={{ color: resendCooldown > 0 ? "var(--text-muted)" : "rgba(201,169,110,0.7)" }}
+                >
+                  {resendCooldown > 0
+                    ? `Resend OTP in ${resendCooldown}s`
+                    : "Resend OTP"}
+                </button>
+                {otpAttempts > 0 && remainingAttempts > 0 && (
+                  <span className="text-xs text-amber-400/80">
+                    {remainingAttempts} attempt{remainingAttempts !== 1 ? "s" : ""} left
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={animateBackToForm}
+                className="w-full mt-5 py-2 text-label transition"
+                style={{ color: "var(--text-muted)" }}
+              >
+                ← Change phone number
               </button>
             </div>
+          )}
 
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex-1 h-px bg-white/5" />
-              <span className="text-label text-zinc-500">or register with email</span>
-              <div className="flex-1 h-px bg-white/5" />
+          {/* Registration Form Steps */}
+          {flowStep === "form" && (
+            <div ref={stepContentRef}>
+              <RegisterForm
+                formData={formData}
+                handleChange={handleChange}
+                handleSubmit={handleSubmit}
+                currentStep={registerStep}
+                onNextStep={handleNextStep}
+                onPrevStep={handlePrevStep}
+                isLoading={isLoading}
+              />
             </div>
+          )}
 
-            <RegisterForm
-              formData={formData}
-              handleChange={handleChange}
-              handleSubmit={handleSubmit}
-            />
-          </>
-        )}
-        </div>
-
-        {/* CONSOLIDATED FOOTER */}
-        <div className="w-full text-center pb-6 mt-8">
-          <p className="text-sm text-white/50">
-            Already have an account?{" "}
-            <Link to="/login" className="text-[#c9a96e] hover:text-white transition-colors font-medium tracking-wide">
-              Sign in
-            </Link>
-          </p>
+          {/* Footer */}
+          <div className="text-center mt-8">
+            <p className="text-sm text-white/50">
+              Already have an account?{" "}
+              <Link to="/login" className="text-[#c9a96e] hover:text-white transition-colors font-medium tracking-wide">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

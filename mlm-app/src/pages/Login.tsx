@@ -1,39 +1,44 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { ApiError, getUserRole } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 import { googleLogin } from "../api/auth";
-import LoginHero from "../components/Login-components/LoginHero";
-import LoginMethodToggle from "../components/Login-components/LoginMethodToggle";
 import LoginForm from "../components/Login-components/LoginForm";
-import { Alert } from "../components/ui/Alert";
-import { useCart } from "../context/CartContext";
+import gsap from "gsap";
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
+
   const [formData, setFormData] = useState({
-    email: "",
-    phone: "",
+    identifier: "",
     password: "",
   });
 
   const [apiError, setApiError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const [buttonWidth, setButtonWidth] = useState<number>(400);
+  // Refs for GSAP animations
+  const editorialImageRef = useRef<HTMLImageElement>(null);
+  const formPanelRef = useRef<HTMLDivElement>(null);
 
+  // "Slow Reveal" animation — image scales 1.1 → 1.0, form fades in
   useEffect(() => {
-    const handleResize = () => {
-      // 48px from p-6 on the parent container (24px each side)
-      const width = Math.min(400, window.innerWidth - 48);
-      setButtonWidth(width);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    if (editorialImageRef.current) {
+      gsap.to(editorialImageRef.current, {
+        scale: 1,
+        duration: 2,
+        ease: "power2.out",
+      });
+    }
+    if (formPanelRef.current) {
+      gsap.fromTo(
+        formPanelRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
+      );
+    }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,10 +49,9 @@ export default function Login() {
     e.preventDefault();
     setApiError("");
 
-    const identifier = loginMethod === "phone" ? formData.phone.trim() : formData.email.trim();
-
+    const identifier = formData.identifier.replace(/\s/g, "").trim();
     if (!identifier) {
-      setApiError(loginMethod === "phone" ? "Phone number is required." : "Email is required.");
+      setApiError("Email or phone number is required.");
       return;
     }
     if (!formData.password) {
@@ -58,12 +62,15 @@ export default function Login() {
     setIsLoading(true);
     try {
       let submitIdentifier = identifier;
-      if (loginMethod === "phone" && !submitIdentifier.startsWith('+')) {
-        submitIdentifier = submitIdentifier.length === 10 ? `+91${submitIdentifier}` : `+${submitIdentifier}`;
+      // Auto-prepend country code for bare 10-digit numbers
+      if (/^\d{10}$/.test(submitIdentifier)) {
+        submitIdentifier = `+91${submitIdentifier}`;
+      } else if (/^\d+$/.test(submitIdentifier) && !submitIdentifier.startsWith('+')) {
+        submitIdentifier = `+${submitIdentifier}`;
       }
 
       await login({ identifier: submitIdentifier, password: formData.password });
-      
+
       const role = getUserRole();
       if (role === "admin" || role === "content_manager") {
         navigate("/admin");
@@ -83,7 +90,6 @@ export default function Login() {
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     if (!credentialResponse.credential) return;
-    
     setApiError("");
     setIsLoading(true);
     try {
@@ -106,83 +112,88 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black">
-      <div 
-        className="absolute inset-0 w-full h-full"
-        style={{ 
-          backgroundImage: "url('/assets/auth-bg.webp')", 
-          backgroundSize: "cover", 
-          backgroundPosition: "center" 
-        }} 
-      />
-      <div 
-        className="absolute inset-0" 
-        style={{ backgroundImage: "linear-gradient(135deg, #0a0705ee, #1a140fee)" }} 
-      />
+    <div className="auth-layout">
+      {/* LEFT — Editorial Image Panel (desktop only) */}
+      <div className="auth-editorial">
+        <img
+          ref={editorialImageRef}
+          src="/assets/auth-bg.png"
+          alt="Luxury perfume editorial"
+          className="auth-editorial__image"
+        />
+        <div className="auth-editorial__overlay" />
+        <div className="auth-editorial__quote">
+          "Wear a story. Leave a memory."
+          <span className="auth-editorial__quote-attribution">
+            — Hadi Perfumes
+          </span>
+        </div>
+      </div>
 
-      {/* Floating content */}
-      <div className="relative z-10 min-h-screen p-6 text-white flex flex-col justify-between">
-        {/* BRAND HEADER */}
-        <header className="flex items-center justify-center w-full py-4">
-          <Link to="/" className="text-3xl tracking-widest font-display text-[#e8dcc8]">
-            HADI
+
+
+      {/* RIGHT — Form Panel */}
+      <div className="auth-form-panel">
+        <div ref={formPanelRef} className="auth-form-wrapper" style={{ opacity: 0 }}>
+          {/* Brand mark */}
+          <Link to="/" className="block text-center mb-10">
+            <span className="text-3xl tracking-widest font-display text-[#e8dcc8]">
+              HADI
+            </span>
           </Link>
-        </header>
 
-        {/* MAIN CONTENT */}
-        <div className="max-w-[400px] mx-auto w-full flex-1 flex flex-col justify-center">
-          <LoginHero />
-          <LoginMethodToggle loginMethod={loginMethod} setLoginMethod={setLoginMethod} />
-          {apiError && <Alert variant="error" className="mb-4">{apiError}</Alert>}
-          {isLoading && <Alert variant="info" className="mb-4 text-center">Signing in…</Alert>}
-          
-          <div className="mb-6 space-y-3 flex flex-col items-center">
-            <div className="w-full flex justify-center rounded-lg">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => {
-                  setApiError("Google Sign-In was unsuccessful. Try again.");
-                }}
-                theme="filled_black"
-                shape="rectangular"
-                width={String(buttonWidth)}
-                text="continue_with"
-              />
-            </div>
-            
-            <button
-              onClick={() => {
-                navigate("/");
-              }}
-              disabled={isLoading}
-              className="w-full btn-secondary px-0 border border-sand/50 text-sand hover:text-white"
-            >
-              Continue as Guest
-            </button>
+          {/* Heading */}
+          <div className="text-center mb-8">
+            <h1 className="text-display text-3xl text-white/90 mb-2">
+              Welcome Back
+            </h1>
+            <p className="text-sm text-[var(--text-muted)]">
+              Sign in to continue your fragrance journey
+            </p>
           </div>
 
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1 h-px bg-white/5" />
-            <span className="text-label text-zinc-500">or with {loginMethod}</span>
-            <div className="flex-1 h-px bg-white/5" />
+          {/* Google SSO — Full width */}
+          <div className="w-full flex justify-center mb-4">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setApiError("Google Sign-In was unsuccessful. Try again.")}
+              theme="filled_black"
+              shape="rectangular"
+              width="440"
+              text="continue_with"
+            />
           </div>
 
+          {/* Divider */}
+          <div className="auth-divider">
+            <div className="auth-divider__line" />
+            <span className="auth-divider__text">or</span>
+            <div className="auth-divider__line" />
+          </div>
+
+          {/* Error Alert */}
+          {apiError && <div className="auth-error-toast" key={apiError}>{apiError}</div>}
+
+          {/* Login Form */}
           <LoginForm
-            loginMethod={loginMethod}
             formData={formData}
             handleChange={handleChange}
             handleSubmit={handleSubmit}
+            isLoading={isLoading}
           />
-        </div>
 
-        {/* CONSOLIDATED FOOTER */}
-        <div className="w-full text-center pb-6 mt-8">
-          <p className="text-sm text-white/50">
-            New to HADI?{" "}
-            <Link to="/register" className="text-[#c9a96e] hover:text-white transition-colors font-medium tracking-wide">
-              Create an account
-            </Link>
-          </p>
+          {/* Footer */}
+          <div className="text-center mt-8">
+            <p className="text-sm text-white/50">
+              New to HADI?{" "}
+              <Link
+                to="/register"
+                className="text-[#c9a96e] hover:text-white transition-colors font-medium tracking-wide"
+              >
+                Create an account
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
