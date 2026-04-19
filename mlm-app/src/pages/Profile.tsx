@@ -3,7 +3,7 @@
 // Desktop: two-column (sidebar nav + content panel).
 // Mobile: menu hub → navigate to section.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOnboardingStatus, getMe, updateMe } from "../api/auth";
@@ -341,27 +341,29 @@ export default function Profile() {
     staleTime: 60 * 1000,
   });
 
-  // ── Derived Data (unchanged from original) ──
-  const userData: UserData | null = meData
-    ? {
-        name: meData.full_name || "User",
-        email: meData.email || "",
-        mobile: meData.phone || "",
-        walletBalance: walletData?.available ?? 0,
-        referralCode:
-          (meData as any).referral_code || meData.id.slice(0, 8).toUpperCase(),
-        joinedDate: meData.onboarding_completed_at
-          ? new Date(meData.onboarding_completed_at).toLocaleDateString("en-US", {
-              month: "long",
-              year: "numeric",
-            })
-          : "Member",
-      }
-    : null;
+  // ── Derived Data ──
+  const userData = useMemo<UserData | null>(() => {
+    return meData
+      ? {
+          name: meData.full_name || "User",
+          email: meData.email || "",
+          mobile: meData.phone || "",
+          walletBalance: walletData?.available ?? 0,
+          referralCode:
+            (meData as any).referral_code || meData.id.slice(0, 8).toUpperCase(),
+          joinedDate: meData.onboarding_completed_at
+            ? new Date(meData.onboarding_completed_at).toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
+              })
+            : "Member",
+        }
+      : null;
+  }, [meData, walletData]);
 
   useEffect(() => {
-    if (userData && !editForm) setEditForm(userData);
-  }, [userData]);
+    if (userData && !isEditing) setEditForm(userData);
+  }, [userData, isEditing]);
 
 
 
@@ -385,8 +387,9 @@ export default function Profile() {
     setIsSaving(true);
     setSaveError("");
     try {
-      await updateMe({ full_name: editForm.name, email: editForm.email });
-      setUserName(editForm.name);
+      const updatedProfile = await updateMe({ full_name: editForm.name, email: editForm.email });
+      // The backend is the source of truth, update context and UI directly using its response
+      setUserName(updatedProfile.full_name || editForm.name);
       await queryClient.invalidateQueries({ queryKey: ["me"] });
       setIsEditing(false);
     } catch {
