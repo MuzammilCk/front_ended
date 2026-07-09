@@ -3,11 +3,12 @@ import { Link, useSearchParams } from "react-router-dom";
 import * as Slider from "@radix-ui/react-slider";
 import gsap from "gsap";
 import "../styles/product.css";
-import Sidebar from "../components/Sidebar";
+
 
 import { getListings, getCategories } from "../api/listings";
 import type { Listing, ProductCategory } from "../api/types";
 import { useCart } from "../context/CartContext";
+import { useWishlist, type WishlistItem } from "../context/WishlistContext";
 import LuxuryImage from "../components/ui/LuxuryImage";
 import { getImageUrl } from "../utils/imageUrl";
 import { Alert } from "../components/ui/Alert";
@@ -21,7 +22,7 @@ export default function Product() {
   const activeSort = searchParams.get("sort") || "newest";
   const intensityFilter = searchParams.get("intensity") || "All";
   const priceMin = Number(searchParams.get("min")) || 0;
-  const priceMax = Number(searchParams.get("max")) || 500;
+  const priceMax = Number(searchParams.get("max")) || 15000;
 
   const updateSearchParam = (key: string, value: string | number) => {
     const next = new URLSearchParams(searchParams);
@@ -30,9 +31,9 @@ export default function Product() {
     setSearchParams(next);
   };
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [wishlist, setWishlist] = useState<string[]>([]);
 
+
+  const { isInWishlist, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlist();
   const { addItem, items } = useCart();
   const cartCount = items.reduce((acc, item) => acc + item.qty, 0);
 
@@ -148,10 +149,20 @@ export default function Product() {
     return () => observer.disconnect();
   }, [hasMore, isLoading]);
 
-  const toggleWishlist = (id: string) => {
-    setWishlist((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+  const handleWishlistToggle = (item: any) => {
+    if (isInWishlist(item.id)) {
+      removeFromWishlist(item.id);
+    } else {
+      addToWishlist({
+        id: item.id,
+        name: item.name,
+        type: item.type ?? "",
+        price: typeof item.price === "string" ? parseFloat(item.price) : item.price,
+        image: item.image ?? "",
+        notes: item.notes ?? "",
+        inStock: true,
+      });
+    }
   };
 
   const handleAddToCart = (e: React.MouseEvent, item: { id: string, title: string; price: string; image: string; notes: string }) => {
@@ -248,46 +259,12 @@ export default function Product() {
   }, [displayProducts, activeFamily, search, intensityFilter, priceMin, priceMax, activeSort]);
 
   return (
-    <div className="min-h-screen bg-black">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+    <div className="min-h-screen bg-black pb-20 md:pb-0">
 
       {/* Main Content */}
       <div>
-        {/* Mobile Header */}
-        <div className="sticky top-0 z-40 bg-black/95 backdrop-blur-sm border-b border-[#2a2a2a] p-4 flex items-center justify-between">
-          <button
-            type="button"
-            aria-label="Open navigation menu"
-            onClick={() => setIsSidebarOpen(prev => !prev)}
-            className="p-2 transition rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a96e]/40"
-          >
-            <svg
-              className="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path strokeWidth="1.5" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-
         <div className="px-4 py-8 text-white sm:px-6 sm:py-10 md:px-12">
-          {/* HEADER */}
-          <header className="flex items-center justify-between mb-12">
-            <Link to="/" className="text-xl tracking-wide font-display">
-              HADI
-            </Link>
-
-            <div 
-              className="cart-icon-target text-sm text-white/60 cursor-pointer hover:text-[#c9a96e] transition"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              Cart ({cartCount})
-            </div>
-          </header>
+          {/* HEADER REMOVED: Now using Global Desktop Navbar */}
 
           {/* HERO */}
           <div className="max-w-6xl mx-auto mb-12">
@@ -376,7 +353,7 @@ export default function Product() {
               <div className="flex-shrink-0 w-full lg:w-48">
                  <p className="text-[10px] uppercase tracking-widest text-white/40 mb-3 flex justify-between">
                    <span>Price Range</span>
-                   <span className="text-[#c9a96e]">${priceMin} - ${priceMax}</span>
+                   <span className="text-[#c9a96e]">INR {priceMin} - {priceMax}</span>
                  </p>
                  <Slider.Root 
                    className="relative flex items-center select-none touch-none w-full h-4" 
@@ -385,8 +362,8 @@ export default function Product() {
                      updateSearchParam("min", min);
                      updateSearchParam("max", max);
                    }} 
-                   max={500} 
-                   step={10}
+                   max={15000} 
+                   step={100}
                  >
                    <Slider.Track className="bg-[#2a2a2a] relative grow rounded-full h-[2px]">
                      <Slider.Range className="absolute bg-[#c9a96e] rounded-full h-full" />
@@ -445,21 +422,21 @@ export default function Product() {
 
                   {/* Wishlist Button */}
                   <button
-                    onClick={() => toggleWishlist(item.id)}
+                    onClick={() => handleWishlistToggle(item)}
                     type="button"
                     aria-label={
-                      wishlist.includes(item.id)
+                      isInWishlist(item.id)
                         ? "Remove from wishlist"
                         : "Add to wishlist"
                     }
-                    className={`absolute top-4 right-4 z-30 w-8 h-8 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${wishlist.includes(item.id)
-                        ? "bg-red-500 text-white"
+                    className={`absolute top-4 right-4 z-30 w-8 h-8 rounded-full flex items-center justify-center transition-all backdrop-blur-sm ${isInWishlist(item.id)
+                        ? "bg-[#c9a96e]/20 border border-[#c9a96e] text-[#c9a96e]"
                         : "bg-black/60 text-white/80 hover:bg-[#c9a96e] hover:text-black"
                       }`}
                   >
                     <svg
                       className="w-4 h-4"
-                      fill={wishlist.includes(item.id) ? "currentColor" : "none"}
+                      fill={isInWishlist(item.id) ? "currentColor" : "none"}
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >

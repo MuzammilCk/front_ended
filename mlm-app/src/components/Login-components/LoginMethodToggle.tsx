@@ -8,13 +8,13 @@ export default function LoginMethodToggle({
   setLoginMethod,
 }: LoginMethodToggleProps) {
   return (
-    <div className="flex gap-2 mb-6 bg-[#111] p-1 rounded-lg border border-[#333]">
+    <div className="flex gap-2 mb-6 bg-[#111] p-1 rounded-lg border border-white/10">
       <button
         type="button"
         onClick={() => setLoginMethod("email")}
         className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
           loginMethod === "email"
-            ? "bg-white text-black"
+            ? "bg-[#c9a96e] text-black"
             : "text-white/60 hover:text-white"
         }`}
       >
@@ -25,7 +25,7 @@ export default function LoginMethodToggle({
         onClick={() => setLoginMethod("phone")}
         className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
           loginMethod === "phone"
-            ? "bg-white text-black"
+            ? "bg-[#c9a96e] text-black"
             : "text-white/60 hover:text-white"
         }`}
       >

@@ -58,29 +58,44 @@ interface RefreshResponse {
   refresh_token: string;
 }
 
+let refreshTokenPromise: Promise<string | null> | null = null;
+
 async function refreshAccessToken(): Promise<string | null> {
+  // If a refresh is already in progress, wait for it to finish and reuse its result!
+  if (refreshTokenPromise) {
+    return refreshTokenPromise;
+  }
+
   const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
   if (!refreshToken) return null;
 
-  try {
-    const res = await fetch(`${BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
+  // Store the promise in the global variable before executing it
+  refreshTokenPromise = (async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
 
-    if (!res.ok) {
+      if (!res.ok) {
+        clearTokens();
+        return null;
+      }
+
+      const data = (await res.json()) as RefreshResponse;
+      setTokens(data.access_token, data.refresh_token);
+      return data.access_token;
+    } catch {
       clearTokens();
       return null;
+    } finally {
+      // CLEAR the Promise once it completes so future token expirations can refresh normally
+      refreshTokenPromise = null;
     }
+  })();
 
-    const data = (await res.json()) as RefreshResponse;
-    setTokens(data.access_token, data.refresh_token);
-    return data.access_token;
-  } catch {
-    clearTokens();
-    return null;
-  }
+  return refreshTokenPromise;
 }
 
 // ─── Error class ─────────────────────────────────────────────────────────────
@@ -117,8 +132,14 @@ export async function apiRequest<T>(
 
   let res = await fetch(url, { ...options, headers });
 
-  // Single retry after token refresh on 401
-  if (res.status === 401) {
+  // Single retry after token refresh on 401.
+  // IMPORTANT: Skip for /auth/* endpoints — they are unauthenticated flows
+  // (OTP verify, login, signup). A 401 from auth endpoints means "bad
+  // credentials", NOT "expired session". Intercepting them would destroy
+  // the registration form state via a hard redirect.
+  const isAuthEndpoint = path.startsWith('/auth/');
+
+  if (res.status === 401 && !isAuthEndpoint) {
     const newToken = await refreshAccessToken();
     if (newToken) {
       headers['Authorization'] = `Bearer ${newToken}`;
@@ -136,7 +157,20 @@ export async function apiRequest<T>(
 
   if (!res.ok) {
     const errorBody = await res.text();
-    throw new ApiError(res.status, errorBody);
+    // Parse NestJS JSON error responses to extract clean messages.
+    // NestJS returns { statusCode, message, error } — we only want `message`.
+    let cleanMessage = errorBody;
+    try {
+      const parsed = JSON.parse(errorBody);
+      if (parsed.message) {
+        cleanMessage = Array.isArray(parsed.message)
+          ? parsed.message.join('. ')
+          : parsed.message;
+      }
+    } catch {
+      // Not JSON — use raw text as-is
+    }
+    throw new ApiError(res.status, cleanMessage);
   }
 
   // Handle 204 No Content and other empty responses

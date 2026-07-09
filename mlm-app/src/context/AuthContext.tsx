@@ -30,6 +30,7 @@ export interface UseAuthReturn {
   signup: (payload: SignupPayload, sessionToken: string) => Promise<void>;
   logout: () => Promise<void>;
   userName?: string | null;
+  setUserName: (name: string) => void;
 }
 
 export const AuthContext = createContext<UseAuthReturn | null>(null);
@@ -46,6 +47,8 @@ function decodeJwtPayload(token: string): Record<string, unknown> {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
+
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   const [user, setUser] = useState<AuthUser | null>(() => {
     try {
@@ -108,8 +111,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate('/login');
   }, [navigate]);
 
+  const userName = displayName ?? (user as any)?.full_name ?? null;
+
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, role, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn, role, login, signup, logout, userName, setUserName: setDisplayName }}>
       {children}
     </AuthContext.Provider>
   );

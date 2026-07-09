@@ -70,7 +70,9 @@ export default function Testimonials() {
   const marqueeRef = useRef<HTMLDivElement>(null);
   const marqueeInnerRef = useRef<HTMLDivElement>(null);
 
-  const testimonialsData = data?.testimonials ?? FALLBACK_TESTIMONIALS;
+  const testimonialsData = Array.isArray(data?.testimonials) && data!.testimonials.length > 0
+    ? data!.testimonials
+    : FALLBACK_TESTIMONIALS;
   const allTestimonials = [...testimonialsData, ...testimonialsData];
 
   useGsapContext(() => {

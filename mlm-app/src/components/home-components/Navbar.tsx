@@ -16,12 +16,9 @@ const MEGA_MENU_CLOSE_DELAY = 300;
 const NAV_LINKS = [
   { label: "Home", to: "/" as const, mega: false },
   { label: "Shop", to: "/product" as const, mega: true },
-  { label: "Atelier", to: "/product" as const, mega: true },
-  { label: "Journal", to: "/" as const, mega: false },
-  { label: "About", to: "/" as const, mega: false },
 ] as const;
 
-type MegaMenuKind = "shop" | "atelier" | null;
+type MegaMenuKind = "shop" | null;
 
 function isMobileViewport() {
   return window.innerWidth < MOBILE_BREAKPOINT;
@@ -59,15 +56,15 @@ export default function Navbar() {
   // GSAP animation on Cart Count change
   useEffect(() => {
     if (!cartIconRef.current || cartCount === 0) return;
-    
+
     // Scale 1 -> 1.3 -> 1 with a gold pulse ring
     const tl = gsap.timeline();
     tl.to(cartIconRef.current, { scale: 1.3, duration: 0.15, ease: "power2.out" })
       .to(cartIconRef.current, { scale: 1, duration: 0.25, ease: "bounce.out" });
 
     // Assuming we want a ring effect, we can animate box-shadow via GSAP
-    gsap.fromTo(cartIconRef.current, 
-      { boxShadow: "0 0 0 0 rgba(201, 169, 110, 0.7)" }, 
+    gsap.fromTo(cartIconRef.current,
+      { boxShadow: "0 0 0 0 rgba(201, 169, 110, 0.7)" },
       { boxShadow: "0 0 0 10px rgba(201, 169, 110, 0)", duration: 0.6, ease: "power2.out" }
     );
   }, [cartCount]);
@@ -258,39 +255,27 @@ export default function Navbar() {
     [],
   );
 
-  const categoryLinks =
-    megaMenu === "atelier"
-      ? [
-          { label: "The Story", to: "/" },
-          { label: "Our Process", to: "/" },
-          { label: "Ingredients", to: "/" },
-          { label: "Sustainability", to: "/" },
-          { label: "Press", to: "/" },
-        ]
-      : [
-          { label: "All Fragrances", to: "/product" },
-          { label: "Woody & Resinous", to: "/product" },
-          { label: "Floral & Romantic", to: "/product" },
-          { label: "Fresh & Aquatic", to: "/product" },
-          { label: "Oriental & Spicy", to: "/product" },
-          { label: "New Arrivals", to: "/product" },
-          { label: "Bestsellers", to: "/product" },
-        ];
+  const categoryLinks = [
+    { label: "All Fragrances", to: "/product" },
+    { label: "Woody & Resinous", to: "/product" },
+    { label: "Floral & Romantic", to: "/product" },
+    { label: "Fresh & Aquatic", to: "/product" },
+    { label: "Oriental & Spicy", to: "/product" },
+    { label: "New Arrivals", to: "/product" },
+    { label: "Bestsellers", to: "/product" },
+  ];
 
   return (
-    <header className="nb2-header">
+    <header className="nb2-header hidden md:block">
       <div className={`nb2-inner${scrolled ? " nb2-inner--pill" : ""}`}>
         <Link
           ref={logoRef}
           to="/"
-          className="nb2-logo"
+          className="nb2-logo flex items-center justify-center"
           onMouseMove={onLogoMove}
           onMouseLeave={onLogoLeave}
         >
-          <span className="nb2-logo-stack">
-            <span className="nb2-logo-text">HADI</span>
-            <span className="nb2-logo-sub">PERFUMES</span>
-          </span>
+          <img src="/logo.png" alt="Hadi Perfumes" className="h-[26px] w-auto object-contain" />
         </Link>
 
         <nav className="nb2-nav nb2-nav-desktop" role="navigation" aria-label="Primary">
@@ -299,9 +284,7 @@ export default function Navbar() {
             const menuType: Exclude<MegaMenuKind, null> | null =
               item.label === "Shop"
                 ? "shop"
-                : item.label === "Atelier"
-                  ? "atelier"
-                  : null;
+                : null;
 
             if (item.mega && menuType) {
               return (
@@ -337,22 +320,22 @@ export default function Navbar() {
           {/* USER ACCOUNT ICON & DROPDOWN */}
           {!isLoggedIn ? (
             <Link to="/login" className="nb2-icon-btn" aria-label="User Account">
-              <User size={16} strokeWidth={1.5} />
+              <User size={18} strokeWidth={1.5} />
             </Link>
           ) : (
             <div className="relative flex items-center" ref={profileDropdownRef}>
-              <button 
+              <button
                 type="button"
                 className="nb2-icon-btn"
                 aria-label="User Account"
                 onClick={() => setProfileOpen(!profileOpen)}
               >
-                <User size={16} strokeWidth={1.5} />
+                <User size={18} strokeWidth={1.5} />
               </button>
 
               <AnimatePresence>
                 {profileOpen && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
@@ -377,7 +360,7 @@ export default function Navbar() {
                     </div>
 
                     <div className="py-1 border-t border-[#c9a96e]/10">
-                      <button 
+                      <button
                         onClick={() => {
                           setProfileOpen(false);
                           void logout();
@@ -394,10 +377,10 @@ export default function Navbar() {
           )}
 
           <Link to="/wishlist" className="nb2-icon-btn relative" aria-label="Wishlist">
-            <Heart size={16} strokeWidth={1.5} />
+            <Heart size={18} strokeWidth={1.5} />
           </Link>
           <Link ref={cartIconRef} to="/cart" className="nb2-icon-btn relative rounded-full" aria-label="Cart">
-            <ShoppingBag size={16} strokeWidth={1.5} />
+            <ShoppingBag size={18} strokeWidth={1.5} />
             {cartCount > 0 && (
               <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-bold text-[#0a0705] bg-[#c9a96e] rounded-full">
                 {cartCount}
@@ -412,7 +395,7 @@ export default function Navbar() {
             onClick={openPalette}
             aria-label="Open command palette"
           >
-            <Search size={15} strokeWidth={1.7} />
+            <Search size={18} strokeWidth={1.5} />
             <span className="nb2-search-kbd" aria-hidden>
               ⌘K
             </span>
@@ -446,7 +429,7 @@ export default function Navbar() {
               <div className="nb2-megamenu-left">
                 <p className="nb2-mm-eyebrow">Browse by</p>
                 <h3 className="nb2-mm-title">
-                  {megaMenu === "shop" ? "The Collection" : "Our Craft"}
+                  The Collection
                 </h3>
                 <nav className="nb2-mm-links" role="navigation" aria-label="Mega menu">
                   {categoryLinks.map((item) => (
@@ -499,7 +482,7 @@ export default function Navbar() {
             );
           })}
         </nav>
-        
+
         <div className="nb2-mobile-actions flex-col items-start gap-4 p-6 w-full">
           {isLoggedIn ? (
             <div className="w-full border-t border-[#c9a96e]/10 pt-4">

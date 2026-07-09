@@ -68,6 +68,7 @@ export interface Listing {
   sku: string;
   description: string | null;
   price: string; // NUMERIC from DB comes as string
+  quantity: number; // legacy field on listings table — do NOT use for stock display
   category_id: string | null;
   seller_id: string;
   status: string;
@@ -75,6 +76,15 @@ export interface Listing {
   authenticity_status: string | null;
   images: ListingImage[];
   category: ProductCategory | null;
+  /** Joined from inventory_items — only present in admin queries */
+  inventory_item?: {
+    id: string;
+    listing_id: string;
+    total_qty: number;
+    available_qty: number;
+    reserved_qty: number;
+    sold_qty: number;
+  } | null;
   created_at: string;
   updated_at: string;
 }
@@ -118,6 +128,11 @@ export interface OrderItem {
   created_at: string;
 }
 
+export interface OrderPermissions {
+  can_cancel: boolean;
+  can_return: boolean;
+}
+
 export interface Order {
   id: string;
   idempotency_key: string;
@@ -144,6 +159,7 @@ export interface Order {
 export interface OrderWithItems {
   order: Order;
   items: OrderItem[];
+  permissions: OrderPermissions;
 }
 
 export interface PaginatedOrders {
@@ -207,13 +223,23 @@ export interface AdminProductType {
 
 export type AdminTabType =
   | 'dashboard' | 'products' | 'add' | 'orders' | 'audit'
-  | 'categories' | 'inventory' | 'homepage' | 'network';
+  | 'categories' | 'inventory' | 'homepage' | 'network'
+  | 'trust' | 'finance';
 
 export const ORDER_STATUS_CLS: Record<string, string> = {
-  Delivered: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-  Shipped: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-  Processing: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
-  Cancelled: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+  created:            'bg-slate-500/10 text-slate-400 border border-slate-500/20',
+  payment_pending:    'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
+  payment_authorized: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+  paid:               'bg-sky-500/10 text-sky-400 border border-sky-500/20',
+  packing:            'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+  shipped:            'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+  delivered:          'bg-teal-500/10 text-teal-400 border border-teal-500/20',
+  completed:          'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+  cancelled:          'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+  payment_failed:     'bg-red-500/10 text-red-400 border border-red-500/20',
+  refunded:           'bg-purple-500/10 text-purple-400 border border-purple-500/20',
+  chargeback:         'bg-orange-500/10 text-orange-400 border border-orange-500/20',
+  disputed:           'bg-pink-500/10 text-pink-400 border border-pink-500/20',
 };
 
 // ─── Homepage API ────────────────────────────────────────────────────────────
@@ -302,6 +328,7 @@ export interface CartApiItem {
   image_url: string;
   notes: string;
   in_stock: boolean;
+  available_qty?: number;
   expires_at: string | null;
 }
 
@@ -338,3 +365,104 @@ export interface AdminDashboardStats {
   avg_order_value: number;
 }
 
+// ─── Trust & Safety ──────────────────────────────────────────────────────────
+
+export interface Dispute {
+  id: string;
+  order_id: string;
+  buyer_id: string;
+  return_request_id: string | null;
+  /** e.g. 'item_not_received' | 'item_not_as_described' | 'unauthorized_charge' | 'duplicate_charge' | 'other' */
+  reason_code: string;
+  reason_detail: string | null;
+  status: 'open' | 'under_review' | 'escalated' | 'resolved' | 'closed';
+  resolution: string | null;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  resolution_note: string | null;
+  escalated_at: string | null;
+  closed_at: string | null;
+  refund_triggered: boolean;
+  clawback_triggered: boolean;
+  idempotency_key: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReturnRequest {
+  id: string;
+  order_id: string;
+  buyer_id: string;
+  /** e.g. 'defective' | 'wrong_item' | 'not_as_described' | 'damaged' | 'other' */
+  reason_code: string;
+  reason_detail: string | null;
+  status: 'pending_review' | 'approved' | 'rejected' | 'completed' | 'escalated';
+  decision_note: string | null;
+  decided_by: string | null;
+  decided_at: string | null;
+  refund_triggered: boolean;
+  clawback_triggered: boolean;
+  idempotency_key: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FraudSignal {
+  id: string;
+  user_id: string | null;
+  order_id: string | null;
+  signal_type: string;
+  /** Stored as `severity` in the DB — values: 'low' | 'medium' | 'high' | 'critical' */
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  source: string;
+  evidence: Record<string, unknown> | null;
+  rule_ref: string | null;
+  status: 'new' | 'reviewed' | 'actioned' | 'false_positive';
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  idempotency_key: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── Finance ─────────────────────────────────────────────────────────────────
+
+export interface PayoutRequest {
+  id: string;
+  user_id: string;
+  /** NUMERIC from DB comes as number */
+  amount: number;
+  currency: string;
+  status: 'requested' | 'approved' | 'rejected' | 'batched' | 'sent' | 'failed' | 'cancelled';
+  idempotency_key: string;
+  payout_method: Record<string, unknown> | null;
+  batch_id: string | null;
+  ledger_entry_id: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  rejected_by: string | null;
+  rejected_at: string | null;
+  rejection_reason: string | null;
+  failure_reason: string | null;
+  provider_ref_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LedgerEntry {
+  id: string;
+  user_id: string;
+  /** e.g. 'commission_pending' | 'commission_available' | 'payout_requested' | 'payout_sent' … */
+  entry_type: string;
+  /** Positive = credit, Negative = debit. NUMERIC from DB comes as number */
+  amount: number;
+  currency: string;
+  status: 'pending' | 'settled' | 'reversed' | 'held';
+  reference_id: string;
+  reference_type: string;
+  reversal_of_entry_id: string | null;
+  note: string | null;
+  idempotency_key: string | null;
+  created_at: string;
+}

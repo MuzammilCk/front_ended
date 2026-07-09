@@ -1,34 +1,60 @@
-import { LayoutDashboard, Package, PlusCircle, Tag, ShoppingBag, Archive, Globe, Network, ScrollText } from 'lucide-react';
-import { Link as RouterLink } from 'react-router-dom';
+import {
+  LayoutDashboard, Package, PlusCircle, Tag, ShoppingBag,
+  Archive, Globe, Network, ScrollText, AlertTriangle, DollarSign, RotateCcw
+} from 'lucide-react';
+import { Link as RouterLink, NavLink } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '../../api/client';
 import { getUserFirstName, getUserRole } from '../../api/client';
-import type { AdminTabType } from '../../api/types';
 
-const NAV_GROUPS = [
-  { label: 'Overview',    items: [{ key: 'dashboard'  as AdminTabType, icon: LayoutDashboard, label: 'Dashboard'    }] },
-  { label: 'Catalogue',  items: [
-    { key: 'products'   as AdminTabType, icon: Package,       label: 'Products'     },
-    { key: 'add'        as AdminTabType, icon: PlusCircle,    label: 'Add Product'  },
-    { key: 'categories' as AdminTabType, icon: Tag,           label: 'Categories'   },
-  ]},
-  { label: 'Operations', items: [
-    { key: 'orders'     as AdminTabType, icon: ShoppingBag,   label: 'Orders'       },
-    { key: 'inventory'  as AdminTabType, icon: Archive,       label: 'Inventory'    },
-  ]},
-  { label: 'Content',    items: [{ key: 'homepage'  as AdminTabType, icon: Globe,         label: 'Homepage CMS' }] },
-  { label: 'Network',    items: [
-    { key: 'network'    as AdminTabType, icon: Network,       label: 'MLM Network'  },
-    { key: 'audit'      as AdminTabType, icon: ScrollText,    label: 'Audit Log'    },
-  ]},
-] as const;
-
-interface SidebarProps {
-  tab: AdminTabType;
-  setTab: (tab: AdminTabType) => void;
+interface NavItem {
+  key: string;
+  icon: typeof LayoutDashboard;
+  label: string;
 }
 
-export default function Sidebar({ tab, setTab }: SidebarProps) {
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  { label: 'Overview',    items: [{ key: 'dashboard',  icon: LayoutDashboard, label: 'Dashboard'    }] },
+  { label: 'Catalogue',   items: [
+    { key: 'products',   icon: Package,       label: 'Products'     },
+    { key: 'products/new', icon: PlusCircle,  label: 'Add Product'  },
+    { key: 'categories', icon: Tag,           label: 'Categories'   },
+  ]},
+  { label: 'Operations',  items: [
+    { key: 'orders',     icon: ShoppingBag,   label: 'Orders'       },
+    { key: 'inventory',  icon: Archive,       label: 'Inventory'    },
+  ]},
+  { label: 'Content',     items: [{ key: 'homepage', icon: Globe, label: 'Homepage CMS' }] },
+  { label: 'Network',     items: [
+    { key: 'network',    icon: Network,       label: 'MLM Network'  },
+    { key: 'audit',      icon: ScrollText,    label: 'Audit Log'    },
+  ]},
+  { label: 'Trust & Safety', items: [
+    { key: 'trust/disputes', icon: AlertTriangle, label: 'Disputes Desk' },
+    { key: 'trust/returns',  icon: RotateCcw,     label: 'Returns'       },
+  ]},
+  { label: 'Finance', items: [
+    { key: 'finance/payouts', icon: DollarSign, label: 'Payouts' },
+  ]},
+];
+
+export default function Sidebar() {
   const name = getUserFirstName() ?? 'Admin';
   const role = getUserRole() ?? 'admin';
+
+  // Fetch open disputes count
+  const { data: disputesRes } = useQuery({
+    queryKey: ['admin-open-disputes'],
+    queryFn: () => apiRequest<{ total: number }>('/admin/disputes?status=open'),
+    refetchInterval: 60000, // Re-fetch every minute for almost real-time updates
+  });
+  
+  const openDisputesCount = disputesRes?.total || 0;
 
   return (
     <aside className="w-64 shrink-0 border-r border-[#c9a96e]/10 bg-[#0d0a07] z-20 flex flex-col relative">
@@ -49,21 +75,34 @@ export default function Sidebar({ tab, setTab }: SidebarProps) {
             </p>
             <div className="flex flex-col gap-1">
               {group.items.map(item => {
-                const isActive = tab === item.key;
                 const Icon = item.icon;
                 return (
-                  <button
+                  <NavLink
                     key={item.key}
-                    onClick={() => setTab(item.key)}
-                    className={`flex items-center gap-4 px-4 py-3 border-l-2 transition-all duration-300 w-full text-left
-                      ${isActive 
-                        ? "border-[#c9a96e] bg-[#c9a96e]/5 text-[#e8dcc8]" 
-                        : "border-transparent text-muted/30 hover:border-[#c9a96e]/30 hover:text-[#e8dcc8] hover:bg-white/[0.02]"
-                      }`}
+                    to={`/admin/${item.key}`}
+                    end={item.key === 'products'}
+                    className={({ isActive }) =>
+                      `flex items-center gap-4 px-4 py-3 border-l-2 transition-all duration-300 w-full text-left
+                      ${isActive
+                        ? 'border-[#c9a96e] bg-[#c9a96e]/5 text-[#e8dcc8]'
+                        : 'border-transparent text-muted/30 hover:border-[#c9a96e]/30 hover:text-[#e8dcc8] hover:bg-white/[0.02]'
+                      }`
+                    }
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#c9a96e]' : 'text-muted/30'}`} />
-                    <span className="text-xs uppercase tracking-widest">{item.label}</span>
-                  </button>
+                    {({ isActive }) => (
+                      <>
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-[#c9a96e]' : 'text-muted/30'}`} />
+                        <span className="text-[11px] tracking-[0.2em] uppercase flex-1">
+                          {item.label}
+                        </span>
+                        {item.key === 'trust/disputes' && openDisputesCount > 0 && (
+                          <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] px-1.5 min-w-[1.25rem] text-center rounded-full">
+                            {openDisputesCount}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </NavLink>
                 );
               })}
             </div>

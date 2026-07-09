@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
+import PasswordStrengthMeter from "./PasswordStrengthMeter";
 
 interface RegisterFormProps {
   formData: any;
@@ -35,10 +36,10 @@ export default function RegisterForm({
     agreeToTerms;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6">
+    <form onSubmit={handleSubmit} className="space-y-4 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
       {/* Full Name */}
       <div>
-        <label className="block mb-2 text-sm font-medium text-white/80">
+        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
           Full Name
         </label>
         <input
@@ -46,7 +47,7 @@ export default function RegisterForm({
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className="w-full px-4 py-3 rounded-lg bg-[#111] border border-[#333] focus:border-white/30 focus:outline-none transition-colors"
+          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="John Doe"
           required
         />
@@ -54,7 +55,7 @@ export default function RegisterForm({
 
       {/* Email Address */}
       <div>
-        <label className="block mb-2 text-sm font-medium text-white/80">
+        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
           Email Address
         </label>
         <input
@@ -62,7 +63,7 @@ export default function RegisterForm({
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full px-4 py-3 rounded-lg bg-[#111] border border-[#333] focus:border-white/30 focus:outline-none transition-colors"
+          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="hello@aurora.com"
           required
         />
@@ -70,7 +71,7 @@ export default function RegisterForm({
 
       {/* Phone Number */}
       <div>
-        <label className="block mb-2 text-sm font-medium text-white/80">
+        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
           Phone Number
         </label>
         <input
@@ -78,7 +79,7 @@ export default function RegisterForm({
           name="phone"
           value={formData.phone}
           onChange={handleChange}
-          className="w-full px-4 py-3 rounded-lg bg-[#111] border border-[#333] focus:border-white/30 focus:outline-none transition-colors"
+          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="+1 234 567 8900"
           required
         />
@@ -86,7 +87,7 @@ export default function RegisterForm({
 
       {/* Password */}
       <div>
-        <label className="block mb-2 text-sm font-medium text-white/80">
+        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
           Password
         </label>
         <div className="relative">
@@ -95,7 +96,7 @@ export default function RegisterForm({
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg bg-[#111] border border-[#333] focus:border-white/30 focus:outline-none transition-colors pr-10"
+            className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600"
             placeholder="Create a strong password"
             required
           />
@@ -145,9 +146,13 @@ export default function RegisterForm({
         </div>
       </div>
 
+      {/* Password Requirements */}
+      <PasswordStrengthMeter password={formData.password} />
+
+
       {/* Confirm Password */}
       <div>
-        <label className="block mb-2 text-sm font-medium text-white/80">
+        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
           Confirm Password
         </label>
         <div className="relative">
@@ -156,11 +161,10 @@ export default function RegisterForm({
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className={`w-full px-4 py-3 rounded-lg bg-[#111] border ${
-              formData.confirmPassword && !passwordsMatch
-                ? "border-red-500"
-                : "border-[#333]"
-            } focus:border-white/30 focus:outline-none transition-colors pr-10`}
+            className={`w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border ${formData.confirmPassword && !passwordsMatch
+              ? "border-red-500/50 focus:ring-red-500/20"
+              : "border-white/10 focus:border-[#c9a96e] focus:ring-[#c9a96e]/20"
+              } focus:ring-2 focus:bg-white/[0.05] focus:outline-none transition-all pr-10 placeholder:text-zinc-600`}
             placeholder="Confirm your password"
             required
           />
@@ -215,7 +219,7 @@ export default function RegisterForm({
 
       {/* Referral Code (Required) */}
       <div>
-        <label className="block mb-2 text-sm font-medium text-white/80">
+        <label className="block mb-2 text-[13px] tracking-tight font-medium text-zinc-300">
           Referral Code <span className="text-xs text-[#c9a96e]">(Required)</span>
         </label>
         <input
@@ -223,7 +227,7 @@ export default function RegisterForm({
           name="referralCode"
           value={formData.referralCode}
           onChange={handleChange}
-          className="w-full px-4 py-3 rounded-lg bg-[#111] border border-[#333] focus:border-white/30 focus:outline-none transition-colors"
+          className="w-full px-4 py-2.5 text-[15px] rounded-lg bg-white/[0.02] border border-white/10 focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 focus:bg-white/[0.05] focus:outline-none transition-all placeholder:text-zinc-600"
           placeholder="Enter referral code"
         />
       </div>
@@ -235,58 +239,39 @@ export default function RegisterForm({
           id="terms"
           checked={agreeToTerms}
           onChange={(e) => setAgreeToTerms(e.target.checked)}
-          className="mt-1 w-4 h-4 rounded border-[#333] bg-[#111] text-white focus:ring-white/30"
+          className="mt-1 w-4 h-4 rounded border-white/10 bg-white/[0.02] text-[#c9a96e] focus:ring-white/20 focus:ring-1 transition-colors"
         />
-        <label htmlFor="terms" className="text-sm text-white/60">
+        <label htmlFor="terms" className="text-[13px] text-zinc-400 leading-relaxed">
           I agree to the{" "}
           <button
             type="button"
-            className="underline text-white/80 hover:text-white"
+            className="underline transition-colors text-zinc-300 hover:text-white"
           >
             Terms of Service
           </button>{" "}
           and{" "}
           <button
             type="button"
-            className="underline text-white/80 hover:text-white"
+            className="underline transition-colors text-zinc-300 hover:text-white"
           >
             Privacy Policy
           </button>
         </label>
       </div>
 
+
+
       {/* Submit Button */}
       <button
         type="submit"
         disabled={!isFormValid}
-        className={`w-full py-3 rounded-lg font-medium transition-all ${
-          isFormValid
-            ? "bg-white text-black hover:bg-white/90"
-            : "bg-white/20 text-white/40 cursor-not-allowed"
-        }`}
+        className={`w-full py-3.5 text-[14px] uppercase tracking-widest rounded-lg font-medium transition-all ${isFormValid
+          ? "bg-[#c9a96e] text-black hover:bg-[#e8dcc8] shadow-[0_0_20px_rgba(201,169,110,0.2)]"
+          : "bg-white/5 text-white/30 cursor-not-allowed border border-white/10"
+          }`}
       >
         Create Account
       </button>
-
-      {/* Password Requirements */}
-      <div className="flex flex-wrap gap-2 mt-2">
-        {[
-          { met: meetsLength, label: "8+ chars" },
-          { met: meetsUppercase, label: "Uppercase" },
-          { met: meetsNumber, label: "Number" },
-          { met: meetsSymbol, label: "Symbol" },
-        ].map(({ met, label }, i) => (
-          <div
-            key={i}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full transition-colors ${
-              met ? "bg-[#6db88a]/20 text-[#6db88a]" : "bg-white/10 text-white/40"
-            }`}
-          >
-            {met && <Check size={12} strokeWidth={2.5} />}
-            {label}
-          </div>
-        ))}
-      </div>
     </form>
   );
 }

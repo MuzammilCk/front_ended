@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { sendOtp, verifyOtp } from "../api/auth";
 import { ApiError } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
-import RegisterHeader from "../components/Register-components/RegisterHeader";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
 import RegisterHero from "../components/Register-components/RegisterHero";
 import RegisterForm from "../components/Register-components/RegisterForm";
-import RegisterFooter from "../components/Register-components/RegisterFooter";
 import { Alert } from "../components/ui/Alert";
 import OTPInput from "../components/ui/OTPInput";
 import { useCart } from "../context/CartContext";
@@ -27,7 +27,6 @@ export default function Register() {
 
   const navigate = useNavigate();
   const { signup } = useAuth();
-  const { setGuestSession } = useCart();
   type RegisterStep = "form" | "otp" | "creating" | "done";
   const [step, setStep] = useState<RegisterStep>("form");
   const [otp, setOtp] = useState("");
@@ -35,11 +34,93 @@ export default function Register() {
   const [apiError, setApiError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // OTP retry tracking — MNC pattern (Amazon/Flipkart)
+  const [otpAttempts, setOtpAttempts] = useState(0);
+  const [remainingAttempts, setRemainingAttempts] = useState(5);
+  // Resend cooldown timer (30s standard)
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // 409 redirect flag — shows message before navigating to login
+  const [showLoginRedirect, setShowLoginRedirect] = useState(false);
+
+  const [buttonWidth, setButtonWidth] = useState<number>(400);
+
+  useEffect(() => {
+    const handleResize = () => {
+      // 48px from p-6 on the parent container (24px each side)
+      const width = Math.min(400, window.innerWidth - 48);
+      setButtonWidth(width);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) return;
+
+    try {
+      const decoded = jwtDecode<{ name?: string; email?: string }>(credentialResponse.credential);
+      setFormData((prev) => ({
+        ...prev,
+        name: decoded.name || prev.name,
+        email: decoded.email || prev.email,
+      }));
+    } catch (err) {
+      console.error("Failed to decode Google token", err);
+    }
+  };
+
+  // Start resend cooldown timer (30 seconds — MNC standard)
+  const startResendCooldown = useCallback(() => {
+    setResendCooldown(30);
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    resendTimerRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    };
+  }, []);
+
+  // Resend OTP handler
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setApiError("");
+    setOtp("");
+    setOtpAttempts(0);
+    setRemainingAttempts(5);
+    setIsLoading(true);
+    try {
+      await sendOtp({ phone: formData.phone });
+      startResendCooldown();
+      setApiError(""); // Clear any previous errors
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setApiError(err.body || "Failed to resend OTP.");
+      } else {
+        setApiError("Network error. Please check your connection.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleVerify = async (otpValue: string) => {
@@ -55,11 +136,38 @@ export default function Register() {
         setApiError("OTP verification failed. Please try again.");
         return;
       }
+      // Success — proceed to signup
+      setOtpAttempts(0);
       setSessionToken(result.session_token);
       setStep("creating");
     } catch (err) {
+      // CRITICAL: Stay on OTP step — NEVER redirect on wrong OTP.
+      // Clear the OTP input so the user can retype cleanly.
+      setOtp("");
+      const newAttempts = otpAttempts + 1;
+      setOtpAttempts(newAttempts);
+
       if (err instanceof ApiError) {
-        setApiError(err.body || "Invalid or expired OTP.");
+        // Parse remaining_attempts from structured backend response
+        try {
+          // The body might be the raw message (already parsed by client.ts),
+          // or it might contain JSON with remaining_attempts
+          const bodyStr = err.body;
+          // Check if it contains structured info
+          if (bodyStr.includes('remaining')) {
+            setApiError(bodyStr);
+          } else {
+            const remaining = Math.max(0, 5 - newAttempts);
+            setRemainingAttempts(remaining);
+            if (remaining === 0) {
+              setApiError("Too many failed attempts. Please request a new OTP.");
+            } else {
+              setApiError(`Invalid OTP. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`);
+            }
+          }
+        } catch {
+          setApiError(err.body || "Invalid or expired OTP.");
+        }
       } else {
         setApiError("Network error. Please check your connection.");
       }
@@ -94,10 +202,20 @@ export default function Register() {
         await sendOtp({ phone: phoneStr });
         // Store the correctly formatted phone back in state so verification uses it
         setFormData((prev) => ({ ...prev, phone: phoneStr }));
+        setOtpAttempts(0);
+        setRemainingAttempts(5);
+        startResendCooldown();
         setStep("otp");
       } catch (err) {
         if (err instanceof ApiError) {
-          setApiError(err.body || "Failed to send OTP. Please try again.");
+          // Handle 409 — user already has an account
+          if (err.status === 409) {
+            setShowLoginRedirect(true);
+            setApiError("An account with this phone number already exists.");
+            setTimeout(() => navigate("/login"), 3000);
+          } else {
+            setApiError(err.body || "Failed to send OTP. Please try again.");
+          }
         } else {
           setApiError("Network error. Please check your connection.");
         }
@@ -168,15 +286,29 @@ export default function Register() {
       />
 
       {/* Floating content */}
-      <div className="relative z-10 min-h-screen p-6 text-white">
-        <RegisterHeader />
+      <div className="relative z-10 min-h-screen p-6 text-white flex flex-col justify-between">
+        {/* BRAND HEADER */}
+        <header className="flex items-center justify-center w-full py-4">
+          <Link to="/" className="text-3xl tracking-widest font-display text-[#e8dcc8]">
+            HADI
+          </Link>
+        </header>
 
-      <div className="max-w-md mx-auto">
-        <RegisterHero />
+        {/* MAIN CONTENT */}
+        <div className="max-w-[400px] mx-auto w-full flex-1 flex flex-col justify-center">
+          <RegisterHero />
 
         {apiError && (
           <Alert variant="error" className="anim-rise mb-4">
             {apiError}
+            {showLoginRedirect && (
+              <span className="block mt-1 text-xs">
+                Redirecting to login page…{" "}
+                <Link to="/login" className="underline text-[#c9a96e]">
+                  Go now
+                </Link>
+              </span>
+            )}
           </Alert>
         )}
 
@@ -209,11 +341,33 @@ export default function Register() {
             >
               {isLoading ? "Verifying…" : "VERIFY OTP"}
             </button>
+
+            {/* Resend OTP + cooldown timer — MNC standard (30s cooldown) */}
+            <div className="flex items-center justify-between mt-3">
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={isLoading || resendCooldown > 0}
+                className="text-xs text-[#c9a96e]/70 hover:text-[#c9a96e] transition disabled:text-white/20 disabled:cursor-not-allowed"
+              >
+                {resendCooldown > 0
+                  ? `Resend OTP in ${resendCooldown}s`
+                  : "Resend OTP"}
+              </button>
+              {otpAttempts > 0 && remainingAttempts > 0 && (
+                <span className="text-xs text-amber-400/80">
+                  {remainingAttempts} attempt{remainingAttempts !== 1 ? "s" : ""} left
+                </span>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={() => {
                 setStep("form");
                 setOtp("");
+                setOtpAttempts(0);
+                setRemainingAttempts(5);
                 setApiError("");
               }}
               className="w-full mt-2 py-2 text-xs text-white/40 hover:text-white/60 transition"
@@ -225,37 +379,35 @@ export default function Register() {
 
         {step === "form" && (
           <>
-            <div className="mb-6 space-y-3">
-              <button
-                onClick={() => alert("Google SSO coming soon")}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-[#1a1a1a] border border-[#333] text-white hover:bg-[#222] transition-colors"
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                </svg>
-                Continue with Google
-              </button>
+            <div className="mb-6 space-y-3 flex flex-col items-center">
+              <div className="w-full flex justify-center rounded-lg">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => {
+                    setApiError("Google Sign-In was unsuccessful. Try again.");
+                  }}
+                  theme="filled_black"
+                  shape="rectangular"
+                  width={String(buttonWidth)}
+                  text="continue_with"
+                />
+              </div>
               
               <button
                 onClick={() => {
-                  setGuestSession(true);
                   navigate("/");
                 }}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-transparent border border-[#c9a96e] text-[#c9a96e] hover:bg-[#c9a96e]/10 transition-colors"
+                className="w-full flex items-center justify-center gap-3 py-2.5 text-[15px] font-medium tracking-tight rounded-lg bg-transparent border border-[#c9a96e]/50 text-[#c9a96e] hover:bg-[#c9a96e]/10 hover:border-[#c9a96e] transition-all shadow-sm"
               >
                 Continue as Guest
               </button>
             </div>
 
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex-1 h-px bg-white/10" />
-              <span className="text-xs text-white/40 uppercase tracking-wider">or register with email</span>
-              <div className="flex-1 h-px bg-white/10" />
+              <div className="flex-1 h-px bg-white/5" />
+              <span className="text-[11px] text-zinc-500 uppercase tracking-widest font-medium">or register with email</span>
+              <div className="flex-1 h-px bg-white/5" />
             </div>
 
             <RegisterForm
@@ -265,9 +417,17 @@ export default function Register() {
             />
           </>
         )}
-      </div>
+        </div>
 
-      <RegisterFooter />
+        {/* CONSOLIDATED FOOTER */}
+        <div className="w-full text-center pb-6 mt-8">
+          <p className="text-sm text-white/50">
+            Already have an account?{" "}
+            <Link to="/login" className="text-[#c9a96e] hover:text-white transition-colors font-medium tracking-wide">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

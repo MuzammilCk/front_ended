@@ -9,7 +9,7 @@ import Footer from "../components/home-components/Footer";
 
 function Home() {
   return (
-    <div className="min-h-screen bg-[#0d0905] text-[#e8dcc8] font-serif">
+    <div className="min-h-screen bg-[#0d0905] text-[#e8dcc8] font-serif pb-20 md:pb-0">
       <div className="grain">
         {/* ── NAV ── */}
         <Navbar />

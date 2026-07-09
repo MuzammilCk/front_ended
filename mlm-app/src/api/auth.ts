@@ -106,6 +106,17 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
   return response;
 }
 
+// ─── Login (Google SSO) ──────────────────────────────────────────────────────
+
+export async function googleLogin(credential: string): Promise<LoginResponse> {
+  const response = await apiRequest<LoginResponse>('/auth/google', {
+    method: 'POST',
+    body: JSON.stringify({ credential }),
+  });
+  setTokens(response.access_token, response.refresh_token);
+  return response;
+}
+
 // ─── Me / Onboarding Status ──────────────────────────────────────────────────
 
 export async function getOnboardingStatus(): Promise<OnboardingStatus> {
